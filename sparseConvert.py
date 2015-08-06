@@ -22,8 +22,11 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-import libmtxio
+import libSparseConvert
 import argparse
+import pprint
+pp = pprint.PrettyPrinter()
+
 
 argparser = argparse.ArgumentParser(description="""utility to convert matrix 
 market files to hercm and vice-versa""")
@@ -45,7 +48,7 @@ argparser.add_argument('-hercm','-e',
 						help="""specifies the path of the hercm file to be read,
 converts it to hercm, then writes it out with the same name and the mtx
 extension """)
-argparse.add_arguments('--print','-p',
+argparser.add_argument('--print','-p',
 					   action='store_true',
 					   default = False, 
 					   help = """Print the matrix in human readable format 
@@ -67,31 +70,32 @@ if mtxFileName != None and hercmFileName != None:
 
 if outputFileName == None:
 	if mtxFileName != None: 
-		outputFileName = mtxFileName[:-3] + "hercm"
+		outputFileName = mtxFileName[:-4] + "hercm"
 	else:
-		outputFileName = hercmFileName[:-4] + "mtx"
+		outputFileName = hercmFileName[:-5] + "mtx"
 
-MTXIO = libmtxio.mtxio()
+SC = libSparseConvert.sparseConvert() 
 
 if mtxFileName != None: 
-	status = MTXIO.readMtx(mtxFileName)
-	if status != MTXIO.STATUS_SUCCESS:
-		print("FATAL: could not read mtx file")
+	if not SC.readMatrix(mtxFileName,'mtx'):
+		print("FATAL: libSparseConvert encountered an error, here is the log:")
+		pp.pprint(SC.logger.contents)
 		exit()
 
-	status = MTXIO.writeHercm(outputFileName)
-	if status != MTXIO.STATUS_SUCCESS:
-		print("FATAL: could not write hercm file")
-		exit() 
+	if not SC.writeMatrix(outputFileName,'hercm'):
+		print("FATAL: libSparseConvert encountered an error, here is the log:")
+		pp.pprint(SC.logger.contents)
+		exit()
 
 if hercmFileName != None:
-	status = MTXIO.readHercm(hercmFileName)
-	if status != MTXIO.STATUS_SUCCESS: 
-		print("FATAL: could not read hercm file")
+	if not SC.readMatrix(hercmFileName,'hercm'):
+		print("FATAL: libSparseConvert encountered an error, here is the log:")
+		pp.pprint(SC.logger.contents)
 		exit()
-	status = MTXIO.writeMtx(outputFileName)
-	if status != MTXIO.STATUS_SUCCESS: 
-		print("FATAL: could not write to mtx file")
-		exit() 
+
+	if not SC.writeMatrix(outputFileName, 'mtx'):
+		print("FATAL: libSparseConvert encountered an error, here is the log:")
+		pp.pprint(SC.logger.contents)
+		exit()
 
 	

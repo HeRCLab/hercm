@@ -254,7 +254,8 @@ class hercmio:
 				fileObject.write(line+'\n')
 				line = '' 
 				itemcounter = 0
-		fileObject.write(line+'\n')
+		if itemcounter > 0:
+			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
 		fileObject.write('VAL LIST FLOAT\n')
@@ -267,7 +268,8 @@ class hercmio:
 				fileObject.write(line+'\n')
 				line = '' 
 				itemcounter = 0
-		fileObject.write(line+'\n')
+		if itemcounter > 0:
+			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
 		fileObject.write('ROW LIST INT\n')
@@ -280,7 +282,8 @@ class hercmio:
 				fileObject.write(line+'\n')
 				line = '' 
 				itemcounter = 0
-		fileObject.write(line+'\n')
+		if itemcounter > 0:
+			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
 		fileObject.write('COL LIST INT\n')
@@ -293,7 +296,8 @@ class hercmio:
 				fileObject.write(line+'\n')
 				line = '' 
 				itemcounter = 0
-		fileObject.write(line+'\n')
+		if itemcounter > 0:
+			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
 		fileObject.close() 
@@ -314,6 +318,7 @@ class sparseConvert:
 			this.logger = logger 
 
 		this.HERCMIO = hercmio(this.logger)
+
 
 	def readMatrix(this, filename, format):
 		# filename is the string path to the matrix file to open
@@ -352,6 +357,8 @@ class sparseConvert:
 
 				if 'symmetric' in io.mminfo(filename):
 					this.hercm['symmetry'] = "SYM"
+				else:
+					this.hercm['symmetry'] 	= "ASYM"
 	
 				this.hercm['val'] 			= rawMatrix.data.tolist()
 				this.hercm['col'] 			= rawMatrix.col.tolist()
@@ -359,7 +366,6 @@ class sparseConvert:
 				(matrixWidth, matrixHeight) = rawMatrix.shape
 				this.hercm['height'] 		= int(matrixHeight)
 				this.hercm['width'] 		= int(matrixWidth)
-				this.hercm['symmetry'] 		= "ASYM"
 				this.hercm['nzentries']     = len(this.hercm['val'])
 				vs = this.HERCMIO.generateVerificationSum(this.hercm)
 				this.hercm['verification']  = vs 
@@ -395,11 +401,18 @@ class sparseConvert:
 				this.logger.log("wrote matrix successfully") 
 				return True 
 		elif format == 'mtx':
+			print("WARNING: scipy.io.mmwrite does not support writing mtx ")
+			print("matrices in symmetric mode! Matrix will be converted to ")
+			print("Asymmetric! ")
 	
 			try:
 				scipy.io.mmwrite(filename, this.HSM.getInFormat('coo'))
+			except ValueError as e: 
+				this.logger.log("""encountered ValueError exception while
+ writing file. Exception: {0}. You probably have out of bounds indices in row or
+ col""".format(e), 'error')
 			except Exception as e:
-				this.logger.log("encountered exception while wiriting" +
+				this.logger.log("encountered exception while writing" +
 								" matrix: {0} (412)".format(str(e)),'error')
 				return None
 	
