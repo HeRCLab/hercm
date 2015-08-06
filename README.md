@@ -1,4 +1,6 @@
-# HeRCM 
+# HeRCM
+**ATTENTION**: hercm is still under active development. Most of the code here has not been tested extensively, and the c++ io implementation as well as hercmExplorer are still unfinished. 
+
 HeRCM is a storage format for sparse matrices, origonally created for the HeRC research group at the University of South Carolina. The purpose of HeRCM is to provide a simple, easy to parse storage format as an alternative to matrix market or Harwell-Boeing. HeRCM files are rigid in structure, and while reference implementations are provided in C++98 and Python 3.4, io libraries should be trivial to implement in any language. 
 
 The HeRCM spec can be viewed [here](doc/hercm-spec.md).
