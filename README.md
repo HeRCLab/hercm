@@ -17,3 +17,6 @@ libhsm, short for lib HeRC Sparse Matrix, provides a Python class for HeRCM, per
 
 ## sparseConvet 
 A wrapper and fronted for sparseConvert, created for the purpose of batch converting large volumes of files 
+
+# Known issues 
+1. symmetric matrix support was only added to scipy.io.mmio.mmwrite [recently](https://github.com/scipy/scipy/pull/4875). Until this fix makes it downstream, all matrices accessed will be converted silently to asymmetric. As this is a bug with scipy, creating a workaround is considered low priority. 

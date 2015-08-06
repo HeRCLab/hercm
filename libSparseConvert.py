@@ -3,7 +3,7 @@ import libhsm
 import clogs
 import scipy
 import numpy
-
+import scipy.io
 class hercmio:
 	# permits IO on HeRCM files 
 	def __init__(this, logger=None):
@@ -349,6 +349,9 @@ class sparseConvert:
 			try:
 
 				rawMatrix = scipy.sparse.coo_matrix(scipy.io.mmread(filename)) 
+
+				if 'symmetric' in io.mminfo(filename):
+					this.hercm['symmetry'] = "SYM"
 	
 				this.hercm['val'] 			= rawMatrix.data.tolist()
 				this.hercm['col'] 			= rawMatrix.col.tolist()
@@ -362,33 +365,7 @@ class sparseConvert:
 				this.hercm['verification']  = vs 
 				this.hercm['remarks']		= []
 				
-				if 'symmetric' in io.mminfo(filename):
-					this.hercm['symmetry'] = "SYM"
-	
-					list_to_delete = []
-	
-					"""
-					# This code thanks to Steve Rubin
-					# deletes duplicate values in lower triangle
-					for i in range(0, len(matrix_numbers_list)):
-						element_column = matrix_numbers_list[i][1]
-						element_row = matrix_numbers_list[i][0]
-						element_value = matrix_numbers_list[i][2]
-						for j in range ((i+1), len(matrix_numbers_list)):
-							if(matrix_numbers_list[j][1] == element_row and matrix_numbers_list[j][0] == element_column 
-								and matrix_numbers_list[j][2] == element_value):
-								list_to_delete.append(j)
-								
-						
-					print ""
-					#ERROR HERE: with indexes
-					for i in range(0, len(list_to_delete)):
-						print "deleting " + str(matrix_numbers_list[list_to_delete[i]]) + " as the value has a duplicate"
-						del matrix_numbers_list[list_to_delete[i]]
-						number_of_nnz_deleted += 1 
 					
-					"""
-	
 			except IOError: # make sure the file exists and is readable
 				this.logger.log("could not open matrix file (375)", "error")
 				return None
@@ -407,6 +384,8 @@ class sparseConvert:
 		# returns True on success, None on failure
 		this.logger.log("writing matrix to file {0} in format {1}"
 						.format(filename, format))
+
+
 		if format == 'hercm':
 			if not this.HERCMIO.write(this.hercm, filename):
 				this.logger.log("could not write matrix, general failure" +
@@ -416,15 +395,12 @@ class sparseConvert:
 				this.logger.log("wrote matrix successfully") 
 				return True 
 		elif format == 'mtx':
-			from scipy import io
-			from scipy.sparse import csr_matrix 
-			from numpy import array	
 	
 			try:
 				scipy.io.mmwrite(filename, this.HSM.getInFormat('coo'))
 			except Exception as e:
 				this.logger.log("encountered exception while wiriting" +
-								" matrix {0} (412)".format(str(e),'error'))
+								" matrix: {0} (412)".format(str(e)),'error')
 				return None
 	
 			return True 
