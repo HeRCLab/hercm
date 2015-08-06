@@ -6,15 +6,15 @@ import datetime
 
 class clogs:
 	def __init__(this):
-		this.log = [] 
-	def log(message, level='info'):
+		this.contents = [] 
+	def log(this, message, level='info'):
 		# logs the string message to this.log in the format 'timestamp|level|message'
 
 		message = level.upper() + '|' + message
 
 		timeStamp = time.time()
 		timeStamp = datetime.datetime.fromtimestamp(timeStamp).strftime('%Y-%m-%d %H:%M:%S')
-		message = timestamp + '|' + message
+		message = timeStamp + '|' + message
 
-		this.log.append(message) 
+		this.contents.append(message) 
 
