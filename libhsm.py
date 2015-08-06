@@ -11,8 +11,8 @@ class hsm:
 		
 		# this serves as the internal representation 
 		this.contents = {'val'		 :None,
-						 'row_ptr'   :None,
-						 'colind'	 :None,
+						 'row'   :None,
+						 'col'	 :None,
 						 'nzentries' :None,
 						 'height'	 :None,
 						 'width'	 :None,

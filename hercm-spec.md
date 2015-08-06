@@ -124,7 +124,7 @@ Thus, the header would be:
 
 Thus, the full matrix could be reproduced as such: 
 ```
-HERCM FILE CSR 5 5 8 ASYM 7 
+HERCM 5 5 8 ASYM 7 
 REMARKS LIST STRING
 This is an example matrix created for the HeRCM documentation. This field is ignored because it's title is REMARKS. 
 ENDFIELD

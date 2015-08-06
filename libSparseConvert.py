@@ -1,6 +1,102 @@
-# wrapper for scipy mtx io functions
-# can convert between mtx and hercm
+# permits IO and conversion on various sparse matrix formats.
 import libhsm 
+import clogs
+
+
+class hercmio:
+	# permits IO on HeRCM files 
+	def __init__(this, logger=None):
+		# logger may optionally by an existing instance of clogs.clogs 
+		if logger == None:
+			this.logger = clogs.clogs 
+		else:
+			this.logger = logger
+
+		this.logger.log('new hercmio instance instantiated')
+
+	def read(this, filename):
+		# reads the HeRCM file specified by the string filename and stores it as
+		# a dict 
+
+		# example: TODO
+
+		# returns None on error 
+
+		contents = {} 
+
+		this.logger.log("Reading HeRCM file {0}".format(filename))
+
+		try:
+			fileObject = open(filename, 'r')
+		except FileNotFoundError: 
+			this.logger.log("could not open file: file not found (31)", "error")
+			return None
+		except PermissionError: 
+			this.logger.log("could not open file: permissions error (34)", 
+							"error")
+			return None 
+
+		lines = fileObject.readlines() 
+		fileObject.close() 
+
+		# read in the header
+		header = lines[0]
+		lines.pop(0)
+		splitHeader = header.split() 
+
+		if len(splitHeader) != 6:
+			this.logger.log("invalid header: too few fields (46)","error")
+			return None
+
+		if splitHeader[0] != 'HERCM':
+			this.logger.log("could not read file, not a HeRCM file (50)", 
+						    "error")
+			return None 
+		try:
+			width = int(splitHeader[1])
+			height = int(splitHeader[2])
+			nzentries = int(splitHeader[3])
+		except ValueError:
+			this.logger.log("could not read file, mangled header (57)", "error")
+		symmetry = splitHeader[4]
+		verification = splitHeader[5]
+
+		['width'] = width
+		['height'] = height
+		['nzentries'] = nzentries 
+		['symmetry'] = symmetry
+		['verification'] = verification
+		['val'] = []
+		['col'] = []
+		['row'] = []
+
+		inField 	    = False
+		currentHeader   = ''
+		fieldname	    = ''
+		ctype		    = ''
+		vtype 		    = ''
+		currentContents = None
+		for line in lines:
+			if not inField:
+				currentHeader = line 
+				splitHeader   = currentHeader.split()
+				fieldname 	  = splitHeader[0]
+				ctype 		  = splitHeader[1]
+				vtype 		  = splitHeader[1]
+				inField = True
+			elif 'ENDFIELD' in line:
+				inField = False 
+				contents[fieldname.lower()] = currentContents 
+				currentContents = None
+				inField = False 
+			else:
+				if ctype == 'SINGLE':
+					if vtype == 'INT':
+						try:
+							currentContents.append(int(line))
+						except ValueError:
+							this.logger.log("could not ")
+
 
 
 
@@ -11,6 +107,8 @@ class mtxio:
 	def __init__(this):
 		this.HSM = libhsm.hsm()
 		this.hercm = this.HSM.contents 
+
+	def readMatrix(this, filename, format)
 	
 	def readMtx(this, filename):
 		from scipy import io
