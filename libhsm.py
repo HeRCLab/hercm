@@ -2,6 +2,9 @@
 # library for storing csr matricies in hercm format, and for interacting with 
 # said matricies 
 
+import numpy 
+import scipy
+
 class hsm: 
 	# hercm matrix class 
 	# stores hercm matricies and permits access by various methods 
@@ -11,27 +14,30 @@ class hsm:
 		
 		# this serves as the internal representation 
 		this.contents = {'val'		 :None,
-						 'row'   :None,
-						 'col'	 :None,
+						 'row'   	 :None,
+						 'col'	 	 :None,
 						 'nzentries' :None,
 						 'height'	 :None,
 						 'width'	 :None,
 						 'symmetry'  :None}
 
-	def getScipyCSR(this):
-		# returns scipy.sparse.csr_matrix of contents
-		from numpy import asarray 
-		val 	= asarray(this.contents['val'])
-		row_ptr = asarray(this.contents['row_ptr'])
-		colind  = asarray(this.contents['colind'])
-		width   = this.contents['width']
-		height  = this.contents['height']
+	
+	def getInFormat(this, format):
+		# returns the matrix as a scipy.sparse type 
+		# format is any string valid for scipy.sparse.coo_matrix.asformat
+		# http://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_matrix.asformat.html#scipy.sparse.coo_matrix.asformat
+		
+		scipyMatrix = scipy.sparse.coo_matrix((this.contents['val'], 
+											   (this.contents['row'], 
+											   	this.contents['col'])),
+											   shape = (this.contents['height'],
+											   			this.contents['width'])
+											   )
 
-		from scipy.sparse import csr_matrix 
-		return csr_matrix((val,
-					       colind,
-						   row_ptr),
-						   shape = (width, height))
+		return scipyMatrix.asformat(format)
+
+
+
 	def getValue(this, row, col):
 		# returns the value stored at row, col 
 		# returns None if the value cannot be found 
@@ -45,14 +51,9 @@ class hsm:
 		if col < 0:
 			return None 
 
-		# index in val of the first value of the desired row 
-		rowStartIndex = this.contents['row_ptr'][row]
-
-		# index in val of the last value of the desired row
-		rowEndIndex   = this.contents['row_ptr'][row+1] -1 
-
-		for index in range(rowStartIndex, rowEndIndex):
-			if this.contents['colind'][index] == col:
-				return this.contents['val'][index]
+		for i in range(0, this.contents['nzentries']):
+			if this.contents['row'][i] == row:
+				if this.contents['col'][i] == col:
+					return this.contents['val'][i]
 
 		return 0

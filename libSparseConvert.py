@@ -1,7 +1,8 @@
 # permits IO and conversion on various sparse matrix formats.
 import libhsm 
 import clogs
-
+import scipy
+import numpy
 
 class hercmio:
 	# permits IO on HeRCM files 
@@ -155,16 +156,9 @@ class hercmio:
 			this.logger.log("verification failed (155)", "error")
 			return None 
 
-
-	def verify(this, hercm):
-		# verifies the hercm provided 
-		# hercm should be formatted the same way as the return value of read()
-
-		# returns True of the hercm is valid
-		# returns False if it is not 
-		# returns None if an error is encountered 
-
-		this.logger.log("verifying HeRCM...")
+	def generateVerificationSum(this,hercm):
+		# returns the verification sum of hercm
+		# hercm should be the same format as the return  of read()
 
 		fields = ['val','col','row']
 		sum = 0
@@ -178,9 +172,30 @@ class hercmio:
 			except TypeError:
 				this.logger.log("could not verify, mangled field (159)","error")
 				return None 
+
+		return sum % float(hercm['nzentries'])
 		
+		
+
+	def verify(this, hercm):
+		# verifies the hercm provided 
+		# hercm should be formatted the same way as the return value of read()
+
+		# returns True of the hercm is valid
+		# returns False if it is not 
+		# returns None if an error is encountered 
+
+		this.logger.log("verifying HeRCM...")
+
+
+		
+
+		verification = this.generateVerificationSum(hercm)
+		if verification == None: 
+			this.logger.log("could not generate verification sum (195)",'error')
+			return None 
+
 		try: 
-			verification = sum % float(hercm['nzentries']) 
 			if verification == hercm['verification']:
 				this.logger.log("verification passed")
 				return True
@@ -284,6 +299,139 @@ class hercmio:
 		fileObject.close() 
 		return True 
 
+
+class sparseConvert:
+	def __init__(this, logger=None):
+		# if a clogs.clogs instance is given as logger, it will be used for 
+		# logging. Otherwise, a new clogs.clogs instance will be created 
+
+		this.HSM = libhsm.hsm() 
+		this.hercm = this.HSM.contents
+		
+		if logger == None:
+			this.logger = clogs.clogs() 
+		else:
+			this.logger = logger 
+
+		this.HERCMIO = hercmio(this.logger)
+
+	def readMatrix(this, filename, format):
+		# filename is the string path to the matrix file to open
+		# format is the string 'hercm' or 'mtx' specifying matrix format 
+
+		# reads the matrix into this.HSM for later processing 
+		# converts non-hercm matrices to hercm internally 
+
+		# returns None on failure, True on success 
+
+		this.logger.log("reading matrix {0} which is format {1}"
+					 	.format(filename, format))
+
+		if format == 'hercm':
+			matrix = this.HERCMIO.read(filename)
+			if matrix == None:
+				this.logger.log("could not read matrix, general failure (319)",
+								"error")
+				return None 
+			this.logger.log("finished reading matrix")
+			this.HSM.contents = matrix 
+			return True 
+		
+		elif format == 'mtx':
+			from scipy import io
+			from scipy.sparse import csr_matrix 
+			from numpy import array
+	
+			# reads in an MTX file and converts it to hercm 
+	
+			# returns STATUS_SUCCESS or STATUS_ERROR
+	
+			try:
+
+				rawMatrix = scipy.sparse.coo_matrix(scipy.io.mmread(filename)) 
+	
+				this.hercm['val'] 			= rawMatrix.data.tolist()
+				this.hercm['col'] 			= rawMatrix.col.tolist()
+				this.hercm['row'] 			= rawMatrix.row.tolist()
+				(matrixWidth, matrixHeight) = rawMatrix.shape
+				this.hercm['height'] 		= int(matrixHeight)
+				this.hercm['width'] 		= int(matrixWidth)
+				this.hercm['symmetry'] 		= "ASYM"
+				this.hercm['nzentries']     = len(this.hercm['val'])
+				vs = this.HERCMIO.generateVerificationSum(this.hercm)
+				this.hercm['verification']  = vs 
+				this.hercm['remarks']		= []
+				
+				if 'symmetric' in io.mminfo(filename):
+					this.hercm['symmetry'] = "SYM"
+	
+					list_to_delete = []
+	
+					"""
+					# This code thanks to Steve Rubin
+					# deletes duplicate values in lower triangle
+					for i in range(0, len(matrix_numbers_list)):
+						element_column = matrix_numbers_list[i][1]
+						element_row = matrix_numbers_list[i][0]
+						element_value = matrix_numbers_list[i][2]
+						for j in range ((i+1), len(matrix_numbers_list)):
+							if(matrix_numbers_list[j][1] == element_row and matrix_numbers_list[j][0] == element_column 
+								and matrix_numbers_list[j][2] == element_value):
+								list_to_delete.append(j)
+								
+						
+					print ""
+					#ERROR HERE: with indexes
+					for i in range(0, len(list_to_delete)):
+						print "deleting " + str(matrix_numbers_list[list_to_delete[i]]) + " as the value has a duplicate"
+						del matrix_numbers_list[list_to_delete[i]]
+						number_of_nnz_deleted += 1 
+					
+					"""
+	
+			except IOError: # make sure the file exists and is readable
+				this.logger.log("could not open matrix file (375)", "error")
+				return None
+			return True
+
+		else:
+			this.logger.log("format must be hercm or mtx, cannot use format {0}"
+							.format(format), "error")
+			return None 
+
+
+	def writeMatrix(this, filename, format):
+		# writes this.HSM to the file 
+		# filename is a string indicating path of file
+		# format is a string indicating file format (mtx or hercm)
+		# returns True on success, None on failure
+		this.logger.log("writing matrix to file {0} in format {1}"
+						.format(filename, format))
+		if format == 'hercm':
+			if not this.HERCMIO.write(this.hercm, filename):
+				this.logger.log("could not write matrix, general failure" +
+								" (395)","error")
+				return None 
+			else:
+				this.logger.log("wrote matrix successfully") 
+				return True 
+		elif format == 'mtx':
+			from scipy import io
+			from scipy.sparse import csr_matrix 
+			from numpy import array	
+	
+			try:
+				scipy.io.mmwrite(filename, this.HSM.getInFormat('coo'))
+			except Exception as e:
+				this.logger.log("encountered exception while wiriting" +
+								" matrix {0} (412)".format(str(e),'error'))
+				return None
+	
+			return True 
+		else:
+			this.logger.log("format must be hercm or mtx, cannot use format {0}"
+							.format(format), 'error')
+			return None 
 
 
 
