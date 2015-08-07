@@ -4,11 +4,6 @@ The HeRCMio c++ reference implementation is written in c++98, and has no depende
 # Compiling 
 The library comes with a make file. To compile the example, use `make hercmio-example`. HeRCMio can also be compiled to a .o or .so file directly with `make hercmio.o` or `make hercmio.so`, respectively. 
 
-# Caveats and known issues 
-* `REMARKS` field is ignored entirely, meaning any comments will be lost if a matrix is read then written . 
-* field's c and v type are not checked. For example, HeRCMio will always read VAL as floating point, even if it is populated with ints, and it's header adjusted accordingly. 
-* `makeRowMajor()` uses a type of bubble sort, and will probably be slow on large matrices
-
 # hercmio-example
 hercmio-example is a small c++98 program included with HeRCMio for the purpose of testing, and to demonstrate proper calling conventions. Instructions for compiling hercmio-example are above. Usage is as follows. 
 
