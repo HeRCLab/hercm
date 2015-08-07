@@ -22,6 +22,3 @@ A wrapper and fronted for sparseConvert, created for the purpose of batch conver
 
 ## Documentation 
 Documentation may be found in the [doc](doc) folder. 
-
-# Known issues 
-1. symmetric matrix support was only added to scipy.io.mmio.mmwrite [recently](https://github.com/scipy/scipy/pull/4875). Until this fix makes it downstream, any matrices written in mtx format will be written as asymmetrical. 
