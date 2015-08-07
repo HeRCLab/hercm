@@ -31,23 +31,22 @@ pp = pprint.PrettyPrinter()
 argparser = argparse.ArgumentParser(description="""utility to convert matrix 
 market files to hercm and vice-versa""")
 
-argparser.add_argument('-mtx','-m',
+argparser.add_argument('-input','-i',
 						nargs=1,
-						default=[None],
-						help="""specifies the path to the mtx file to read,
-converts it to hercm, then writes it out with the same name and the hermc 
-extension""")
+						required=True,
+						help="""Specifies the path to the input matrix""")
 argparser.add_argument('-output','-o',
 						nargs=1,
-						default=[None],
-						help="""specifies the output file for either -mtx or
--hercm; overrides the generated file names for either option""")
-argparser.add_argument('-hercm','-e',
+						required=True,
+						help="""Specifies the path of the output matrix""")
+argparser.add_argument('-inputformat','-if',
+						nargs =1, 
+						required=True, 
+						help="Specifies the format of the input matrix")
+argparser.add_argument('-outputformat','-of',
 						nargs=1,
-						default=[None],
-						help="""specifies the path of the hercm file to be read,
-converts it to hercm, then writes it out with the same name and the mtx
-extension """)
+						required=True,
+						help="Specifies the format of the output matrix")
 argparser.add_argument('--print','-p',
 					   action='store_true',
 					   default = False, 
@@ -56,47 +55,32 @@ before writing. Note that this is liable to cause excessive output on stdout,
 or out of memory errors""")
 
 arguments = argparser.parse_args() 
-mtxFileName = arguments.mtx[0]
-hercmFileName = arguments.hercm[0]
-outputFileName = arguments.output[0] 
+inputFileName  = arguments.input[0]
+outputFileName = arguments.output[0]
+inputFormat    = arguments.inputformat[0]
+outputFormat   = arguments.outputformat[0]
 printMatrix = arguments.print 
 
-if mtxFileName == None and hercmFileName == None:
-	print("FATAL: an input file must be specified")
-	exit()
-if mtxFileName != None and hercmFileName != None:
-	print("FATAL: exactly one input file must be specified")
-	exit()
+supportedFormats = ['mtx','hercm']
 
-if outputFileName == None:
-	if mtxFileName != None: 
-		outputFileName = mtxFileName[:-3] + "hercm"
-	else:
-		outputFileName = hercmFileName[:-4] + "mtx"
+if outputFormat not in supportedFormats:
+	print("FATAL: output format {0} is unsupported".format(outputFormat))
+	exit()
+if inputFormat not in supportedFormats:
+	print("FATAL: input format {1} is unsupported".format(inputFormat))
+	exit()
 
 SC = libSparseConvert.sparseConvert() 
 
-if mtxFileName != None: 
-	if not SC.readMatrix(mtxFileName,'mtx'):
-		print("FATAL: libSparseConvert encountered an error, here is the log:")
-		pp.pprint(SC.logger.contents)
-		exit()
+if not SC.readMatrix(inputFileName, inputFormat):
+	print("FATAL: libSparseConvert encountered an error. Log follows...")
+	pp.pprint(SC.logger.contents)
+	exit()
+if not SC.writeMatrix(outputFileName, outputFormat):
+	print("FATAL: libSparseConvert encountered an error. Log follows...")
+	pp.pprint(SC.logger.contents)
+	exit()
 
-	if not SC.writeMatrix(outputFileName,'hercm'):
-		print("FATAL: libSparseConvert encountered an error, here is the log:")
-		pp.pprint(SC.logger.contents)
-		exit()
-
-if hercmFileName != None:
-	if not SC.readMatrix(hercmFileName,'hercm'):
-		print("FATAL: libSparseConvert encountered an error, here is the log:")
-		pp.pprint(SC.logger.contents)
-		exit()
-
-	if not SC.writeMatrix(outputFileName, 'mtx'):
-		print("FATAL: libSparseConvert encountered an error, here is the log:")
-		pp.pprint(SC.logger.contents)
-		exit()
 
 if printMatrix:
 	print(SC.HSM.getInFormat('coo').todense())
