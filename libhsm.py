@@ -57,3 +57,7 @@ class hsm:
 					return this.contents['val'][i]
 
 		return 0
+
+	def makeRowMajor(this):
+		# re orders this matrix such that it is row major 
+		

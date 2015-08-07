@@ -1,22 +1,3 @@
-/* USAGE
-./hercmio-example read [file] - read the hercm file [file] using hermio, print 
-as csr matrix to stdout
-
-./hercmio-example write [infile] [outfile] - reads the file [infile], converts 
-to hercm csr matrix and writes to [outfile] 
-
-for the above, [infile] should contain one or more lines, each with the same 
-number of space-delineated values representing a matrix. 
-
-An example might look like this: 
-- begin -
-1 2 3
-4 5 6
-7 8 9
-- end - 
-Do not include "- begin -" or "- end -"
-*/
-
 #include "hercmio.hpp"
 #include <iomanip>
 
