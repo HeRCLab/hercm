@@ -141,11 +141,7 @@ int readHercm(string fileName, float * val, int * row, int * col)
 	ifstream targetFile(fileName.c_str()); // instantiate the file object
 	// c_str is required pre-c++11 as ifstream expects a const char* 
 
-	char* validFieldsStringArray [] = {"VAL","ROW","COL"};
-	// this will throw compiler warnings, but it is the easiest way to 
-	// initialize a data structure of strings in c++ 98.
-	vector<string> validFields(validFieldsStringArray, 
-							   validFieldsStringArray+3); 
+ 
 	string currentField; // this will store the last read field
 	vector<string> splitLine; 
 
@@ -426,9 +422,10 @@ int writeHercm(string fileName,
 			   int width, 
 			   int nzentries, 
 			   float * val, 
-			   int * row_ptr, 
-			   int * colind, 
-			   string symmetry)
+			   int * row, 
+			   int * col, 
+			   string symmetry, 
+			   float verification)
 {
 	// writes a CSR matrix to a file 
 
@@ -440,9 +437,13 @@ int writeHercm(string fileName,
 	// row_ptr - CSR row_ptr array
 	// colind - CSR colind array 
 	// symmetry - symmetry of matrix, either SYM or ASYM per hercm spec
+	// verification - verification sum as described in the HeRCM spec
 
 	// returns HERCMIO_STATUS_FAILURE on failure
 	// returns HERCMIO_STATUS_SUCCESS otherwise
+
+	makeRowMajor(row, col, val, nzentries); // make sure we are in row major
+	// format 
 
 	ofstream targetFile (fileName.c_str());
 	string header; // the header 
@@ -460,41 +461,94 @@ int writeHercm(string fileName,
 		return HERCMIO_STATUS_FAILURE;
 	}
 
-	header = "HERCM FILE CSR ";
+	header = "HERCM ";
 	// these are the easiest ways to cast ints and floats to string
-	header.append(static_cast<ostringstream*>( &(ostringstream() << width) )->str()); 
+	header.append(static_cast<ostringstream*>( 
+				  &(ostringstream() << width) )->str()); 
 	header.append(" ");
-	header.append(static_cast<ostringstream*>( &(ostringstream() << height) )->str());
+	header.append(static_cast<ostringstream*>( 
+				  &(ostringstream() << height) )->str());
 	header.append(" ");
-	header.append(static_cast<ostringstream*>( &(ostringstream() << nzentries) )->str());
+	header.append(static_cast<ostringstream*>( 
+				  &(ostringstream() << nzentries) )->str());
 	header.append(" ");
 	header.append(symmetry);
+	header.append(" ");
+	header.append(static_cast<ostringstream*>( 
+				  &(ostringstream() << verification))->str());
 
 	targetFile << header <<endl; // write out the header we just generated
 
-	targetFile << "VAL" << endl; // write out val array
+	targetFile << "REMARKS LIST STRING" << endl; 
+	targetFile << "ENDFIELD" << endl; 
+	
+	targetFile << "VAL LIST FLOAT" << endl; 
+	int lineCounter = 0; // count our position in the line so we can insert 
+	// newlines as needed 
 	for (int i=0; i<nzentries; i++)
 	{
-		targetFile << val[i] << " ";
-	}
-	targetFile << endl;
 
-	targetFile << "ROWPTR" << endl; // write out row_ptr array
-	for (int i=0; i<height+1; i++)
-	{
-		targetFile << row_ptr[i] << " ";
-	}
-	targetFile << endl;
+		targetFile << val[i]; 
+		if (lineCounter == 9) 
+		{
+			targetFile << endl;
+			lineCounter = 0;
+		}
+		else
+		{
+			targetFile << ' ';
+		}
 
-	targetFile << "COLIND" << endl; // write out colind array
+	}
+	targetFile << endl; 
+	
+	targetFile << "ENDFIELD" << endl;
+
+	targetFile << "ROW LIST INT" << endl; 
+	lineCounter = 0; // count our position in the line so we can insert 
+	// newlines as needed 
 	for (int i=0; i<nzentries; i++)
 	{
-		targetFile << colind[i] << " ";
+
+		targetFile << row[i]; 
+		if (lineCounter == 9) 
+		{
+			targetFile << endl;
+			lineCounter = 0;
+		}
+		else
+		{
+			targetFile << ' ';
+		}
+
 	}
-	targetFile << endl;
+	targetFile << endl; 
+	targetFile << "ENDFIELD" << endl;
 
-	targetFile << "END"; // signal EOF
+	targetFile << "COL LIST INT" << endl; 
+	lineCounter = 0; // count our position in the line so we can insert 
+	// newlines as needed 
+	for (int i=0; i<nzentries; i++)
+	{
 
+		targetFile << col[i]; 
+		if (lineCounter == 9) 
+		{
+			targetFile << endl;
+			lineCounter = 0;
+		}
+		else
+		{
+			targetFile << ' ';
+		}
+
+	}
+	
+	targetFile << endl; 
+	
+	targetFile << "ENDFIELD" << endl;
+
+	
 	return HERCMIO_STATUS_SUCCESS;
 
 }

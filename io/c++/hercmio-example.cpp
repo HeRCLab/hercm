@@ -131,14 +131,7 @@ int main(int argc, char *argv[])
 
 		cout << "converting matrix to csr format..." << endl;
 
-		/*
-		int cooToCsr(int * row, 
-			 int * col, 
-			 float * val, 
-			 int * ptr, 
-			 int nzentries, 
-			 int height)
-		*/
+
 		cout << "allocating ptr vector..." << endl; 
 		int ptr[height];
 		for (int i=0; i<height; i++)
@@ -195,7 +188,28 @@ int main(int argc, char *argv[])
 		int nzentries = 6;
 		int width = 3;
 		int height = 3; 
-		int verification;
+		string symmetry;
+		symmetry = "ASYM";
+		float verification;
+
+		verification = generateVerificationSum(row, col, val, nzentries); 
+		cout << "generated verification sum: " << verification << endl; 
+
+
+		if (writeHercm(outputFile, 
+					   height, 
+					   width, 
+					   nzentries, 
+					   val, 
+					   row, 
+					   col, 
+					   symmetry, 
+					   verification) != HERCMIO_STATUS_SUCCESS)
+		{
+			cout << "FATAL: hercmio encountered an error while writing the";
+			cout << " file" << endl; 
+		}
+		cout << "wrote file " << outputFile << endl;
 
 	}
 	
