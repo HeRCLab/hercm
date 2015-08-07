@@ -28,4 +28,6 @@ int readHercm(string, float *, int *, int *);
 int writeHercm(string, int, int, int, float *, int *, int *, string);
 int cooToCsr(int *, int *, float *, int *, int, int);
 int makeRowMajor(int *, int *, float *, int);
+float generateVerificationSum(int *, int* , float *, int);
+bool verifyMatrix(string, float *, int *, int *);
 #endif

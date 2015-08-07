@@ -376,6 +376,50 @@ int cooToCsr(int * row,
 
 }
 
+float generateVerificationSum(int * row, int * col, float * val, int nzentries)
+{
+	// same calling convention as makeRowMajor() 
+	// returns the verification sum for the matrix, as described in the HeRCM
+	// spec as a float 
+
+	float sum = 0;
+	for (int i=0; i<nzentries;i++)
+	{
+		sum = sum + (1.0* row[i]) + (1.0 * col[i]) + val[i];
+	}
+	return fmod(sum,(1.0 * nzentries)); 
+}
+
+bool verifyMatrix(string inputFile, float * val, int * row, int * col)
+{
+	// same calling convention as readHercm() 
+	// returns true is the matrix's verification sum matches the one in it's
+	// header 
+
+	// variables needed to read headers 
+	int width;
+	int height;
+	int nzentries;
+	string symmetry;
+	float verification; 
+	if (readHercmHeader(inputFile, 
+					   width, 
+					   height, 
+					   nzentries, 
+					   symmetry, 
+					   verification) != HERCMIO_STATUS_SUCCESS)
+	{
+		cout << "FATAL: hercmio encountered an error while reading";
+		cout << " the header!" << endl;
+		return false;
+	}
+
+	if (verification == generateVerificationSum(row, col, val, nzentries))
+	{
+		return true;
+	}
+	return false;
+}
 
 int writeHercm(string fileName, 
 			   int height, 

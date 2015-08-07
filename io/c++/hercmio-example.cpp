@@ -101,6 +101,20 @@ int main(int argc, char *argv[])
 			cout << row[i] << endl; 
 		}
 
+		cout << "calculated verification sum: ";
+		cout << generateVerificationSum(row, col, val, nzentries) << endl;
+		cout << "read sum from file: " << verification << endl;
+
+		if (!verifyMatrix(inputFile, val, row, col))
+		{
+			cout << "WARNING: matrix verification does not match verification";
+			cout << " sum read from file!" << endl;
+		}
+		else
+		{
+			cout << "verification sums match, verification passed" << endl;
+		}
+
 		cout << "making matrix row major..." << endl;
 		makeRowMajor(row, col, val, nzentries);
 
@@ -156,6 +170,32 @@ int main(int argc, char *argv[])
 				cout << "N/A" << endl;
 			}
 		}
+
+	}
+	else if (command == "write")
+	{
+		if (argc != 3)
+		{
+			cout << "FATAL: incorrect number of arguments" << endl;
+		}
+		string outputFile = argv[2];
+		cout << "writing the matrix: " 		 << endl;
+		cout << " 0 5 3 " 			   		 << endl;
+		cout << " 2 9 4 " 			   		 << endl; 
+		cout << " 0 0 1 " 			   		 << endl;
+		cout << "to the file " << outputFile << endl;
+		cout << "matrix in COO format: "     << endl;
+		cout << "VAL: 5 3 2 9 4 1"	 		 << endl;
+		cout << "ROW: 0 0 1 1 1 2"			 << endl; 
+		cout << "COL: 1 2 0 1 2 2"			 << endl;
+
+		int col[6]   = {1,2,0,1,2,2};
+		int row[6]   = {0,0,1,1,1,2};
+		float val[6] = {5,3,2,9,4,1};
+		int nzentries = 6;
+		int width = 3;
+		int height = 3; 
+		int verification;
 
 	}
 	
