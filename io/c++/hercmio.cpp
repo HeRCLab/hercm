@@ -25,7 +25,7 @@ int stringToInt(string sourceString)
 	if (!(convert >> result))
 	{
 		cout << "ERROR: failed to convert " << sourceString << " to integer";
-		exit(1);
+		return -999999;
 	}
 	return result;
 
@@ -39,7 +39,7 @@ float stringToFloat(string sourceString)
 	if (!(convert >> result))
 	{
 		cout << "ERROR: failed to convert " << sourceString << " to integer";
-		exit(1);
+		return -999999.0;
 	}
 	return result;
 
@@ -349,7 +349,7 @@ int cooToCsr(int * row,
 			 int height)
 {
 	// converts coo matrix given by row, col, and val to csr
-	// ptr is the row_ptr array for CSR, allocated to be height+1 long
+	// ptr is the row_ptr array for CSR, allocated to be height long
 
 	int currentRow = -1; // make sure the first row is accounted for
 	int ptrCounter = 0; // keep track of where we are in ptr
