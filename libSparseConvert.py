@@ -381,6 +381,8 @@ class sparseConvert:
 			this.logger.log("format must be hercm or mtx, cannot use format {0}"
 							.format(format), "error")
 			return None 
+		this.logger.log("converting matrix to row majro format...")
+		this.HSM.makeRowMajor()
 
 
 	def writeMatrix(this, filename, format):
@@ -391,6 +393,8 @@ class sparseConvert:
 		this.logger.log("writing matrix to file {0} in format {1}"
 						.format(filename, format))
 
+		this.logger.log("converting matrix to row majro format...")
+		this.HSM.makeRowMajor()
 
 		if format == 'hercm':
 			if not this.HERCMIO.write(this.hercm, filename):

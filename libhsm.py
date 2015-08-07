@@ -58,6 +58,71 @@ class hsm:
 
 		return 0
 
+	def checkIfSorted(this, listToCheck):
+		# checks if listToCheck is sorted, returns true is so, false if not
+		for i in range(1,len(listToCheck)):
+			if listToCheck[i-1] > listToCheck[i]:
+				return False
+		return True 
+
+	def checkIfRowMajor(this):
+		# returns true if this matrix is in row major format
+		# returns false otherwise 
+		
+		if not this.checkIfSorted(this.contents['row']):
+			return False
+		for i in range(1,len(this.contents['row'])):
+			if this.contents['col'][i-1] > this.contents['col'][i]:
+				if this.contents['row'][i-1] == this.contents['row'][i]:
+					return False 
+
+		return True 
+
 	def makeRowMajor(this):
 		# re orders this matrix such that it is row major 
-		
+
+		while not this.checkIfSorted(this.contents['row']):
+			for i in range (1, len(this.contents['val'])):
+				if this.contents['row'][i-1] > this.contents['row'][i]:
+					# swap values to sort 
+					#smallerValue = this.contents['row'][i]
+					#largerValue = this.contents['row'][i-1]
+					#this.contents['row'][i] = largerValue 
+					#this.contents['row'][i-1] = smallerValue
+
+					this.contents['row'][i], this.contents['row'][i-1] = \
+					this.contents['row'][i-1], this.contents['row'][i]
+
+					smallerValue = this.contents['col'][i]
+					largerValue = this.contents['col'][i-1]
+					this.contents['col'][i] = largerValue 
+					this.contents['col'][i-1] = smallerValue
+
+					smallerValue = this.contents['val'][i]
+					largerValue = this.contents['val'][i-1]
+					this.contents['val'][i] = largerValue 
+					this.contents['val'][i-1] = smallerValue
+		while not this.checkIfRowMajor():
+			for i in range(1, len(this.contents['val'])):
+				# check if the previous value of col is larger than the current
+				# value AND the row value for both is identical 
+				if this.contents['col'][i-1] > this.contents['col'][i]:
+					if this.contents['row'][i-1] == this.contents['row'][i]:
+						# swap values to sort 
+						smallerValue = this.contents['row'][i]
+						largerValue = this.contents['row'][i-1]
+						this.contents['row'][i] = largerValue 
+						this.contents['row'][i-1] = smallerValue
+	
+						smallerValue = this.contents['col'][i]
+						largerValue = this.contents['col'][i-1]
+						this.contents['col'][i] = largerValue 
+						this.contents['col'][i-1] = smallerValue
+	
+						smallerValue = this.contents['val'][i]
+						largerValue = this.contents['val'][i-1]
+						this.contents['val'][i] = largerValue 
+						this.contents['val'][i-1] = smallerValue
+
+
+
