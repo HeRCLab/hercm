@@ -1,0 +1,13 @@
+HERCM 5 5 8 ASYM 7 
+REMARKS LIST STRING
+This is an example matrix created for the HeRCM documentation. This field is ignored because it's title is REMARKS. 
+ENDFIELD
+VAL LIST FLOAT
+8 7 5 3 4 2 1 6
+ENDFIELD
+ROW LIST INT
+4 3 3 4 1 1 2 4
+ENDFIELD
+COL LIST INT
+4 4 3 2 1 4 2 1 
+ENDFIELD

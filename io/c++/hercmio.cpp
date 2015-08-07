@@ -1,26 +1,3 @@
-/*
-Copyright (c) 2015, Charles Daniels
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the 
-documentation and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from 
-this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-
 #include "hercmio.hpp"
 
 bool checkVectorForString(vector<string> vectorToCheck, 
@@ -86,11 +63,11 @@ vector<string> split(string str, char delimiter)
 }
 
 int readHercmHeader(string fileName, 
-					string &format, 
 					int &width, 
 					int &height, 
 					int &nzentries, 
-					string &symmetry)
+					string &symmetry,
+					float &verification)
 {
 	// reads header of a hercm file
 	// accepts header fields by reference, then populates values into those 
@@ -100,6 +77,7 @@ int readHercmHeader(string fileName,
 	// height - matrix height (number of rows)
 	// nzentries - number of nonzero entries in matrix
 	// symmetry - matrix symmetry
+	// verification - matrix verification sum as described in the hercm spec 
 
 	// returns HERCMIO_STATUS_FAILURE on any error
 	// returns HERCMIO_STATUS_SUCCESS otherwise
@@ -118,43 +96,42 @@ int readHercmHeader(string fileName,
 		return HERCMIO_STATUS_FAILURE;
 	}
 
-	if (header.substr(0,10) != "HERCM FILE")
+	if (header.substr(0,5) != "HERCM")
 	{
 		cout << "ERROR: malformed  or not a HeRCM file. read ";
-		cout << header.substr(0,10) <<" expected HERCM FILE" << endl;
+		cout << header.substr(0,10) <<" expected HERCM" << endl;
 		return HERCMIO_STATUS_FAILURE;
 	}
 
 	vector<string> headerItemsVector;
 	headerItemsVector = split(header, ' ');
 
-	if (headerItemsVector.size() != 7)
+	if (headerItemsVector.size() != 6)
 	{
-		cout << "ERROR: malformed or not a HeRCM file. Expected 7 fields,";
+		cout << "ERROR: malformed or not a HeRCM file. Expected 6 fields,";
 		cout << " read ";
 		cout << headerItemsVector.size() << " from " << header << endl;
 		return HERCMIO_STATUS_FAILURE;
 	}
 
-	format    = headerItemsVector[2];
-	width     = stringToInt(headerItemsVector[3]);
-	height    = stringToInt(headerItemsVector[4]);
-	nzentries = stringToInt(headerItemsVector[5]);
-	symmetry  = headerItemsVector[6];
+	width        = stringToInt(headerItemsVector[1]);
+	height       = stringToInt(headerItemsVector[2]);
+	nzentries    = stringToInt(headerItemsVector[3]);
+	symmetry     = headerItemsVector[4];
+	verification = stringToFloat(headerItemsVector[5]);
 	return HERCMIO_STATUS_SUCCESS; 
 
 }
 
-int readHercm(string fileName, float * val, int * row_ptr, int * colind)
+int readHercm(string fileName, float * val, int * row, int * col)
 {
 	// reads the file contents of the hercm file, then populates val, row_ptr,
 	// and colind with the values thereof. 
 
 	// fileName - the name of the hercm file to read 
-	// val - the val array for the CSR matrix
-	// row_ptr - the row_ptr array for the CSR matrix (sometimes called ptr)
-	// colind - the colind array for the CSR matrix
-	// symmetry will store the matrix's symmetry (SYM or ASYM)
+	// val - the val vector for the matrix
+	// row - the row vector for the matrix
+	// col - the col vector for the matrix 
 
 	// returns HERCMIO_STATUS_FAILURE on any error
 	// returns HERCMIO_STATUS_SUCCESS otherwise
@@ -164,18 +141,37 @@ int readHercm(string fileName, float * val, int * row_ptr, int * colind)
 	ifstream targetFile(fileName.c_str()); // instantiate the file object
 	// c_str is required pre-c++11 as ifstream expects a const char* 
 
-	char* validFieldsStringArray [] = {"FORMAT","WIDTH","HEIGHT","NZENTRIES",
-									   "ROWPTRLENGTH","VAL","ROWPTR","COLIND"};
+	char* validFieldsStringArray [] = {"VAL","ROW","COL"};
 	// this will throw compiler warnings, but it is the easiest way to 
 	// initialize a data structure of strings in c++ 98.
 	vector<string> validFields(validFieldsStringArray, 
-							   validFieldsStringArray+8); 
+							   validFieldsStringArray+3); 
 	string currentField; // this will store the last read field
+	vector<string> splitLine; 
 
-	// field values 
-	string format;
-	int width, height, nzentries, rowptrlength;
+	// keep track of our position in row, col, and val
+	int masterValCounter = 0;
+	int masterColCounter = 0;
+	int masterRowCounter = 0;
 
+	// variables needed to read headers 
+	int width;
+	int height;
+	int nzentries;
+	string symmetry;
+	float verification; 
+
+	if (readHercmHeader(fileName, 
+					   width, 
+					   height, 
+					   nzentries, 
+					   symmetry, 
+					   verification) != HERCMIO_STATUS_SUCCESS)
+	{
+		cout << "ERROR: could not read header" << endl;
+		return HERCMIO_STATUS_FAILURE;
+	}
+	
 	if (targetFile.is_open()) // check if opening the file failed
 	{
 		while ( getline (targetFile, line)) // while we can get a new line 
@@ -184,59 +180,58 @@ int readHercm(string fileName, float * val, int * row_ptr, int * colind)
 			if (lineCounter == 1)
 			{
 				// we need to make sure this is a HeRCM file
-				if (line.substr(0,10) != "HERCM FILE")
+				if (line.substr(0,5) != "HERCM")
 				{
 					cout<<"ERROR: malformed file or not hercm format (expected";
-					cout << " \"HERCM FILE\", found \""<<line<<"\")"<<endl;
+					cout << " \"HERCM\", found \""<<line<<"\")"<<endl;
 					return HERCMIO_STATUS_FAILURE;
 				}
 			}
-			else if (line == "END") 
+			
+			
+			splitLine = split(line, ' '); 
+
+
+			// this is a bit ugly, but it prevents us from having to use
+			// std::find
+			if (splitLine[0] == "VAL")
 			{
-				return HERCMIO_STATUS_SUCCESS;
+				currentField = "VAL";
 			}
-			// check of this line is a valid field targetFile
-			else if (checkVectorForString(validFields, line)) 
+			else if (splitLine[0] == "ROW")
 			{
-				currentField = line; 
+				currentField = "ROW"; 
+			}
+			else if (splitLine[0] == "COL")
+			{
+				currentField = "COL";
+			}
+			else if (splitLine[0] == "ENDFIELD")
+			{
+				currentField = "";
 			}
 			else
 			{
 				if (currentField == "VAL")
-				{
-					// vector in which to store split value string
-					vector<string> valString; 
-					char delimiter = ' ';
-					valString = split(line, delimiter); // split the val vector
-					for (int i=0; i<valString.size(); i++)
+					for (int i = 0; i < splitLine.size(); i++)
 					{
-						val[i] = stringToFloat(valString[i]);
+						val[masterValCounter] = stringToFloat(splitLine[i]);
+						masterValCounter++;
 					}
-				}
-				else if (currentField == "ROWPTR")
-				{
-					// vector in which to store split value string
-					vector<string> row_ptrString; 
-					char delimiter = ' ';
-					row_ptrString = split(line, delimiter); // split the vector
-					for (int i=0; i<row_ptrString.size(); i++)
+				if (currentField == "ROW")
+					for (int i = 0; i < splitLine.size(); i++)
 					{
-						row_ptr[i] = stringToInt(row_ptrString[i]);
+						row[masterRowCounter] = stringToInt(splitLine[i]);
+						masterRowCounter++;
 					}
-				}
-				else if (currentField == "COLIND")
-				{
-					// vector in which to store split value string
-					vector<string> colindString; 
-					char delimiter = ' ';
-					colindString = split(line, delimiter); // split the vector
-					for (int i=0; i<colindString.size(); i++)
+				if (currentField == "COL")
+					for (int i = 0; i < splitLine.size(); i++)
 					{
-						colind[i] = stringToInt(colindString[i]);
+						col[masterColCounter] = stringToInt(splitLine[i]);
+						masterColCounter++;
 					}
-				}
-
 			}
+			
 		}
 	}
 	else
@@ -246,6 +241,136 @@ int readHercm(string fileName, float * val, int * row_ptr, int * colind)
 	}
 
 	return HERCMIO_STATUS_SUCCESS;
+}
+
+bool checkIfSorted(int * vector, int size)
+{
+	// vector is a 1-d matrix to check 
+	// size is it's number of elements
+
+	// returns true if array is sorted from least to greatest
+	// returns false otherwise 
+
+	for (int i=1; i<size; i++)
+	{
+		if (vector[i-1] > vector[i])
+		{
+			return false; 
+		}
+	}
+	return true; 
+
+}
+
+bool checkIfRowMajor(int * row, int * col, float * val, int nzentries)
+{
+	// returns true of the matrix is row major, false otherwise
+	// same calling convention as makeRowMajor
+
+	if (!checkIfSorted(row, nzentries))
+	{
+		return false;
+	}
+	for (int i=1; i<nzentries; i++)
+	{
+		if ((col[i-1] > col[i]) && (row[i-1] == row[i])) // see makeRowMajor 
+		{
+			return false; 
+		}
+	}
+	return true;
+}
+
+int makeRowMajor(int * row, int * col, float * val, int nzentries)
+{
+	// row, col, and val should be coo vectors, as laid out in the HeRCM spec
+	// nzentries should be the number of elements in val 
+
+	// always returns HERCMIO_STATUS_SUCCESS
+
+	while (!checkIfSorted(row, nzentries))
+	{
+		for (int i=1; i<nzentries; i++)
+		{
+			if (row[i-1] > row[i])
+			{
+				// swap row values
+				int smallerValue = row[i];
+				int largerValue  = row[i-1];
+				row[i] = largerValue; 
+				row[i-1] = smallerValue;
+
+				// swap values in col to match
+				smallerValue = col[i];
+				largerValue  = col[i-1];
+				col[i] = largerValue; 
+				col[i-1] = smallerValue; 
+
+				// swap values in val to match
+				float smallerValueFloat = val[i];
+				float largerValueFloat  = val[i-1];
+				val[i] = largerValueFloat; 
+				val[i-1] = smallerValueFloat; 
+			}
+		}
+	}
+
+	while (!checkIfRowMajor(row, col, val, nzentries))
+	{
+		for (int i=1; i<nzentries; i++)
+		{
+			// check if the previous value of col is large than the current
+			// value of col AND the row value for both is identical 
+			if ((col[i-1] > col[i]) && (row[i] == row[i-1]))
+			{
+				// swap row values
+				int smallerValue = row[i];
+				int largerValue  = row[i-1];
+				row[i] = largerValue; 
+				row[i-1] = smallerValue;
+				// swap values in col to match
+				smallerValue = col[i];
+				largerValue  = col[i-1];
+				col[i] = largerValue; 
+				col[i-1] = smallerValue; 
+				// swap values in val to match
+				float smallerValueFloat = val[i];
+				float largerValueFloat  = val[i-1];
+				val[i] = largerValueFloat; 
+				val[i-1] = smallerValueFloat; 
+			}
+		}
+	}
+
+	return HERCMIO_STATUS_SUCCESS;
+}
+
+int cooToCsr(int * row, 
+			 int * col, 
+			 float * val, 
+			 int * ptr, 
+			 int nzentries, 
+			 int height)
+{
+	// converts coo matrix given by row, col, and val to csr
+	// ptr is the row_ptr array for CSR, allocated to be height+1 long
+
+	int currentRow = 0;
+	int ptrCounter = 0; // keep track of where we are in ptr
+
+	for (int i=0; i<nzentries; i++)
+	{
+		if (row[i] != currentRow) // check if this is the start of a new row
+		{
+			currentRow = row[i];
+			ptr[ptrCounter] = i; 
+			ptrCounter++;
+		}
+	}
+
+	return HERCMIO_STATUS_SUCCESS;
+
+
 }
 
 
