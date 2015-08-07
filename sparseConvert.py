@@ -70,9 +70,9 @@ if mtxFileName != None and hercmFileName != None:
 
 if outputFileName == None:
 	if mtxFileName != None: 
-		outputFileName = mtxFileName[:-4] + "hercm"
+		outputFileName = mtxFileName[:-3] + "hercm"
 	else:
-		outputFileName = hercmFileName[:-5] + "mtx"
+		outputFileName = hercmFileName[:-4] + "mtx"
 
 SC = libSparseConvert.sparseConvert() 
 
@@ -97,5 +97,8 @@ if hercmFileName != None:
 		print("FATAL: libSparseConvert encountered an error, here is the log:")
 		pp.pprint(SC.logger.contents)
 		exit()
+
+if printMatrix:
+	print(SC.HSM.getInFormat('coo').todense())
 
 	
