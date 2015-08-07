@@ -355,8 +355,11 @@ int cooToCsr(int * row,
 	// converts coo matrix given by row, col, and val to csr
 	// ptr is the row_ptr array for CSR, allocated to be height+1 long
 
-	int currentRow = 0;
+	int currentRow = -1; // make sure the first row is accounted for
 	int ptrCounter = 0; // keep track of where we are in ptr
+
+	makeRowMajor(row, col, val, nzentries); // make sure the matrix is already
+	// row major 
 
 	for (int i=0; i<nzentries; i++)
 	{
@@ -367,7 +370,7 @@ int cooToCsr(int * row,
 			ptrCounter++;
 		}
 	}
-
+	ptr[ptrCounter] = nzentries+1;
 	return HERCMIO_STATUS_SUCCESS;
 
 

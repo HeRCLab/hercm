@@ -126,8 +126,8 @@ int main(int argc, char *argv[])
 			 int height)
 		*/
 		cout << "allocating ptr vector..." << endl; 
-		int ptr[height+1];
-		for (int i=0; i<height+1; i++)
+		int ptr[height];
+		for (int i=0; i<height; i++)
 		{
 			ptr[i] = -999; 
 		}
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 		for (int i = 0; i < nzentries; i++)
 		{
 			cout << setw(10) << val[i] << setw(10) << col[i] << setw(10);
-			if (ptrCounter < height+1)
+			if (ptrCounter < height)
 			{
 				cout << ptr[ptrCounter] << endl; 
 				ptrCounter++;
