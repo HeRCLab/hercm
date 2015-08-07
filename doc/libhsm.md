@@ -27,3 +27,6 @@ Returns contents as a `scipy.sparse` matrix of the desired type.
 * `col` - int column  of desired value
 
 Returns the value at `row`,`col` in the matrix (zero indexed), or None if the value cannot be found. 
+
+### def makeRowMajor(this): 
+Converts the matrix stored in the HSM instance to row major form. 
