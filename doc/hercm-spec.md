@@ -2,6 +2,8 @@
 # Introduction
 The HeRCM (HeRC Matrix) file format was created to store compressed arrays, for later reading into other software. The format is specifically designed to be simple, fast to read, and easy to understand and parse. File size and initial conversion overhead were not major design concerns however. 
 
+All HeRCM files should be stored in row-major format. 
+
 # Layout
 A HeRCM file has two sections. The first section contains one line, and is the header, containing key information about the matrix. 
 
