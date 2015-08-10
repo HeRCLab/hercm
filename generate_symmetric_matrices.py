@@ -155,20 +155,25 @@ for i in range(0, len(matrix_numbers_list)):
 	for j in range ((i+1), len(matrix_numbers_list)):
 		if(matrix_numbers_list[j][1] == element_row and matrix_numbers_list[j][0] == element_column 
 			and matrix_numbers_list[j][2] == element_value):
-			list_to_delete.append(j)
+
+			# this is part of my other fix -CD 
+			list_to_delete.append(matrix_numbers_list[j])
 			
-	
-print ""
+
 #ERROR HERE: with indexes
-for i in range(0, len(list_to_delete)):
-	try:
-		print "deleting " + str(matrix_numbers_list[list_to_delete[i]]) + " as the value has a duplicate"
-		del matrix_numbers_list[list_to_delete[i]]
-		number_of_nnz_deleted += 1 
-	except IndexError:
-		print("ERROR: cannot access index {0} of matrix with {1} elements"
-			  .format(i, len(matrix_numbers_list)))
-		print(matrix_numbers_list)
+	# this code generates index errors, so so I rewrote it -CD 
+"""for i in range(0, len(list_to_delete)):
+	print "deleting " + str(matrix_numbers_list[list_to_delete[i]]) + " as the value has a duplicate"
+	del matrix_numbers_list[list_to_delete[i]]
+	number_of_nnz_deleted += 1 
+"""
+for duplicate in list_to_delete:
+	print("removing duplicate entry {0} from matrix".format(duplicate))
+
+	# this makes sure we are getting the *current* index of the duplicate 
+	indexOfDuplicate = matrix_numbers_list.index(duplicate)
+	matrix_numbers_list.pop(indexOfDuplicate) # list.pop() is more "correct" 
+
 
 number_of_nnz = number_of_nnz - number_of_nnz_deleted
 
