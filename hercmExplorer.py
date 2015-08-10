@@ -3,7 +3,7 @@
 
 import libSparseConvert
 import readline
-
+import libhsm
 
 
 MTXIO = None 
@@ -41,6 +41,19 @@ touch [row] [col] [val] - changes the value at [row] [col] to [val]
 
 paint [x1] [y1] [x2] [y2] [val] - works the same way as range, but changes
 all values encountered to [val]
+
+row-major - makes the matrix row major 
+
+rmzeros - remove zeros from matrix
+
+setdims [height] [width] - sets the dimensions of the matrix to height by width
+
+setsym [symmetry] - sets symmetry. Converts elements if needed. 
+
+init / init [height] [width] / init [height] [width] [val] - sets matrix to
+a blank 5x5 matrix of zeros. If height and width are supplied, matrix is set to
+those dimensions. If val is supplied, initialize matrix elements to val.
+Overwrites any already loaded matrix. 
 
 exit - exits the program
 """
@@ -253,9 +266,9 @@ symmetry  - - - - - - - - {3}
 		try:
 			row = int(arguments[0])
 			col = int(arguments[1])
-			val = int(arguments[2])
+			val = float(arguments[2])
 		except ValueError:
-			print("ERROR: one or more arguments are not valid integers")
+			print("ERROR: one or more arguments are not valid numbers")
 			return 
 
 		oldValue = SC.HSM.getValue(row, col)
@@ -271,15 +284,114 @@ symmetry  - - - - - - - - {3}
 			print("may not be in row-major form!")
 
 	elif command == 'paint':
-		pass
+		if len(arguments) != 5:
+			print("ERROR: incorrect number of arguments")
+			return 
+		r1 = 0
+		r2 = 0
+		c1 = 0
+		c2 = 0 
+		val = 0
+
+		try:
+			r1 = int(arguments[0])
+			c1 = int(arguments[1])
+			r2 = int(arguments[2])
+			c2 = int(arguments[3])
+			val = float(arguments[4])
+		except ValueError:
+			print("ERROR: one or more arguments are not valid numbers")
+			return 
+
+		print("painting values... (this may take several minutes)")
+
+		width = SC.HSM.contents['width']
+		height = SC.HSM.contents['height']
+
+		for row in range(0,height):
+			for col in range (0,width):
+				if col >= c1 and col <= c2:
+					if row >= r1 and row <= r2:
+						if not SC.HSM.setValue(row, col,val):
+							print("""WARNING: failed to paint value at {0},{1} 
+								  to {2}""".format(row, col, val))
+
+	elif command == 'row-major':
+		print("making matrix row major, standby...")
+		SC.HSM.makeRowMajor() 
+		print("done")
+
+	elif command == 'rmzeros':
+		print("removing zeros, standby...")
+		SC.HSM.removeZeros()
+		print("done")
+
+	elif command == 'setdims':
+		if len(arguments) != 2:
+			print("ERROR: incorrect number of arguments") 
+			return
+		width = 0
+		height = 0
+
+		try:
+			height = int(arguments[0])
+			width = int(arguments[1])
+		except ValueError:
+			print("ERROR: one or more arguments are not valid integers")
+			return 
+
+		SC.HSM.contents['height'] = height
+		SC.HSM.contents['width'] = width 
+
+		print("Updated matrix dimensions. New values:")
+		main("info")
+
+
+	elif command == 'setsym':
+		if len(arguments) != 1:
+			print("ERROR: incorrect number of arguments")
+			return 
+
+		validOptions = ['SYM','ASYM','asymmetric','symmetric',
+		'symmetrical','asymmetrical'] 
+
+		if arguments[0] not in validOptions:
+			print("ERROR: argument {0} is not a valid symmetry option, Valid ")
+			print("options are: ")
+			pp.pprint(validOptions)
+			return 
+
+		if arguments[0] in ['SYM','symmetric','symmetrical']:
+			symmetry = 'SYM'
+		else:
+			symmetry = 'ASYM'
+
+		TEMP = libhsm.hsm()
+
+		TEMP = SC.HSM 
+
+		if not SC.HSM.setSymmetry(symmetry):
+			print("ERROR: encountered error while setting symmetry, reverting...\
+				  ")
+		else: 
+			print("set symmetry successfully")
+
+
+	elif command == 'shell':
+		print("Entering python interactive debug shell...")
+		print("Enter \"runMain()\" to return to normal execution")
+		import pdb
+		pdb.set_trace()
 
 	else:
 		print("ERROR: Command not recognized") 
 	
 
 
+def runMain():
+	while True:
+		main()
 
 print("welcome to HeRCM Explorer. Enter \"help\" for help")
 SC = libSparseConvert.sparseConvert()
-while True:
-	main()
+runMain()
