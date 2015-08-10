@@ -48,12 +48,16 @@ rmzeros - remove zeros from matrix
 
 setdims [height] [width] - sets the dimensions of the matrix to height by width
 
-setsym [symmetry] - sets symmetry. Converts elements if needed. 
+setsym [symmetry] - sets symmetry. Will not change array elements, only modifies 
+symmetry attribute. 
 
 init / init [height] [width] / init [height] [width] [val] - sets matrix to
 a blank 5x5 matrix of zeros. If height and width are supplied, matrix is set to
 those dimensions. If val is supplied, initialize matrix elements to val.
 Overwrites any already loaded matrix. 
+
+gen-verification - updates verification sum to permit writing out matrix after 
+modification. 
 
 exit - exits the program
 """
@@ -309,12 +313,14 @@ symmetry  - - - - - - - - {3}
 		height = SC.HSM.contents['height']
 
 		for row in range(0,height):
+			print("painting in row {0} of {1}...".format(row, height))
 			for col in range (0,width):
 				if col >= c1 and col <= c2:
 					if row >= r1 and row <= r2:
-						if not SC.HSM.setValue(row, col,val):
+						if not SC.HSM.setValue(row, col,val, True):
 							print("""WARNING: failed to paint value at {0},{1} 
 								  to {2}""".format(row, col, val))
+
 
 	elif command == 'row-major':
 		print("making matrix row major, standby...")
@@ -339,6 +345,15 @@ symmetry  - - - - - - - - {3}
 		except ValueError:
 			print("ERROR: one or more arguments are not valid integers")
 			return 
+
+		# remove out of bounds entries 
+		for i in reversed(range(0, SC.HSM.contents['nzentries'])):
+			if SC.HSM.contents['row'][i] >= height:
+				SC.HSM.setValue(SC.HSM.contents['row'][i], 
+								SC.HSM.contents['col'][i], 0)
+			elif SC.HSM.contents['col'][i] >= width:
+				SC.HSM.setValue(SC.HSM.contents['row'][i], 
+								SC.HSM.contents['col'][i], 0)
 
 		SC.HSM.contents['height'] = height
 		SC.HSM.contents['width'] = width 
@@ -366,15 +381,43 @@ symmetry  - - - - - - - - {3}
 		else:
 			symmetry = 'ASYM'
 
-		TEMP = libhsm.hsm()
+		SC.HSM.contents['symmetry'] = symmetry
 
-		TEMP = SC.HSM 
+	elif command == 'init': 
+		height = 5
+		width = 5
+		val = 0
+		if len(arguments) >= 2:
+			try:
+				height = int(arguments[0]) 
+				width  = int(arguments[1])
+			except ValueError:
+				print("ERROR: cannot convert one or more arguments to integer")
+				return
+		if len(arguments) >= 3:
+			try:
+				val = float(arguments[2])
+			except ValueError:
+				print("ERROR: cannot convert {0} to float".format(arguments[2]))
+				return 
 
-		if not SC.HSM.setSymmetry(symmetry):
-			print("ERROR: encountered error while setting symmetry, reverting...\
-				  ")
-		else: 
-			print("set symmetry successfully")
+		SC.HSM.contents['nzentries'] = 0
+		SC.HSM.contents['row'] = []
+		SC.HSM.contents['col'] = []
+		SC.HSM.contents['val'] = []
+		main("setdims {0} {1}".format(height, width))
+		for i in range(0, height): # this is faster than using paint
+			for j in range(0,width): 
+				SC.HSM.contents['val'].append(val)
+				SC.HSM.contents['col'].append(j)
+				SC.HSM.contents['row'].append(i) 
+		SC.HSM.contents['nzentries'] = len(SC.HSM.contents['val'])
+		SC.HSM.contents['symmetry'] = 'ASYM' 
+		SC.HSM.contents['remarks'] = []
+
+		print("finished initializing matrix, new matrix info:")
+		main("info")
+
 
 
 	elif command == 'shell':
@@ -382,6 +425,12 @@ symmetry  - - - - - - - - {3}
 		print("Enter \"runMain()\" to return to normal execution")
 		import pdb
 		pdb.set_trace()
+
+
+	elif command == 'gen-verification':
+		newSum = SC.HERCMIO.generateVerificationSum(SC.HSM.contents)
+		SC.HSM.contents['verification'] = newSum 
+		print("updated verification sum to: {0}".format(newSum))
 
 	else:
 		print("ERROR: Command not recognized") 

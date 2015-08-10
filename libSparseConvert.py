@@ -229,8 +229,8 @@ class hercmio:
 			return None 
 
 		if not this.verify(hercm): 
-			this.logger.log("verification failed (217)", "error")
-			return None 
+			this.logger.log("verification failed (217)", "warning")
+			
 
 
 		header = 'HERCM '

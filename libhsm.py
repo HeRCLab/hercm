@@ -19,6 +19,7 @@ class hsm:
 						 'nzentries' :None,
 						 'height'	 :None,
 						 'width'	 :None,
+						 'remarks'	 :None,
 						 'symmetry'  :None}
 
 	
@@ -37,106 +38,12 @@ class hsm:
 		return scipyMatrix.asformat(format)
 
 
-	def makeAsymmetrical(this):
-		# makes this matrix asymmetrical by duplicating any entries in the upper
-		# triangle to the lower 
 
-		# Note: this is a very expensive operation, with O(n) being 
-		# height * width, and an entire second instance of HSM being created
-
-		matrix = scipy.sparse.triu(this.getInFormat('coo'))
-		matrixVal = matrix.data 
-		matrixRow = matrix.row
-		matrixCol = matrix.col 
-
-		TEMP = hsm() 
-		TEMP.contents['val'] = matrixVal.tolist()
-		TEMP.contents['row'] = matrixRow.tolist()
-		TEMP.contents['col'] = matrixCol.tolist()
-		TEMP.contents['nzentries'] = matrix.nnz 
-		TEMP.contents['height'] = this.contents['height']
-		TEMP.contents['width'] = this.contents['width']
-		TEMP.contents['symmetry'] = 'ASYM'
-
-
-		for row in range(0,this.contents['height']):
-			for col in range(0,this.contents['width']):
-				val = TEMP.getValue(row, col) 
-				if row != col:
-					TEMP.setValue(col, row, val)
-
-		this.contents = TEMP.contents 
-		this.makeRowMajor()
-		this.removeDuplicates()
-
-
-	def makeSymmetrical(this):
-		# make the matrix symmetrical by moving all entries to the upper 
-		# triangle
-
-		# note: this may create conflicting elements  
-
-		for i in range(0,len(this.contents['val'])):
-			# check if we are in the botton triange
-			if this.contents['row'][i] > this.contents['col'][i]:
-				# swap values 
-				this.contents['row'][i], this.contents['col'][i] = \
-				this.contents['col'][i], this.contents['val'][i]
-
-		this.contents['symmetry'] = 'SYM' 
-		this.makeRowMajor() 
-		this.removeDuplicates()
-
-	def checkForConflicts(this):
-		# checks if this matrix has any conflicting values
-		# returns true if the matrix has conflicting values
-		# returns false otherwise 
-
-		# note, this is a very expensive operation, O(n) = nnz^2, at worst
-
-		for i in range(0, len(this.contents['val'])):
-			val = this.contents['val'][i]
-			row = this.contents['row'][i]
-			col = this.contents['col'][i]
-			for j in range(0, len(this.contents['val'])):
-				innerVal = this.contents['val'][j]
-				innerRow = this.contents['row'][j]
-				innerCol = this.contents['col'][j]
-
-				if innerVal == val and innerRow == row and innerCol == col:
-					return True 
-
-		return False 
-
-
-	def setSymmetry(this, symmetry):
-		# changes the symmetry of the matrix 
-		# symmetry should be 'SYM' or 'ASYM'
-		# returns True on success, None on failure 
-
-		if symmetry not in ['SYM','ASYM']:
-			return None 
-
-		if this.contents['symmetry'] == None:
-			this.contents['symmetry'] = symmetry
-			return True 
-		elif this.contents['symmetry'] == 'SYM': 
-			# duplicate entries in upper triangle to lower triangle
-			this.makeAsymmetrical()
-			return True 
-		elif this.contents['symmetry'] == 'ASYM':
-			# move all entries to upper triangle 
-			this.makeSymmetrical()
-			if not this.checkForConflicts():
-				return None 
-			else:
-				return True 
-		return None 
-
-
-	def getValue(this, row, col):
+	def getValue(this, row, col, assumeRowMajor=False):
 		# returns the value stored at row, col 
 		# returns None if the value cannot be found 
+		# if assumeRowMajor is true, uses an optimized search routine
+
 
 		if row > this.contents['height']:
 			return None 
@@ -147,18 +54,36 @@ class hsm:
 		if col < 0:
 			return None 
 
-		for i in range(0, this.contents['nzentries']):
-			if this.contents['row'][i] == row:
-				if this.contents['col'][i] == col:
+		if not assumeRowMajor:
+			for i in range(0, this.contents['nzentries']):
+				if this.contents['row'][i] == row:
+					if this.contents['col'][i] == col:
+						return this.contents['val'][i]
+		else:
+			for i in range(0, this.contents['nzentries']):
+				if this.contents['row'][i] < row:
+					pass 
+				elif this.contents['row'][i] > row:
+					return 0 
+				elif this.contents['col'][i] > col and \
+				this.contents['row'] == row:
+					return 0
+				elif this.contents['col'][i] == col and \
+				this.contents['row'] == row:
 					return this.contents['val'][i]
+
+		
+
 
 		return 0
 
-	def setValue(this, newRow, newCol, newVal):
+	def setValue(this, newRow, newCol, newVal, assumeRowMajor=False):
 		# changes the value of row, col to val
 		# all are integers 
 
 		# returns None on error and True on success
+
+		# assumeRowMajor is passed through to getValue
 
 		if newRow > this.contents['height']:
 			return None 
@@ -169,13 +94,14 @@ class hsm:
 		if newCol < 0:
 			return None 
 
-		for i in range(0,this.contents['nzentries']):
-			if this.contents['row'][i] == newRow:
-				if this.contents['col'][i] == newCol:
-					this.contents['val'][i] = newVal 
-					if newVal == 0:
-						this.removeZeros()
-					return True 
+		if this.getValue(newRow, newCol, assumeRowMajor) != 0:
+			for i in range(0,this.contents['nzentries']):
+				if this.contents['row'][i] == newRow:
+					if this.contents['col'][i] == newCol:
+						this.contents['val'][i] = newVal 
+						if newVal == 0:
+							this.removeZeros()
+						return True
 
 		# value does not exist yet, lets create it 
 		this.contents['row'].append(newRow)
@@ -196,42 +122,6 @@ class hsm:
 				this.contents['row'].pop(i)
 		this.contents['nzentries'] = len(this.contents['val'])
 
-	def removeDuplicates(this): 
-	 	# removes any duplicate entries 
-	 	# if symmetrical, removes duplicates from lower triangle 
-
-		listToDelete = []
-
-		for i in range(0, len(this.contents['val'])):
-			val = this.contents['val'][i]
-			row = this.contents['row'][i]
-			col = this.contents['col'][i]
-			for j in range(i+1, len(this.contents['val'])):
-				innerVal = this.contents['val'][j]
-				innerRow = this.contents['row'][j]
-				innerCol = this.contents['col'][j]
-
-				if innerVal == val and innerRow == row and innerCol == col:
-					listToDelete.append(j)
-				else:
-					print("{0} != {1}".format(val, innerVal))
-					print("{0} != {1}".format(row, innerCol))
-					print("{0} != {1}".format(col, innerRow))
-				elif this.contents['symmetry'] == 'SYM':
-					if innerVal == val and innerCol == row and innerRow == col:
-						listToDelete.append(j)
-					else:
-						print("{0} != {1}".format(row, innerRow))
-						print("{0} != {1}".format(col, innerCol))
-						print("{0} != {1}".format(val, innerVal))
-
-
-		print(listToDelete)
-		for item in reversed(listToDelete):
-			innerVal = this.contents['val'].pop(item)
-			innerRow = this.contents['row'].pop(item)
-			innerCol = this.contents['col'].pop(item)
-		this.makeRowMajor()
 
 
 	def checkIfSorted(this, listToCheck):
