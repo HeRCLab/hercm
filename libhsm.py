@@ -58,6 +58,50 @@ class hsm:
 
 		return 0
 
+	def setValue(this, newRow, newCol, newVal):
+		# changes the value of row, col to val
+		# all are integers 
+
+		# returns None on error and True on success
+
+		if newRow > this.contents['height']:
+			return None 
+		if newCol > this.contents['width']:
+			return None 
+		if newRow < 0:
+			return None
+		if newCol < 0:
+			return None 
+
+		for i in range(0,this.contents['nzentries']):
+			if this.contents['row'][i] == newRow:
+				if this.contents['col'][i] == newCol:
+					this.contents['val'][i] = newVal 
+					if newVal == 0:
+						this.removeZeros()
+					return True 
+
+		# value does not exist yet, lets create it 
+		this.contents['row'].append(newRow)
+		this.contents['col'].append(newCol) 
+		this.contents['val'].append(newVal)
+		this.contents['nzentries'] = len(this.contents['val'])
+		if newVal == 0:
+			this.removeZeros()
+		return True
+
+	def removeZeros(this):
+		# removes any instances of zero 
+
+		for i in reversed(range(0,this.contents['nzentries'])):
+			if this.contents['val'][i] == 0:
+				this.contents['val'].pop(i)
+				this.contents['col'].pop(i)
+				this.contents['row'].pop(i)
+		this.contents['nzentries'] = len(this.contents['val'])
+
+
+
 	def checkIfSorted(this, listToCheck):
 		# checks if listToCheck is sorted, returns true is so, false if not
 		for i in range(1,len(listToCheck)):

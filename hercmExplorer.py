@@ -1,13 +1,17 @@
 #!/usr/bin/python3
 # utility for exploring and editing the contents of hercm matrix files 
 
-import libhsm
-import libmtxio
+import libSparseConvert
 import readline
+
+
 
 MTXIO = None 
 helpString = """- HeRCM Explorer Help -
 help - display this message
+
+log / log [N] - prints the libSparseConvert log. If [N] is specified, print only
+ the most recent [N] lines. 
 
 load [path] [format] - loads the file at [path] with the format [format]. 
 [format] should be mtx or hercm.
@@ -30,8 +34,8 @@ row [row] - prints all non-zero values in the given row
 
 col [col] - prints all non-zero values in the given col
 
-range [x1] [y1] [x2] [y2] - prints all elements, zero or nonzero, which lie 
-between the upper left bound [x1],[y1], and the lower right bound [x2],[y2]
+range [r1] [c1] [r2] [c2] - prints all elements, zero or nonzero, which lie 
+between the upper left bound [r1],[c1], and the lower right bound [r2],[c2]
 
 touch [row] [col] [val] - changes the value at [row] [col] to [val] 
 
@@ -41,8 +45,17 @@ all values encountered to [val]
 exit - exits the program
 """
 
-def main():
-	usrIn = input("> ")
+
+def main(override = None):
+	# override will be parsted instead of the user's input, if specified
+
+	import pprint
+	pp = pprint.PrettyPrinter()
+
+	if override == None:
+		usrIn = input("> ")
+	else:
+		usrIn = override 
 
 	usrIn = usrIn.rstrip()
 	splitInput = usrIn.split()
@@ -58,34 +71,45 @@ def main():
 	elif command == 'exit':
 		exit() 
 
+	elif command == 'log':
+		if len(arguments) == 0:
+			pp.pprint(SC.logger.contents)
+		elif len(arguments) == 1: 
+			numberOfLines = 0
+			try: 
+				numberOfLines = int(arguments[0])
+			except ValueError:
+				print("ERROR: {0} is not a valid number of lines"
+					  .format(arguments[0]))
+				return 
+			pp.pprint(SC.logger.contents[- numberOfLines:])
+
 	elif command == 'load':
+		if len(arguments) == 1:
+			if 'hercm' in arguments[0]:
+				print("""WARNING: matrix format not specified, assuming hercm 
+from filename""")
+				arguments.append('hercm')
+			if 'mtx' in arguments[0]:
+				print("""WARNING: matrix format not specified, assuming mtx 
+from filename""")
+				arguments.append('mtx')
+
 		if len(arguments) != 2:
 			print("ERROR: incorrect number of arguments")
 			return
 		fileName = arguments[0]
 		fileFormat = arguments[1] 
-		print("Loading the file {0} which is {1} format".format(fileName, 
-																fileFormat)) 
-		if fileFormat == 'mtx':
-			try:
-				status = MTXIO.readMtx(fileName)
-				if status != MTXIO.STATUS_SUCCESS:
-					print("""WARNING: an error was encountered while loading the 
-file""")
-			except Exception as e:
-				print("""ERROR: could not load file, the exception {0} was 
-encountered""".format(str(e)))
-		elif fileFormat == 'hercm':
-			try:
-				status = MTXIO.readHercm(fileName)
-				if status != MTXIO.STATUS_SUCCESS:
-					print("""WARNING: an error was encountered while loading the 
-file""")
-			except Exception as e:
-				print("""ERROR: could not load file, the exception {0} was 
-encountered""".format(str(e)))
+
+		if SC.readMatrix(fileName, fileFormat):
+			print("Read matrix successfully")
 		else:
-			print("ERROR: file format must be mtx or hercm")
+			print("libSparseConvert was unable to read the matrix")
+			print("Printing most recent 5 log entries...")
+			if len(SC.logger.contents) <= 5:
+				main("log {0}".format(len(SC.logger.contents) -1 ))
+			else:
+				main("log 5")
 
 	elif command == 'write':
 		if len(arguments) != 2:
@@ -95,32 +119,21 @@ encountered""".format(str(e)))
 		fileFormat = arguments[1]
 		print("Writing {0} in format {1}".format(fileName, fileFormat))
 
-		if fileFormat == 'mtx':
-			try: 
-				status = MTXIO.writeMtx(fileName)
-				if status != MTXIO.STATUS_SUCCESS:
-					print("""WARNING: an error was encountered while loading the 
-file""")
-			except Exception as e:
-				print("""ERROR: could not write file, the exception {0} was 
-encountered""".format(str(e)))
-		elif fileFormat == 'hercm':
-			try: 
-				status = MTXIO.writeHercm(fileName)
-				if status != MTXIO.STATUS_SUCCESS:
-					print("""WARNING: an error was encountered while loading the 
-file""")
-			except Exception as e:
-				print("""ERROR: could not write file, the exception {0} was 
-encountered""".format(str(e)))
+		if SC.writeMatrix(fileName, fileFormat):
+			print("Wrote matrix successfully")
 		else:
-			print("ERROR: file format must be mtx or hercm")
+			print("libSparseConvert was unable to write the amtrix")
+			print("Printing most recent 5 log entries...")
+			if len(SC.logger.contents) <= 5:
+				main("log {0}".format(len(SC.logger.contents) -1 ))
+			else:
+				main("log 5")
 
 	elif command == 'info':
-		height    = MTXIO.hercm['height']
-		width     = MTXIO.hercm['width']
-		nzentries = MTXIO.hercm['nzentries']
-		symmetry  = MTXIO.hercm['symmetry']
+		height    = SC.HSM.contents['height']
+		width     = SC.HSM.contents['width']
+		nzentries = SC.HSM.contents['nzentries']
+		symmetry  = SC.HSM.contents['symmetry']
 
 		print("""- matrix properties -
 height (number of rows) - {0}
@@ -132,7 +145,7 @@ symmetry  - - - - - - - - {3}
 	elif command == 'display':
 		matrix = None
 		try:
-			matrix = MTXIO.HSM.getScipyCSR()
+			matrix = SC.HSM.getInFormat('csr')
 		except TypeError:
 			print("ERROR: could not get matrix in CSR format")
 		try:
@@ -146,21 +159,20 @@ symmetry  - - - - - - - - {3}
 
 
 	elif command == 'csrdisplay':
-		if MTXIO.hercm['nzentries'] > 25:
+		if SC.HSM.contents['nzentries'] > 25:
 			print("WARNING: matrix contains more than 25 entries, ")
 			print("are you sure you wish to proceed?")
 			if input('(yes/no)> ').upper() != "YES":
 				return
 
-		print("val:"      ,MTXIO.hercm['val'])
-		print("row_ptr:"  ,MTXIO.hercm['row_ptr'])
-		print("colind:"   ,MTXIO.hercm['colind'])
-		print("nzentries:",MTXIO.hercm['nzentries'])
+		matrix = SC.HSM.getInFormat('csr')
+		print("val:"      ,matrix.data)
+		print("row_ptr:"  ,matrix.indices)
+		print("colind:"   ,matrix.indptr)
+		print("nzentries:",SC.HSM.contents['nzentries'])
 
 	elif command == 'raw':
-		import pprint
-		pp = pprint.PrettyPrinter()
-		pp.pprint(MTXIO.hercm)
+		pp.pprint(SC.HSM.contents)
 
 	elif command == 'value':
 		if len(arguments) != 2:
@@ -170,7 +182,96 @@ symmetry  - - - - - - - - {3}
 		row = int(arguments[0])
 		col = int(arguments[1])
 		print("value of {0},{1}:".format(row, col), 
-			  MTXIO.HSM.getValue(row, col))
+			  SC.HSM.getValue(row, col))
+
+	elif command == 'row':
+		if len(arguments) != 1:
+			print("ERROR: incorrect number of arguments") 
+			return 
+		rowNumber = 0
+		try: 
+			rowNumber = int(arguments[0])
+		except ValueError:
+			print("ERROR: {0} is not a valid row number".format(arguments[0]))
+			return
+
+		matrix = SC.HSM.getInFormat('coo')
+		print("row {0} contents: \n{1}"
+			  .format(rowNumber, matrix.getrow(rowNumber)))
+
+	elif command == 'col':
+		if len(arguments) != 1:
+			print("ERROR: incorrect number of arguments") 
+			return 
+		colNumber = 0
+		try: 
+			colNumber = int(arguments[0])
+		except ValueError:
+			print("ERROR: {0} is not a valid column number".format(arguments[0]))
+			return
+
+		matrix = SC.HSM.getInFormat('coo')
+		print("column {0} contents: \n{1}"
+			  .format(rowNumber, matrix.getcol(rowNumber)))
+
+	elif command == 'range':
+		if len(arguments) != 4:
+			print("ERROR: incorrect number of arguments")
+			return 
+		r1 = 0
+		r2 = 0
+		c1 = 0
+		c2 = 0 
+
+		try:
+			r1 = int(arguments[0])
+			c1 = int(arguments[1])
+			r2 = int(arguments[2])
+			c2 = int(arguments[3])
+		except ValueError:
+			print("ERROR: one or more arguments are not valid integers")
+			return 
+
+		width = SC.HSM.contents['width']
+		height = SC.HSM.contents['height']
+
+		for row in range(0,height):
+			for col in range (0,width):
+				if col >= c1 and col <= c2:
+					if row >= r1 and row <= r2:
+						print("{0},{1} = {2}".format(row, col, 
+													 SC.HSM.getValue(row, col)))
+
+	elif command == 'touch':
+		if len(arguments) != 3:
+			print("ERROR: incorrect number of arguments")
+			return 
+		row = 0
+		col = 0
+		val = 0
+
+		try:
+			row = int(arguments[0])
+			col = int(arguments[1])
+			val = int(arguments[2])
+		except ValueError:
+			print("ERROR: one or more arguments are not valid integers")
+			return 
+
+		oldValue = SC.HSM.getValue(row, col)
+
+		if SC.HSM.setValue(row, col, val):
+			print("updated value of {0},{1}: {2}"
+				  .format(row, col, SC.HSM.getValue(row, col)))
+		else:
+			print("ERROR: could not set value (row, col probably out of bounds")
+
+		if oldValue == 0 and val != 0: 
+			print("WARNING: you have added a new non zero entry, COO vectors")
+			print("may not be in row-major form!")
+
+	elif command == 'paint':
+		pass
 
 	else:
 		print("ERROR: Command not recognized") 
@@ -179,6 +280,6 @@ symmetry  - - - - - - - - {3}
 
 
 print("welcome to HeRCM Explorer. Enter \"help\" for help")
-MTXIO = libmtxio.mtxio() 
+SC = libSparseConvert.sparseConvert()
 while True:
 	main()
