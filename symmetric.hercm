@@ -1,4 +1,7 @@
 HERCM 3 3 9 SYM 3
+REMARKS LIST STRING
+This matrix is symmetric, and is useful for testing HeRCM's ability to deal with symmetric matricies. 
+ENDFIELD
 VAL LIST FLOAT
 1 7 3 7 4 -5 3 -5 6
 ENDFIELD
