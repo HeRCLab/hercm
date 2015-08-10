@@ -78,6 +78,10 @@ if outputFormat == 'mtx':
 		else:
 			os.system("python generate_symmetric_matrices.py {0}"
 					  .format(outputFileName))
-			
+			os.remove(outputFileName)
+			os.remove(outputFileName+'.pvalcol')
+			os.rename(outputFileName+".pmtx", outputFileName)
+
+
 
 	

@@ -174,6 +174,8 @@ for duplicate in list_to_delete:
 	indexOfDuplicate = matrix_numbers_list.index(duplicate)
 	matrix_numbers_list.pop(indexOfDuplicate) # list.pop() is more "correct" 
 
+	number_of_nnz_deleted != 1 # compatibility with the rest of the code
+
 
 number_of_nnz = number_of_nnz - number_of_nnz_deleted
 
@@ -210,6 +212,7 @@ print ""
 ## export ti .mtx file
 new_mtx_file_name = str(sys.argv[1]) + ".pmtx"
 new_mtx_file = open(new_mtx_file_name, "w")
+new_mtx_file.write("%%MatrixMarket matrix coordinate real symmetric\n")
 new_mtx_file.write(str(number_of_rows_cols_nnz[0]) + " " + str(number_of_rows_cols_nnz[1]) + " " + str(int(number_of_rows_cols_nnz[2])))
 new_mtx_file.write("\n")
 
