@@ -5,6 +5,7 @@ import libSparseConvert
 import argparse
 import pprint
 pp = pprint.PrettyPrinter()
+import os 
 
 
 argparser = argparse.ArgumentParser(description="""utility to convert matrix 
@@ -32,13 +33,18 @@ argparser.add_argument('--print','-p',
 					   help = """Print the matrix in human readable format 
 before writing. Note that this is liable to cause excessive output on stdout, 
 or out of memory errors""")
+argparser.add_argument('--noworkaround','--n',
+						action='store_true',
+						help="""Do not use a workaround to fix mtx files. If 
+specified, all mtx files will be asymmetric, regardless of matrix symmetry. """)
 
 arguments = argparser.parse_args() 
 inputFileName  = arguments.input[0]
 outputFileName = arguments.output[0]
 inputFormat    = arguments.inputformat[0]
 outputFormat   = arguments.outputformat[0]
-printMatrix = arguments.print 
+printMatrix	   = arguments.print 
+noworkaround   = arguments.noworkaround
 
 supportedFormats = ['mtx','hercm']
 
@@ -63,5 +69,15 @@ if not SC.writeMatrix(outputFileName, outputFormat):
 
 if printMatrix:
 	print(SC.HSM.getInFormat('coo').todense())
+
+if outputFormat == 'mtx':
+	if SC.HSM.contents['symmetry'] == 'SYM':
+		print("WARNING: output format is MTX, but symmetry is symmetric") 
+		if noworkaround:
+			print("--noworkaround given, not repairing matrix")
+		else:
+			os.system("python generate_symmetric_matrices.py {0}"
+					  .format(outputFileName))
+			
 
 	

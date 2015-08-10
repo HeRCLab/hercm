@@ -161,9 +161,14 @@ for i in range(0, len(matrix_numbers_list)):
 print ""
 #ERROR HERE: with indexes
 for i in range(0, len(list_to_delete)):
-	print "deleting " + str(matrix_numbers_list[list_to_delete[i]]) + " as the value has a duplicate"
-	del matrix_numbers_list[list_to_delete[i]]
-	number_of_nnz_deleted += 1 
+	try:
+		print "deleting " + str(matrix_numbers_list[list_to_delete[i]]) + " as the value has a duplicate"
+		del matrix_numbers_list[list_to_delete[i]]
+		number_of_nnz_deleted += 1 
+	except IndexError:
+		print("ERROR: cannot access index {0} of matrix with {1} elements"
+			  .format(i, len(matrix_numbers_list)))
+		print(matrix_numbers_list)
 
 number_of_nnz = number_of_nnz - number_of_nnz_deleted
 
