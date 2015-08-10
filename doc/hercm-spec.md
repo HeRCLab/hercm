@@ -100,14 +100,12 @@ VAL LIST FLOAT
 8 7 5 3 4 2 1 6
 ENDFIELD
 ROW LIST INT
-4 3 3 4 1 1 2 4
+3 2 2 3 0 0 1 3
 ENDFIELD
 COL LIST INT
-4 4 3 2 1 4 2 1 
+3 3 2 1 0 3 1 0 
 ENDFIELD
 ```
-
-**NOTE**: COO matricies are one-indexed, thus a row,col of 1,1 refers to the first index of the matrix. 
 
 The verification sum could be calculated as such: 
 ```
@@ -122,11 +120,11 @@ We already know that this matrix is asymmetrical.
 
 Thus, the header would be: 
 
-`HERCM 5 5 8 ASYM 7`
+`HERCM 4 4 8 ASYM 7`
 
 Thus, the full matrix could be reproduced as such: 
 ```
-HERCM 5 5 8 ASYM 7 
+HERCM 4 4 8 ASYM 7 
 REMARKS LIST STRING
 This is an example matrix created for the HeRCM documentation. This field is ignored because it's title is REMARKS. 
 ENDFIELD
@@ -134,10 +132,10 @@ VAL LIST FLOAT
 8 7 5 3 4 2 1 6
 ENDFIELD
 ROW LIST INT
-4 3 3 4 1 1 2 4
+3 2 2 3 0 0 1 3
 ENDFIELD
 COL LIST INT
-4 4 3 2 1 4 2 1 
+3 3 2 1 0 3 1 0 
 ENDFIELD
 
 ```
