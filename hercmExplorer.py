@@ -133,17 +133,23 @@ from filename""")
 		
 
 	elif command == 'info':
-		height    = SC.HSM.contents['height']
-		width     = SC.HSM.contents['width']
-		nzentries = SC.HSM.contents['nzentries']
-		symmetry  = SC.HSM.contents['symmetry']
+		height    = SC.HSM.height
+		width     = SC.HSM.width
+		nzentries = SC.HSM.nzentries
+		symmetry  = SC.HSM.symmetry
+		verification = SC.HSM.verification
 
 		print("""- matrix properties -
 height (number of rows) - {0}
 width (number of cols)  - {1}
 non zero elements - - - - {2} 
 symmetry  - - - - - - - - {3}
-- end matrix properties -""".format(height, width, nzentries, symmetry)) 
+verification  - - - - - - {4} 
+- end matrix properties -""".format(height, 
+									width, 
+									nzentries, 
+									symmetry, 
+									verification)) 
 
 	elif command == 'display':
 		matrix = None
