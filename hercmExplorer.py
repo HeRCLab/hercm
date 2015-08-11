@@ -1,3 +1,4 @@
+
 #!/usr/bin/python3
 # utility for exploring and editing the contents of hercm matrix files 
 
@@ -344,16 +345,18 @@ verification  - - - - - - {4}
 			return 
 
 		# remove out of bounds entries 
-		for i in reversed(range(0, SC.HSM.contents['nzentries'])):
-			if SC.HSM.contents['row'][i] >= height:
-				SC.HSM.setValue(SC.HSM.contents['row'][i], 
-								SC.HSM.contents['col'][i], 0)
-			elif SC.HSM.contents['col'][i] >= width:
-				SC.HSM.setValue(SC.HSM.contents['row'][i], 
-								SC.HSM.contents['col'][i], 0)
+		for i in reversed(range(0, SC.HSM.nzentries)):
+			if SC.HSM.elements['row'][i] >= height:
+				SC.HSM.setValue(SC.HSM.elements['row'][i], 
+								SC.HSM.elements['col'][i], 0)
+			elif SC.HSM.elements['col'][i] >= width:
+				SC.HSM.setValue(SC.HSM.elements['row'][i], 
+								SC.HSM.elements['col'][i], 0)
 
-		SC.HSM.contents['height'] = height
-		SC.HSM.contents['width'] = width 
+		SC.HSM.height = height
+		SC.HSM.width = width 
+
+		SC.HSM.removeZeros()
 
 		print("Updated matrix dimensions. New values:")
 		main("info")
