@@ -4,6 +4,10 @@ import clogs
 import scipy
 import numpy
 import scipy.io
+
+class HercmioValidationError(Exception):
+	pass
+
 class hercmio:
 	# permits IO on HeRCM files 
 	def __init__(this, logger=None):
@@ -16,23 +20,11 @@ class hercmio:
 		this.logger.log('new hercmio instance instantiated')
 
 	def read(this, filename):
-		# reads the HeRCM file specified by the string filename and stores it as
-		# a dict 
+		# reads in the HeRCM file specified by filename 
+		# returns it as an instance of libhsm.hsm
 
-		# example: 
-		# {'col': [4, 4, 3, 2, 1, 4, 2, 1],
-	    # 'height': 5,
-	    # 'nzentries': 8,
-	    # 'remarks': [],
-	    # 'row': [4, 3, 3, 4, 1, 1, 2, 4],
-	    # 'symmetry': 'ASYM',
-	    # 'val': [8.0, 7.0, 5.0, 3.0, 4.0, 2.0, 1.0, 6.0],
-	    # 'verification': 7.0,
-	    # 'width': 5}
-
-		# returns None on error 
-
-		contents = {} 
+		HSM = libhsm.hsm()
+		contents = {}
 
 		this.logger.log("Reading HeRCM file {0}".format(filename))
 
@@ -40,11 +32,13 @@ class hercmio:
 			fileObject = open(filename, 'r')
 		except FileNotFoundError: 
 			this.logger.log("could not open file: file not found (31)", "error")
-			return None
+			raise FileNotFoundError("could not open file: {0} no such file"
+									.format(filename))
 		except PermissionError: 
 			this.logger.log("could not open file: permissions error (34)", 
 							"error")
-			return None 
+			raise PermissionError("could not open file: {0}, permission denied"
+								  .format(filename))
 
 		lines = fileObject.readlines() 
 		fileObject.close() 
@@ -56,12 +50,12 @@ class hercmio:
 
 		if len(splitHeader) != 6:
 			this.logger.log("invalid header: too few fields (46)","error")
-			return None
+			raise HercmioValidationError("header contains too few fields")
 
 		if splitHeader[0] != 'HERCM':
 			this.logger.log("could not read file, not a HeRCM file (50)", 
 						    "error")
-			return None 
+			raise HercmioValidationError("header does not contain HeRCM") 
 		try:
 			width = int(splitHeader[1])
 			height = int(splitHeader[2])
@@ -69,7 +63,18 @@ class hercmio:
 			verification = float(splitHeader[5])
 		except ValueError:
 			this.logger.log("could not read file, mangled header (57)", "error")
+			raise HercmioValidationError("Could not extract values from header")
+
 		symmetry = splitHeader[4]
+		if symmetry not in ['SYM','ASYM']:
+			raise HercmioValidationError("header contains invalid symmetry")
+		
+
+		HSM.width 		= width
+		HSM.height 		= height
+		HSM.nzentries	= nzentries 
+		HSM.symmetry	= symmetry
+		HSM.verification = verification
 		
 
 		contents['width'] = width
@@ -148,7 +153,8 @@ class hercmio:
 			if field not in contents:
 				this.logger.log("read file, but needed field {0} missing (136)"
 								.format(field), 'error')
-				return None 
+				raise HercmioValidationError("field {0} is missing from file"
+											 .format(field)) 
 		
 		if this.verify(contents): 
 			return contents
@@ -158,28 +164,51 @@ class hercmio:
 
 	def generateVerificationSum(this,hercm):
 		# returns the verification sum of hercm
-		# hercm should be the same format as the return  of read()
+		# hercm should be in the format: 
 
-		fields = ['val','col','row']
-		sum = 0
-		for field in fields:
-			try:
-				for value in hercm[field]:
-					sum += value 
-			except KeyError:
-				this.logger.log("could not verify, missing field (157)","error")
-				return None
-			except TypeError:
-				this.logger.log("could not verify, mangled field (159)","error")
-				return None 
+		# {'col': [4, 4, 3, 2, 1, 4, 2, 1],
+	    # 'height': 5,
+	    # 'nzentries': 8,
+	    # 'remarks': [],
+	    # 'row': [4, 3, 3, 4, 1, 1, 2, 4],
+	    # 'symmetry': 'ASYM',
+	    # 'val': [8.0, 7.0, 5.0, 3.0, 4.0, 2.0, 1.0, 6.0],
+	    # 'verification': 7.0,
+	    # 'width': 5}
 
-		return sum % float(hercm['nzentries'])
+	    # hercm may also be an instance of libhsm.hsm 
+
+	    if type(hercm) == dict:
+			fields = ['val','col','row']
+			sum = 0
+			for field in fields:
+				try:
+					for value in hercm[field]:
+						sum += value 
+				except KeyError as e:
+					this.logger.log("could not verify, missing field (157)",
+						"error")
+					raise KeyError("missing field... ",str(e))
+				except TypeError as e:
+					this.logger.log("could not verify, mangled field (159)",
+									"error")
+					raise TypeError("one or more fields is of invalid type",
+									str(e))
+	
+			return sum % float(hercm['nzentries'])
+		else:
+			val = hercm.elements['val']
+			row = hercm.elements['row']
+			col = hercm.elements['col'] 
+
+			return generateVerificationSum({'val':val, 'row':row,'col':col})
 		
 		
 
 	def verify(this, hercm):
 		# verifies the hercm provided 
-		# hercm should be formatted the same way as the return value of read()
+		# hercm should be the same dict format as generateVerificationSum()
+		# hercm may also be an instance of libhsm.hsm
 
 		# returns True of the hercm is valid
 		# returns False if it is not 
@@ -187,58 +216,75 @@ class hercmio:
 
 		this.logger.log("verifying HeRCM...")
 
+		if type(hercm) != dict:
+			try:
+				verification = this.generateVerificationSum(hercm)
+			except KeyError as e:
+				raise KeyError("failed to generate verification sum... ",str(e))
+				return None 
+			except TypeError as e:
+				raise TypeError("failed to generate verification sum... ",str(e))
+				return None
+	
+			try: 
+				if verification == hercm['verification']:
+					this.logger.log("verification passed")
+					return True
+				else:
+					this.logger.log("verification failed, expected {0}, got {1}"
+									.format(hercm['verification'], verification))
+					return False 
+			except ValueError as e:
+				this.logger.log("could not verify, mangled field (165)", "error")
+				raise ValueError("Could not verify, mangled field...",str(e))
+				return None 
+			except KeyError:
+				this.logger.log("could not verify, missing field (168)", "error")
+				raise KeyError("could not verify, missing field...",str(e))
+				return None 
+		else:
+			try:
+				verification = this.generateVerificationSum(hercm)
+			except KeyError as e:
+				raise KeyError("failed to generate verification sum... ",str(e))
+				return None 
+			except TypeError as e:
+				raise TypeError("failed to generate verification sum... ",str(e))
+				return None
 
-		
+			return hercm.verification == verification
 
-		verification = this.generateVerificationSum(hercm)
-		if verification == None: 
-			this.logger.log("could not generate verification sum (195)",'error')
-			return None 
-
-		try: 
-			if verification == hercm['verification']:
-				this.logger.log("verification passed")
-				return True
-			else:
-				this.logger.log("verification failed, expected {0}, got {1}"
-								.format(hercm['verification'], verification))
-				return False 
-		except ValueError:
-			this.logger.log("could not verify, mangled field (165)", "error")
-			return None 
-		except KeyError:
-			this.logger.log("could not verify, missing field (168)", "error")
-
-	def write(this, hercm, filename):
-		# hercm should be in the same format as the return value of read() 
+	def write(this, HSM, filename):
+		# HSM should be an instance of libhsm.hsm 
 		# fileame is the string path to the file to write
 		# writes a hercm file with contents matching hercm to filename 
 
-		# returns True on success, and None on failure 
 
 		this.logger.log("writing file {0}".format(filename))
 
 		try:
 			fileObject = open(filename, 'w')
-		except FileNotFoundError: 
+		except FileNotFoundError as e: 
 			this.logger.log("could not open file: file not found (207)","error")
-			return None
-		except PermissionError: 
+			raise FileNotFoundError("could not open file {0}... "
+									.format(filename), str(e))
+		except PermissionError as e: 
 			this.logger.log("could not open file: permissions error (210)", 
 							"error")
-			return None 
+			raise PermissionError("Could not open file {0}..."
+								  .format(filename), str(e)) 
 
 		if not this.verify(hercm): 
 			this.logger.log("verification failed (217)", "warning")
+			raise HercmioValidationError("matrix did not pass validation")
 			
 
-
 		header = 'HERCM '
-		header = header + str(hercm['width']) + ' '
-		header = header + str(hercm['height']) + ' '
-		header = header + str(hercm['nzentries']) + ' '
-		header = header + str(hercm['symmetry']) + ' '
-		header = header + str(hercm['verification']) + '\n'
+		header = header + str(hercm.width) + ' '
+		header = header + str(hercm.height) + ' '
+		header = header + str(hercm.nzentries) + ' '
+		header = header + str(hercm.symmetry) + ' '
+		header = header + str(hercm.verification) + '\n'
 
 		this.logger.log("generated header: {0}".format(header))
 
@@ -247,7 +293,7 @@ class hercmio:
 		fileObject.write('REMARKS LIST STRING\n')
 		itemcounter = 0
 		line = ''
-		for item in hercm['remarks']:
+		for item in hercm.remarks:
 			line = line + item + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -261,7 +307,7 @@ class hercmio:
 		fileObject.write('VAL LIST FLOAT\n')
 		itemcounter = 0
 		line = ''
-		for item in hercm['val']:
+		for item in hercm.elements['val']]:
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -275,7 +321,7 @@ class hercmio:
 		fileObject.write('ROW LIST INT\n')
 		itemcounter = 0
 		line = ''
-		for item in hercm['row']:
+		for item in hercm.elements['row']:
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -289,7 +335,7 @@ class hercmio:
 		fileObject.write('COL LIST INT\n')
 		itemcounter = 0
 		line = ''
-		for item in hercm['col']:
+		for item in hercm.elements['col']:
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -301,7 +347,6 @@ class hercmio:
 		fileObject.write('ENDFIELD\n')
 
 		fileObject.close() 
-		return True 
 
 
 class sparseConvert:
@@ -334,14 +379,8 @@ class sparseConvert:
 
 		if format == 'hercm':
 			matrix = this.HERCMIO.read(filename)
-			if matrix == None:
-				this.logger.log("could not read matrix, general failure (319)",
-								"error")
-				return None 
-			this.logger.log("finished reading matrix")
-			this.HSM.contents = matrix 
-			return True 
-		
+			this.HSM = matrix
+			
 		elif format == 'mtx':
 			from scipy import io
 			from scipy.sparse import csr_matrix 

@@ -25,7 +25,7 @@ class hsm:
 		this.width 		  = 0
 
 	
-	def getInFormat(this, format):
+	def getInFormat(this, form):
 		# returns the matrix as a scipy.sparse type 
 		# format is any string valid for scipy.sparse.coo_matrix.asformat
 		# http://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_matrix.asformat.html#scipy.sparse.coo_matrix.asformat
@@ -37,14 +37,18 @@ class hsm:
 											   			this.contents.width)
 											   )
 
-		return scipyMatrix.asformat(format)
+		return scipyMatrix.asformat(form)
 
 	def addElement(this, element):
 		# element can be any element supported by this.castElement() 
 
+
 		try: 
 			element = this.castElement(element)
-			this.elements = numpy.append(this.elements, element)
+			if this.elements == None:
+				this.elements = numpy.array([element],dtype=this.dtype)
+			else:
+				this.elements = numpy.append(this.elements, element)
 			this.nzentries = this.nzentries + 1
 		except ValueError as e:
 			raise ValueError("Could not cast element to valid format... ",str(e))
@@ -164,7 +168,7 @@ class hsm:
 
 
 	def removeElement(this, n, rtol=0, atol=0):
-		# if n can be cast to n, removes the nth element of the matrix
+		# if n can be cast to int, removes the nth element of the matrix
 		# if n can be cast by this.castElement(), remove all instances
 		# of that element, as found by this.searchElement() 
 
@@ -184,39 +188,34 @@ class hsm:
 				for i in instances:
 					this.removeElement(i)
 			except ValueError as e:
-				print("could not cast n to any valid format... ",str(e))
+				raise ValueError("could not cast n to any valid format... ",
+								 str(e))
 
 
 
 
-	def getValue(this, row, col):
-		# returns the value stored at row, col 
-		# returns None if the value cannot be found 
+	def getValue(this, row, col, rtol=1e-05, atol=1e-08):
+		# returns the value stored at row, col  
 		# if assumeRowMajor is true, uses an optimized search routine
 
 
-		if newRow > this.height:
+		if row > this.height:
 			raise IndexError("row out of bounds") 
-		if newCol > this.width:
+		if col > this.width:
 			raise IndexError("col out of bounds") 
-		if newRow < 0:
+		if row < 0:
 			raise IndexError("row out of bounds") 
-		if newCol < 0:
+		if col < 0:
 			raise IndexError("col out of bounds") 
 
-		for i in range(0, this.nzentries):
-			if this.elements['row'][i] < row:
-				pass 
-			elif this.elements['row'][i] > row:
-				return 0 
-			elif this.elements['col'][i] > col and \
-			this.elements['row'] == row:
-				return 0
-			elif this.elements['col'][i] == col and \
-			this.elements['row'] == row:
-				return this.elements['val'][i]
-
-		
+		for i in range(0, nzentries):
+			if numpy.isclose(this.elements[i]['row'],
+							 element['row'],
+							 rtol, atol):
+				if numpy.isclose(this.elements[i]['col'],
+							 element['col'],
+							 rtol, atol):
+					return this.elements[i]['val']
 
 
 		return 0
