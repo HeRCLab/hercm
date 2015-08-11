@@ -118,15 +118,8 @@ from filename""")
 		fileName = arguments[0]
 		fileFormat = arguments[1] 
 
-		if SC.readMatrix(fileName, fileFormat):
-			print("Read matrix successfully")
-		else:
-			print("libSparseConvert was unable to read the matrix")
-			print("Printing most recent 5 log entries...")
-			if len(SC.logger.contents) <= 5:
-				main("log {0}".format(len(SC.logger.contents) -1 ))
-			else:
-				main("log 5")
+		SC.readMatrix(fileName, fileFormat)
+		print("done reading matrix")
 
 	elif command == 'write':
 		if len(arguments) != 2:
@@ -136,15 +129,8 @@ from filename""")
 		fileFormat = arguments[1]
 		print("Writing {0} in format {1}".format(fileName, fileFormat))
 
-		if SC.writeMatrix(fileName, fileFormat):
-			print("Wrote matrix successfully")
-		else:
-			print("libSparseConvert was unable to write the amtrix")
-			print("Printing most recent 5 log entries...")
-			if len(SC.logger.contents) <= 5:
-				main("log {0}".format(len(SC.logger.contents) -1 ))
-			else:
-				main("log 5")
+		SC.writeMatrix(fileName, fileFormat)
+		
 
 	elif command == 'info':
 		height    = SC.HSM.contents['height']

@@ -437,7 +437,7 @@ class sparseConvert:
 				this.HSM.elements = append_fields(this.HSM.elements, 'val', val, usemask = False, dtypes=[numpy.float64])
 
 				
-
+				this.HSM.nzentries = len(this.HSM.elements['val'])
 				
 					
 			except IOError as e: # make sure the file exists and is readable
