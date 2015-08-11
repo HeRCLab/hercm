@@ -189,20 +189,20 @@ class hsm:
 
 
 
-	def getValue(this, row, col, assumeRowMajor=False):
+	def getValue(this, row, col):
 		# returns the value stored at row, col 
 		# returns None if the value cannot be found 
 		# if assumeRowMajor is true, uses an optimized search routine
 
 
-		if row > this.height:
-			return None 
-		if col > this.width:
-			return None 
-		if row < 0:
-			return None
-		if col < 0:
-			return None 
+		if newRow > this.height:
+			raise IndexError("row out of bounds") 
+		if newCol > this.width:
+			raise IndexError("col out of bounds") 
+		if newRow < 0:
+			raise IndexError("row out of bounds") 
+		if newCol < 0:
+			raise IndexError("col out of bounds") 
 
 		for i in range(0, this.nzentries):
 			if this.elements['row'][i] < row:
@@ -221,7 +221,7 @@ class hsm:
 
 		return 0
 
-	def setValue(this, newRow, newCol, newVal, assumeRowMajor=False):
+	def setValue(this, newRow, newCol, newVal):
 		# changes the value of row, col to val
 		# all are integers 
 
