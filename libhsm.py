@@ -225,18 +225,16 @@ class hsm:
 		# changes the value of row, col to val
 		# all are integers 
 
-		# returns None on error and True on success
-
 		# assumeRowMajor is passed through to getValue
 
 		if newRow > this.height:
-			return None 
+			raise IndexError("newRow out of bounds") 
 		if newCol > this.width:
-			return None 
+			raise IndexError("newCol out of bounds") 
 		if newRow < 0:
-			return None
+			raise IndexError("newRow out of bounds") 
 		if newCol < 0:
-			return None 
+			raise IndexError("newCol out of bounds")  
 
 		if this.getValue(newRow, newCol, assumeRowMajor) != 0:
 			for i in range(0,this.nzentries):
@@ -245,7 +243,7 @@ class hsm:
 						this.elements['val'][i] = newVal 
 						if newVal == 0:
 							this.removeZeros()
-						return True
+					
 
 		# value does not exist yet, lets create it 
 		newEntry = numpy.array(dtype=this.dtype)
@@ -255,7 +253,6 @@ class hsm:
 		this.nzentries = len(this.elements['val'])
 		if newVal == 0:
 			this.removeZeros()
-		return True
 
 	def removeZeros(this):
 		# removes any instances of zero 
