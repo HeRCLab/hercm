@@ -6,24 +6,30 @@ Move `sparseConvert.py`, `libSparseConvert.py`, `libhsm.py`, and `cogs.py` into 
 
 # Usage
 ```
-usage: sparseConvert.py [-h] [-mtx MTX] [-output OUTPUT] [-hercm HERCM]
-                        [--print]
+usage: sparseConvert.py [-h] -input INPUT -output OUTPUT -inputformat
+                        INPUTFORMAT -outputformat OUTPUTFORMAT [--print]
+                        [--noworkaround]
 
 utility to convert matrix market files to hercm and vice-versa
 
 optional arguments:
   -h, --help            show this help message and exit
-  -mtx MTX, -m MTX      specifies the path to the mtx file to read, converts
-                        it to hercm, then writes it out with the same name and
-                        the hermc extension
+  -input INPUT, -i INPUT
+                        Specifies the path to the input matrix
   -output OUTPUT, -o OUTPUT
-                        specifies the output file for either -mtx or -hercm;
-                        overrides the generated file names for either option
-  -hercm HERCM, -e HERCM
-                        specifies the path of the hercm file to be read,
-                        converts it to hercm, then writes it out with the same
-                        name and the mtx extension
+                        Specifies the path of the output matrix
+  -inputformat INPUTFORMAT, -if INPUTFORMAT
+                        Specifies the format of the input matrix
+  -outputformat OUTPUTFORMAT, -of OUTPUTFORMAT
+                        Specifies the format of the output matrix
   --print, -p           Print the matrix in human readable format before
                         writing. Note that this is liable to cause excessive
                         output on stdout, or out of memory errors
+  --noworkaround, --n   Do not use a workaround to fix mtx files. If
+                        specified, all mtx files will be asymmetric,
+                        regardless of matrix symmetry.
+
 ```
+
+# Workaround for issue #1 
+As a workaround for scipy not writing symmetric matrices to mtx correctly, an additional script will automatically be run on the output matrix, to put it in symmetrical form. If you do not wish to use this workaround, you can use the `--n` flag. 
