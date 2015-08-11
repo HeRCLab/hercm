@@ -74,6 +74,7 @@ class hsm:
 			retList.append(this.elements['row'][n])
 			retList.append(this.elements['col'][n])
 			retList.append(this.elements['val'][n])
+			return retList
 		elif form == numpy.void:
 			return this.elements[n]
 		elif form == numpy.ndarray:

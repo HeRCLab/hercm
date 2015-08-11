@@ -181,7 +181,15 @@ verification  - - - - - - {4}
 		print("nzentries:",SC.HSM.contents['nzentries'])
 
 	elif command == 'raw':
-		pp.pprint(SC.HSM.contents)
+		main("info")
+		print("- raw matrix contents -")
+		print("{0:6} {1:6} {2:6}".format("row","col","val"))
+		for i in range (0,SC.HSM.nzentries):
+			element = SC.HSM.getElement(i)
+			row = element[0]
+			col = element[1]
+			val = element[2]
+			print("{0:6} {1:6} {2:6}".format(row, col, val))
 
 	elif command == 'value':
 		if len(arguments) != 2:
