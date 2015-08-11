@@ -37,6 +37,16 @@ class hsm:
 
 		return scipyMatrix.asformat(format)
 
+	def getValcol(this):
+		# returns a numpy matrix, where each element is in the format 
+		# (row, col, val)
+
+		valcolType = numpy.dtype([('row',int),('col',int),('val',float)]])
+		valcol = numpy.array(dtype=valcolType)
+
+		for i in range(0,i):
+			valcol
+
 
 
 	def getValue(this, row, col, assumeRowMajor=False):
@@ -147,31 +157,41 @@ class hsm:
 	def makeRowMajor(this):
 		# re orders this matrix such that it is row major 
 
+		import sys 
+
+		lengthNotSorted = len(this.contents['val'])
+
 		while not this.checkIfSorted(this.contents['row']):
+			print("\nElements are not sorted, initiating pass...")
 			for i in range (1, len(this.contents['val'])):
+				if i % 10000 == 0:
+					percentComplete = round(100 * (i/len(this.contents['val'])),1)
+					print("\r[{0}] % complete".format(percentComplete),end="")
+					
 				if this.contents['row'][i-1] > this.contents['row'][i]:
 					# swap values to sort 
-					#smallerValue = this.contents['row'][i]
-					#largerValue = this.contents['row'][i-1]
-					#this.contents['row'][i] = largerValue 
-					#this.contents['row'][i-1] = smallerValue
 
 					this.contents['row'][i], this.contents['row'][i-1] = \
 					this.contents['row'][i-1], this.contents['row'][i]
 
-					smallerValue = this.contents['col'][i]
-					largerValue = this.contents['col'][i-1]
-					this.contents['col'][i] = largerValue 
-					this.contents['col'][i-1] = smallerValue
+					this.contents['col'][i], this.contents['col'][i-1] = \
+					this.contents['col'][i-1], this.contents['col'][i]
 
-					smallerValue = this.contents['val'][i]
-					largerValue = this.contents['val'][i-1]
-					this.contents['val'][i] = largerValue 
-					this.contents['val'][i-1] = smallerValue
+					this.contents['val'][i], this.contents['val'][i-1] = \
+					this.contents['val'][i-1], this.contents['val'][i]
+
+
 		while not this.checkIfRowMajor():
+			print("Matrix is not row major, initiating pass...")
 			for i in range(1, len(this.contents['val'])):
 				# check if the previous value of col is larger than the current
 				# value AND the row value for both is identical 
+
+				if i % 1000 == 0:
+					sys.stdout.write("\r[{0}] % ccomplete"
+								 .format(100 * (i/len(this.contents['val']))))
+					sys.stdout.flush()
+
 				if this.contents['col'][i-1] > this.contents['col'][i]:
 					if this.contents['row'][i-1] == this.contents['row'][i]:
 						# swap values to sort 

@@ -57,14 +57,17 @@ if inputFormat not in supportedFormats:
 
 SC = libSparseConvert.sparseConvert() 
 
+print("reading matrix...")
 if not SC.readMatrix(inputFileName, inputFormat):
 	print("FATAL: libSparseConvert encountered an error. Log follows...")
 	pp.pprint(SC.logger.contents)
 	exit()
+print("writing matrix...")
 if not SC.writeMatrix(outputFileName, outputFormat):
 	print("FATAL: libSparseConvert encountered an error. Log follows...")
 	pp.pprint(SC.logger.contents)
 	exit()
+
 
 
 if printMatrix:
