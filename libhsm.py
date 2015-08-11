@@ -235,7 +235,7 @@ class hsm:
 		if newCol < 0:
 			raise IndexError("newCol out of bounds")  
 
-		if this.getValue(newRow, newCol, assumeRowMajor) != 0:
+		if this.getValue(newRow, newCol) != 0:
 			for i in range(0,this.nzentries):
 				if this.elements['row'][i] == newRow:
 					if this.elements['col'][i] == newCol:
@@ -245,10 +245,8 @@ class hsm:
 					
 
 		# value does not exist yet, lets create it 
-		newEntry = numpy.array(dtype=this.dtype)
-		this.elements['row'].append(newRow)
-		this.elements['col'].append(newCol) 
-		this.elements['val'].append(newVal)
+		newEntry = numpy.array((newRow, newCol, newVal),dtype=this.dtype)
+		this.addElement(newEntry)
 		this.nzentries = len(this.elements['val'])
 		if newVal == 0:
 			this.removeZeros()

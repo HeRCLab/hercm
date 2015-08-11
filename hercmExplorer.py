@@ -277,12 +277,10 @@ verification  - - - - - - {4}
 
 		oldValue = SC.HSM.getValue(row, col)
 
-		if SC.HSM.setValue(row, col, val):
-			print("updated value of {0},{1}: {2}"
-				  .format(row, col, SC.HSM.getValue(row, col)))
-		else:
-			print("ERROR: could not set value (row, col probably out of bounds")
-
+		SC.HSM.setValue(row, col, val)
+		print("updated value of {0},{1}: {2}"
+			  .format(row, col, SC.HSM.getValue(row, col)))
+		
 		if oldValue == 0 and val != 0: 
 			print("WARNING: you have added a new non zero entry, COO vectors")
 			print("may not be in row-major form!")
