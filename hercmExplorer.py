@@ -249,8 +249,8 @@ verification  - - - - - - {4}
 			print("ERROR: one or more arguments are not valid integers")
 			return 
 
-		width = SC.HSM.contents['width']
-		height = SC.HSM.contents['height']
+		width = SC.HSM.width
+		height = SC.HSM.height
 
 		for row in range(0,height):
 			for col in range (0,width):

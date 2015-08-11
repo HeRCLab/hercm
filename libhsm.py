@@ -208,12 +208,12 @@ class hsm:
 		if col < 0:
 			raise IndexError("col out of bounds") 
 
-		for i in range(0, nzentries):
+		for i in range(0, this.nzentries):
 			if numpy.isclose(this.elements[i]['row'],
-							 element['row'],
+							 row,
 							 rtol, atol):
 				if numpy.isclose(this.elements[i]['col'],
-							 element['col'],
+							 col,
 							 rtol, atol):
 					return this.elements[i]['val']
 
