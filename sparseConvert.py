@@ -52,21 +52,16 @@ if outputFormat not in supportedFormats:
 	print("FATAL: output format {0} is unsupported".format(outputFormat))
 	exit()
 if inputFormat not in supportedFormats:
-	print("FATAL: input format {1} is unsupported".format(inputFormat))
+	print("FATAL: input format {0} is unsupported".format(inputFormat))
 	exit()
 
 SC = libSparseConvert.sparseConvert() 
 
 print("reading matrix...")
-if not SC.readMatrix(inputFileName, inputFormat):
-	print("FATAL: libSparseConvert encountered an error. Log follows...")
-	pp.pprint(SC.logger.contents)
-	exit()
+SC.readMatrix(inputFileName, inputFormat)
+
 print("writing matrix...")
-if not SC.writeMatrix(outputFileName, outputFormat):
-	print("FATAL: libSparseConvert encountered an error. Log follows...")
-	pp.pprint(SC.logger.contents)
-	exit()
+SC.writeMatrix(outputFileName, outputFormat)
 
 
 
@@ -74,7 +69,7 @@ if printMatrix:
 	print(SC.HSM.getInFormat('coo').todense())
 
 if outputFormat == 'mtx':
-	if SC.HSM.contents['symmetry'] == 'SYM':
+	if SC.HSM.symmetry == 'SYM':
 		print("WARNING: output format is MTX, but symmetry is symmetric") 
 		if noworkaround:
 			print("--noworkaround given, not repairing matrix")

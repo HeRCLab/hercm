@@ -13,7 +13,7 @@ class hsm:
 		# hercm matrix attributes 
 		
 		this.dtype = numpy.dtype([('row',numpy.int32),
-								  ('col',numpt.int32),
+								  ('col',numpy.int32),
 								  ('val',numpy.float64)])
 		this.elements   = None
 
@@ -34,14 +34,13 @@ class hsm:
 											   (this.elements['row'], 
 											   	this.elements['col'])),
 											   shape = (this.height,
-											   			this.contents.width)
+											   			this.width)
 											   )
 
 		return scipyMatrix.asformat(form)
 
 	def addElement(this, element):
 		# element can be any element supported by this.castElement() 
-
 
 		try: 
 			element = this.castElement(element)
@@ -91,8 +90,8 @@ class hsm:
 		# element of type numpy.ndarray whose dtype does not match will 
 		# be converted  if possible 
 
-		if type(element) == list
-			if len(listToCast) != 3:
+		if type(element) == list:
+			if len(element) != 3:
 				raise ValueError("element must contain three indicies ")
 			try:
 				row = numpy.int32(element[0])
@@ -106,7 +105,7 @@ class hsm:
 				val = numpy.float64(element[2])
 			except ValueError:
 				raise ValueError("index 2 of list cannot be cast to float")
-	
+			
 			return numpy.array((row, col, val), dtype=this.dtype)
 		elif type(element) == numpy.void:
 			return numpy.array(element)
@@ -266,7 +265,9 @@ class hsm:
 	def makeRowMajor(this):
 		# re orders this matrix such that it is row major 
 
-		np.sort(this.elements, order=["row", "col"])
+		if this.elements == None:
+			raise ValueError("cannot make nonexistent matrix row major")
+		numpy.sort(this.elements, order=["row", "col"])
 
 
 

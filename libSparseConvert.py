@@ -4,6 +4,7 @@ import clogs
 import scipy
 import numpy
 import scipy.io
+from numpy.lib.recfunctions import append_fields
 
 class HercmioValidationError(Exception):
 	pass
@@ -155,9 +156,14 @@ class hercmio:
 								.format(field), 'error')
 				raise HercmioValidationError("field {0} is missing from file"
 											 .format(field)) 
+
+		for i in range(0,HSM.nzentries):
+			HSM.addElement([contents['row'][i],
+							contents['col'][i],
+							contents['val'][i]])
 		
 		if this.verify(contents): 
-			return contents
+			return HSM
 		else: 
 			this.logger.log("verification failed (155)", "error")
 			return None 
@@ -178,7 +184,7 @@ class hercmio:
 
 	    # hercm may also be an instance of libhsm.hsm 
 
-	    if type(hercm) == dict:
+		if type(hercm) == dict:
 			fields = ['val','col','row']
 			sum = 0
 			for field in fields:
@@ -195,13 +201,13 @@ class hercmio:
 					raise TypeError("one or more fields is of invalid type",
 									str(e))
 	
-			return sum % float(hercm['nzentries'])
+			return sum % float(len(hercm['val']))
 		else:
 			val = hercm.elements['val']
 			row = hercm.elements['row']
 			col = hercm.elements['col'] 
 
-			return generateVerificationSum({'val':val, 'row':row,'col':col})
+			return this.generateVerificationSum({'val':val, 'row':row,'col':col})
 		
 		
 
@@ -216,7 +222,7 @@ class hercmio:
 
 		this.logger.log("verifying HeRCM...")
 
-		if type(hercm) != dict:
+		if type(hercm) == dict:
 			try:
 				verification = this.generateVerificationSum(hercm)
 			except KeyError as e:
@@ -274,17 +280,17 @@ class hercmio:
 			raise PermissionError("Could not open file {0}..."
 								  .format(filename), str(e)) 
 
-		if not this.verify(hercm): 
+		if not this.verify(HSM): 
 			this.logger.log("verification failed (217)", "warning")
 			raise HercmioValidationError("matrix did not pass validation")
 			
 
 		header = 'HERCM '
-		header = header + str(hercm.width) + ' '
-		header = header + str(hercm.height) + ' '
-		header = header + str(hercm.nzentries) + ' '
-		header = header + str(hercm.symmetry) + ' '
-		header = header + str(hercm.verification) + '\n'
+		header = header + str(HSM.width) + ' '
+		header = header + str(HSM.height) + ' '
+		header = header + str(HSM.nzentries) + ' '
+		header = header + str(HSM.symmetry) + ' '
+		header = header + str(HSM.verification) + '\n'
 
 		this.logger.log("generated header: {0}".format(header))
 
@@ -293,7 +299,7 @@ class hercmio:
 		fileObject.write('REMARKS LIST STRING\n')
 		itemcounter = 0
 		line = ''
-		for item in hercm.remarks:
+		for item in HSM.remarks:
 			line = line + item + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -307,7 +313,7 @@ class hercmio:
 		fileObject.write('VAL LIST FLOAT\n')
 		itemcounter = 0
 		line = ''
-		for item in hercm.elements['val']]:
+		for item in HSM.elements['val']:
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -321,7 +327,7 @@ class hercmio:
 		fileObject.write('ROW LIST INT\n')
 		itemcounter = 0
 		line = ''
-		for item in hercm.elements['row']:
+		for item in HSM.elements['row']:
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -335,7 +341,7 @@ class hercmio:
 		fileObject.write('COL LIST INT\n')
 		itemcounter = 0
 		line = ''
-		for item in hercm.elements['col']:
+		for item in HSM.elements['col']:
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -357,7 +363,6 @@ class sparseConvert:
 		# logging. Otherwise, a new clogs.clogs instance will be created 
 
 		this.HSM = libhsm.hsm() 
-		this.hercm = this.HSM.contents
 		
 		if logger == None:
 			this.logger = clogs.clogs() 
@@ -373,6 +378,8 @@ class sparseConvert:
 
 		# reads the matrix into this.HSM for later processing 
 		# converts non-hercm matrices to hercm internally 
+
+		# verbose will cause the progress of reading the matrix to be printed 
  
 
 		this.logger.log("reading matrix {0} which is format {1}"
@@ -381,7 +388,8 @@ class sparseConvert:
 		if form == 'hercm':
 			matrix = this.HERCMIO.read(filename)
 			this.HSM = matrix
-			
+			this.HSM.nzentries = len(this.HSM.elements['val'])
+
 		elif form == 'mtx':
 			from scipy import io
 			from scipy.sparse import csr_matrix 
@@ -393,14 +401,15 @@ class sparseConvert:
 	
 			try:
 
+				
 				rawMatrix = scipy.sparse.coo_matrix(scipy.io.mmread(filename)) 
-
+	
 				if 'symmetric' in io.mminfo(filename):
-					this.hercm['symmetry'] = "SYM"
+					this.HSM.symmetry = "SYM"
 				else:
-					this.hercm['symmetry'] 	= "ASYM"
+					this.HSM.symmetry = "ASYM"
 
-				hecm = {}
+				hercm = {} # needed to generate verification 
 	
 				hercm['val'] 			= rawMatrix.data
 				hercm['col'] 			= rawMatrix.col.tolist()
@@ -408,10 +417,27 @@ class sparseConvert:
 				(matrixWidth, matrixHeight) = rawMatrix.shape
 				this.HSM.height			= int(matrixHeight)
 				this.HSM.width 			= int(matrixWidth)
-				this.HSM.nzentries]  	= len(hercm['val'])
-				vs = this.HERCMIO.generateVerificationSum(this.hercm)
+				vs = this.HERCMIO.generateVerificationSum(hercm)
 				this.HSM.verification   = vs 
 				this.HSM.remarks		= []
+
+
+				# I'm not sure why this has to be hard...
+				# http://stackoverflow.com/questions/26018781/numpy-is-it-possible-to-preserve-the-dtype-of-columns-when-using-column-stack
+
+				val = numpy.asarray(hercm['val'], dtype='float64')
+				col = numpy.asarray(hercm['col'], dtype='int32')
+				row = numpy.asarray(hercm['row'], dtype='int32')
+
+				val = numpy.rec.array(val, dtype=[(('val'), numpy.float64)])
+				col = numpy.rec.array(col, dtype=[(('col'), numpy.int32)])
+				row = numpy.rec.array(row, dtype=[(('row'), numpy.int32)])
+
+				this.HSM.elements = append_fields(row, 'col', col, usemask = False, dtypes=[numpy.int32])
+				this.HSM.elements = append_fields(this.HSM.elements, 'val', val, usemask = False, dtypes=[numpy.float64])
+
+				
+
 				
 					
 			except IOError as e: # make sure the file exists and is readable
@@ -442,7 +468,7 @@ class sparseConvert:
 
 		if form == 'hercm':
 			# TODO: exception handling
-			this.HERCMIO.write(this.hercm, filename):
+			this.HERCMIO.write(this.HSM, filename)
 			
 
 		elif form == 'mtx':
