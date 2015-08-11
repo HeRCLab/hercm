@@ -12,15 +12,17 @@ class hsm:
 		from scipy.sparse import csr_matrix 
 		# hercm matrix attributes 
 		
-		# this serves as the internal representation 
-		this.contents = {'val'		 :None,
-						 'row'   	 :None,
-						 'col'	 	 :None,
-						 'nzentries' :None,
-						 'height'	 :None,
-						 'width'	 :None,
-						 'remarks'	 :None,
-						 'symmetry'  :None}
+		this.dtype = numpy.dtype([('row',numpy.int32),
+								  ('col',numpt.int32),
+								  ('val',numpy.float64)])
+		this.elements   = None
+
+		this.remarks 	  = []
+		this.nzentries    = 0
+		this.symmetry	  = 'ASYM'
+		this.verification = None
+		this.height 	  = 0
+		this.width 		  = 0
 
 	
 	def getInFormat(this, format):
@@ -28,24 +30,162 @@ class hsm:
 		# format is any string valid for scipy.sparse.coo_matrix.asformat
 		# http://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_matrix.asformat.html#scipy.sparse.coo_matrix.asformat
 		
-		scipyMatrix = scipy.sparse.coo_matrix((this.contents['val'], 
-											   (this.contents['row'], 
-											   	this.contents['col'])),
-											   shape = (this.contents['height'],
-											   			this.contents['width'])
+		scipyMatrix = scipy.sparse.coo_matrix((this.elements['val'], 
+											   (this.elements['row'], 
+											   	this.elements['col'])),
+											   shape = (this.height,
+											   			this.contents.width)
 											   )
 
 		return scipyMatrix.asformat(format)
 
-	def getValcol(this):
-		# returns a numpy matrix, where each element is in the format 
-		# (row, col, val)
+	def addElement(this, element):
+		# element can be any element supported by this.castElement() 
 
-		valcolType = numpy.dtype([('row',int),('col',int),('val',float)]])
-		valcol = numpy.array(dtype=valcolType)
+		try: 
+			element = this.castElement(element)
+			this.elements = numpy.append(this.elements, element)
+			this.nzentries = this.nzentries + 1
+		except ValueError as e:
+			raise ValueError("Could not cast element to valid format... ",str(e))
 
-		for i in range(0,i):
-			valcol
+
+	def getElement(this, n ,form=list):
+		# returns the nth element of this matrix, in the given form
+		# if form is list, it is returned as a python list [row, col, val]
+		# if form is numpy.void it is returned as a numpy.void with the 
+		# dtype this.dtype 
+		# if form is numpy.ndarray, it is returned as a numpy.ndarray with 
+		# dtype this.dtype
+
+		if n < 0 or n > this.nzentries:
+			raise IndexError(n, "is out of bounds for array of size", 
+							 this.nzentries)
+		try:
+			n = int(n) 
+		except ValueError:
+			raise ValueError("n is not an int or cannot be cast to an int")
+
+		if form == list:
+			retList = []
+			retList.append(this.elements['row'][n])
+			retList.append(this.elements['col'][n])
+			retList.append(this.elements['val'][n])
+		elif form == numpy.void:
+			return this.elements[n]
+		elif form == numpy.ndarray:
+			return np.array(this.elements[n])
+		else:
+			raise TypeError("form must be of type list or numpy.void")
+
+	def castElement(this, element):
+		# returns element as numpy.ndarray
+		# element should be a list or numpy.void of the format 
+		# [row, col, val]
+		# elements of type numpy.ndarray whose dtype matches this.dtype
+		# will be passed through
+		# element of type numpy.ndarray whose dtype does not match will 
+		# be converted  if possible 
+
+		if type(element) == list
+			if len(listToCast) != 3:
+				raise ValueError("element must contain three indicies ")
+			try:
+				row = numpy.int32(element[0])
+			except ValueError:
+				raise ValueError("index 0 of list cannot be cast to int")
+			try:
+				col = numpy.int32(element[1])
+			except ValueError:
+				raise ValueError("index 1 of list cannot be cast to int")	
+			try:
+				val = numpy.float64(element[2])
+			except ValueError:
+				raise ValueError("index 2 of list cannot be cast to float")
+	
+			return numpy.array((row, col, val), dtype=this.dtype)
+		elif type(element) == numpy.void:
+			return numpy.array(element)
+		elif type(element) == numpy.ndarray:
+			if element.dtype == this.dtype:
+				return element
+			elif len(element) != 3:
+				raise ValueError("element must contain three indicies")
+			else:
+				try:
+					row = numpy.int32(element[0])
+				except ValueError:
+					raise ValueError("index 0 of list cannot be cast to int")
+				try:
+					col = numpy.int32(element[1])
+				except ValueError:
+					raise ValueError("index 1 of list cannot be cast to int")	
+				try:
+					val = numpy.float64(element[2])
+				except ValueError:
+					raise ValueError("index 2 of list cannot be cast to float")
+				return numpy.array((row, col, val), dtype=this.dtype)
+	
+	
+
+	def searchElement(this, element, rtol=1e-05, atol=1e-08):
+		# returns a list of indices at which element occurs in 
+		# the matrix. element is compared to this.elements with
+		# numpy.isclose
+
+		# element should be any supported by this.castElement() 
+
+
+		# rtol and a tol are passed through to numpy.isclose, and are
+		# used as described here: http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.isclose.html
+		# an element specified as a list, numpy.void, or numpy.ndarray 
+		# will be matched using numpy.isclose 
+
+		try: 
+			element = this.castElement(element)
+		except ValueError as e:
+			raise ValueError("Could not cast element to valid format... ",str(e))
+
+		instances = []
+
+		for i in range(0, nzentries):
+			if numpy.isclose(this.elements[i]['row'],
+							 element['row'],
+							 rtol, atol):
+				if numpy.isclose(this.elements[i]['col'],
+							 element['col'],
+							 rtol, atol):
+					if numpy.isclose(this.elements[i]['val'],
+							 element['val'],
+							 rtol, atol):
+						instances.append(i)
+
+		return instances
+
+
+	def removeElement(this, n, rtol=0, atol=0):
+		# if n can be cast to n, removes the nth element of the matrix
+		# if n can be cast by this.castElement(), remove all instances
+		# of that element, as found by this.searchElement() 
+
+		# rtol and a tol are passed through to numpy.isclose, and are
+		# used as described here: http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.isclose.html
+		# an element specified as a list, numpy.void, or numpy.ndarray 
+		# will be matched using numpy.isclose 
+
+		try:
+			n = int(n)
+			this.elements = numpy.delete(this.elements, n)
+			this.nzentries = this.nzentries - 1
+		except ValueError:
+			try:
+				n = this.castElement(n)
+				instances = this.searchElement(n, rtol, atol)
+				for i in instances:
+					this.removeElement(i)
+			except ValueError as e:
+				print("could not cast n to any valid format... ",str(e))
+
 
 
 
@@ -55,32 +195,26 @@ class hsm:
 		# if assumeRowMajor is true, uses an optimized search routine
 
 
-		if row > this.contents['height']:
+		if row > this.height:
 			return None 
-		if col > this.contents['width']:
+		if col > this.width:
 			return None 
 		if row < 0:
 			return None
 		if col < 0:
 			return None 
 
-		if not assumeRowMajor:
-			for i in range(0, this.contents['nzentries']):
-				if this.contents['row'][i] == row:
-					if this.contents['col'][i] == col:
-						return this.contents['val'][i]
-		else:
-			for i in range(0, this.contents['nzentries']):
-				if this.contents['row'][i] < row:
-					pass 
-				elif this.contents['row'][i] > row:
-					return 0 
-				elif this.contents['col'][i] > col and \
-				this.contents['row'] == row:
-					return 0
-				elif this.contents['col'][i] == col and \
-				this.contents['row'] == row:
-					return this.contents['val'][i]
+		for i in range(0, this.nzentries):
+			if this.elements['row'][i] < row:
+				pass 
+			elif this.elements['row'][i] > row:
+				return 0 
+			elif this.elements['col'][i] > col and \
+			this.elements['row'] == row:
+				return 0
+			elif this.elements['col'][i] == col and \
+			this.elements['row'] == row:
+				return this.elements['val'][i]
 
 		
 
@@ -95,9 +229,9 @@ class hsm:
 
 		# assumeRowMajor is passed through to getValue
 
-		if newRow > this.contents['height']:
+		if newRow > this.height:
 			return None 
-		if newCol > this.contents['width']:
+		if newCol > this.width:
 			return None 
 		if newRow < 0:
 			return None
@@ -105,19 +239,20 @@ class hsm:
 			return None 
 
 		if this.getValue(newRow, newCol, assumeRowMajor) != 0:
-			for i in range(0,this.contents['nzentries']):
-				if this.contents['row'][i] == newRow:
-					if this.contents['col'][i] == newCol:
-						this.contents['val'][i] = newVal 
+			for i in range(0,this.nzentries):
+				if this.elements['row'][i] == newRow:
+					if this.elements['col'][i] == newCol:
+						this.elements['val'][i] = newVal 
 						if newVal == 0:
 							this.removeZeros()
 						return True
 
 		# value does not exist yet, lets create it 
-		this.contents['row'].append(newRow)
-		this.contents['col'].append(newCol) 
-		this.contents['val'].append(newVal)
-		this.contents['nzentries'] = len(this.contents['val'])
+		newEntry = numpy.array(dtype=this.dtype)
+		this.elements['row'].append(newRow)
+		this.elements['col'].append(newCol) 
+		this.elements['val'].append(newVal)
+		this.nzentries = len(this.elements['val'])
 		if newVal == 0:
 			this.removeZeros()
 		return True
@@ -125,90 +260,17 @@ class hsm:
 	def removeZeros(this):
 		# removes any instances of zero 
 
-		for i in reversed(range(0,this.contents['nzentries'])):
-			if this.contents['val'][i] == 0:
-				this.contents['val'].pop(i)
-				this.contents['col'].pop(i)
-				this.contents['row'].pop(i)
-		this.contents['nzentries'] = len(this.contents['val'])
+		for i in reversed(range(0,this.nzentries)):
+			if this.elements['val'][i] == 0:
+				this.removeElement(i)
+		this.nzentries = len(this.elements['val'])
 
 
-
-	def checkIfSorted(this, listToCheck):
-		# checks if listToCheck is sorted, returns true is so, false if not
-		for i in range(1,len(listToCheck)):
-			if listToCheck[i-1] > listToCheck[i]:
-				return False
-		return True 
-
-	def checkIfRowMajor(this):
-		# returns true if this matrix is in row major format
-		# returns false otherwise 
-		
-		if not this.checkIfSorted(this.contents['row']):
-			return False
-		for i in range(1,len(this.contents['row'])):
-			if this.contents['col'][i-1] > this.contents['col'][i]:
-				if this.contents['row'][i-1] == this.contents['row'][i]:
-					return False 
-
-		return True 
 
 	def makeRowMajor(this):
 		# re orders this matrix such that it is row major 
 
-		import sys 
-
-		lengthNotSorted = len(this.contents['val'])
-
-		while not this.checkIfSorted(this.contents['row']):
-			print("\nElements are not sorted, initiating pass...")
-			for i in range (1, len(this.contents['val'])):
-				if i % 10000 == 0:
-					percentComplete = round(100 * (i/len(this.contents['val'])),1)
-					print("\r[{0}] % complete".format(percentComplete),end="")
-					
-				if this.contents['row'][i-1] > this.contents['row'][i]:
-					# swap values to sort 
-
-					this.contents['row'][i], this.contents['row'][i-1] = \
-					this.contents['row'][i-1], this.contents['row'][i]
-
-					this.contents['col'][i], this.contents['col'][i-1] = \
-					this.contents['col'][i-1], this.contents['col'][i]
-
-					this.contents['val'][i], this.contents['val'][i-1] = \
-					this.contents['val'][i-1], this.contents['val'][i]
-
-
-		while not this.checkIfRowMajor():
-			print("Matrix is not row major, initiating pass...")
-			for i in range(1, len(this.contents['val'])):
-				# check if the previous value of col is larger than the current
-				# value AND the row value for both is identical 
-
-				if i % 1000 == 0:
-					sys.stdout.write("\r[{0}] % ccomplete"
-								 .format(100 * (i/len(this.contents['val']))))
-					sys.stdout.flush()
-
-				if this.contents['col'][i-1] > this.contents['col'][i]:
-					if this.contents['row'][i-1] == this.contents['row'][i]:
-						# swap values to sort 
-						smallerValue = this.contents['row'][i]
-						largerValue = this.contents['row'][i-1]
-						this.contents['row'][i] = largerValue 
-						this.contents['row'][i-1] = smallerValue
-	
-						smallerValue = this.contents['col'][i]
-						largerValue = this.contents['col'][i-1]
-						this.contents['col'][i] = largerValue 
-						this.contents['col'][i-1] = smallerValue
-	
-						smallerValue = this.contents['val'][i]
-						largerValue = this.contents['val'][i-1]
-						this.contents['val'][i] = largerValue 
-						this.contents['val'][i-1] = smallerValue
+		np.sort(this.elements, order=["row", "col"])
 
 
 
