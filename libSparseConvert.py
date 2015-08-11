@@ -348,6 +348,8 @@ class hercmio:
 
 		fileObject.close() 
 
+class SparseConvertFormatError:
+	pass
 
 class sparseConvert:
 	def __init__(this, logger=None):
@@ -365,23 +367,22 @@ class sparseConvert:
 		this.HERCMIO = hercmio(this.logger)
 
 
-	def readMatrix(this, filename, format):
+	def readMatrix(this, filename, form):
 		# filename is the string path to the matrix file to open
 		# format is the string 'hercm' or 'mtx' specifying matrix format 
 
 		# reads the matrix into this.HSM for later processing 
 		# converts non-hercm matrices to hercm internally 
-
-		# returns None on failure, True on success 
+ 
 
 		this.logger.log("reading matrix {0} which is format {1}"
 					 	.format(filename, format))
 
-		if format == 'hercm':
+		if form == 'hercm':
 			matrix = this.HERCMIO.read(filename)
 			this.HSM = matrix
 			
-		elif format == 'mtx':
+		elif form == 'mtx':
 			from scipy import io
 			from scipy.sparse import csr_matrix 
 			from numpy import array
@@ -398,33 +399,37 @@ class sparseConvert:
 					this.hercm['symmetry'] = "SYM"
 				else:
 					this.hercm['symmetry'] 	= "ASYM"
+
+				hecm = {}
 	
-				this.hercm['val'] 			= rawMatrix.data.tolist()
-				this.hercm['col'] 			= rawMatrix.col.tolist()
-				this.hercm['row'] 			= rawMatrix.row.tolist()
+				hercm['val'] 			= rawMatrix.data
+				hercm['col'] 			= rawMatrix.col.tolist()
+				hercm['row'] 			= rawMatrix.row.tolist()
 				(matrixWidth, matrixHeight) = rawMatrix.shape
-				this.hercm['height'] 		= int(matrixHeight)
-				this.hercm['width'] 		= int(matrixWidth)
-				this.hercm['nzentries']     = len(this.hercm['val'])
+				this.HSM.height			= int(matrixHeight)
+				this.HSM.width 			= int(matrixWidth)
+				this.HSM.nzentries]  	= len(hercm['val'])
 				vs = this.HERCMIO.generateVerificationSum(this.hercm)
-				this.hercm['verification']  = vs 
-				this.hercm['remarks']		= []
+				this.HSM.verification   = vs 
+				this.HSM.remarks		= []
 				
 					
-			except IOError: # make sure the file exists and is readable
+			except IOError as e: # make sure the file exists and is readable
 				this.logger.log("could not open matrix file (375)", "error")
-				return None
-			return True
+				raise IOError("could not open matrix file for writing...",
+							  str(e))
+			
 
 		else:
 			this.logger.log("format must be hercm or mtx, cannot use format {0}"
-							.format(format), "error")
-			return None 
-		this.logger.log("converting matrix to row majro format...")
+							.format(form), "error")
+			raise SparseConvertFormatError("{0} is not a valid format"
+											.format(form))
+		this.logger.log("converting matrix to row major format...")
 		this.HSM.makeRowMajor()
 
 
-	def writeMatrix(this, filename, format):
+	def writeMatrix(this, filename, form):
 		# writes this.HSM to the file 
 		# filename is a string indicating path of file
 		# format is a string indicating file format (mtx or hercm)
@@ -435,15 +440,12 @@ class sparseConvert:
 		this.logger.log("converting matrix to row majro format...")
 		this.HSM.makeRowMajor()
 
-		if format == 'hercm':
-			if not this.HERCMIO.write(this.hercm, filename):
-				this.logger.log("could not write matrix, general failure" +
-								" (395)","error")
-				return None 
-			else:
-				this.logger.log("wrote matrix successfully") 
-				return True 
-		elif format == 'mtx':
+		if form == 'hercm':
+			# TODO: exception handling
+			this.HERCMIO.write(this.hercm, filename):
+			
+
+		elif form == 'mtx':
 			print("WARNING: scipy.io.mmwrite does not support writing mtx ")
 			print("matrices in symmetric mode! Matrix will be converted to ")
 			print("Asymmetric! ")
@@ -457,12 +459,12 @@ class sparseConvert:
 			except Exception as e:
 				this.logger.log("encountered exception while writing" +
 								" matrix: {0} (412)".format(str(e)),'error')
-				return None
+				raise IOError("encountered exception while writing matrix")
 	
-			return True 
 		else:
 			this.logger.log("format must be hercm or mtx, cannot use format {0}"
-							.format(format), 'error')
-			return None 
+							.format(form), 'error')
+			raise SparseConvertFormatError("{0} is not a valid format"
+											.format(form))
 
 
