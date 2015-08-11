@@ -229,7 +229,7 @@ verification  - - - - - - {4}
 
 		matrix = SC.HSM.getInFormat('coo')
 		print("column {0} contents: \n{1}"
-			  .format(rowNumber, matrix.getcol(rowNumber)))
+			  .format(colNumber, matrix.getcol(colNumber)))
 
 	elif command == 'range':
 		if len(arguments) != 4:
