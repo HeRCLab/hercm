@@ -242,6 +242,7 @@ class hsm:
 						this.elements['val'][i] = newVal 
 						if newVal == 0:
 							this.removeZeros()
+						return 
 					
 
 		# value does not exist yet, lets create it 

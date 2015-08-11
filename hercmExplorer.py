@@ -307,17 +307,16 @@ verification  - - - - - - {4}
 
 		print("painting values... (this may take several minutes)")
 
-		width = SC.HSM.contents['width']
-		height = SC.HSM.contents['height']
+		width = SC.HSM.width
+		height = SC.HSM.height
 
 		for row in range(0,height):
 			print("painting in row {0} of {1}...".format(row, height))
 			for col in range (0,width):
 				if col >= c1 and col <= c2:
 					if row >= r1 and row <= r2:
-						if not SC.HSM.setValue(row, col,val, True):
-							print("""WARNING: failed to paint value at {0},{1} 
-								  to {2}""".format(row, col, val))
+						SC.HSM.setValue(row, col,val)
+						
 
 
 	elif command == 'row-major':
