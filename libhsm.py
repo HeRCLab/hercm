@@ -255,6 +255,8 @@ class hsm:
 	def removeZeros(this):
 		# removes any instances of zero 
 
+		if this.elements == None: 
+			return 
 		for i in reversed(range(0,this.nzentries)):
 			if this.elements['val'][i] == 0:
 				this.removeElement(i)
@@ -267,7 +269,7 @@ class hsm:
 
 		if this.elements == None:
 			raise ValueError("cannot make nonexistent matrix row major")
-		numpy.sort(this.elements, order=["row", "col"])
+		this.elements = numpy.sort(this.elements, order=["row", "col"])
 
 
 

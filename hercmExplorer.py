@@ -381,7 +381,10 @@ verification  - - - - - - {4}
 		else:
 			symmetry = 'ASYM'
 
-		SC.HSM.contents['symmetry'] = symmetry
+		print("""WARNING: setsym only modifies the symmetry attribute of the 
+matrix, it does not modify any matrix elements""")
+
+		SC.HSM.symmetry = symmetry
 
 	elif command == 'init': 
 		height = 5
@@ -401,19 +404,17 @@ verification  - - - - - - {4}
 				print("ERROR: cannot convert {0} to float".format(arguments[2]))
 				return 
 
-		SC.HSM.contents['nzentries'] = 0
-		SC.HSM.contents['row'] = []
-		SC.HSM.contents['col'] = []
-		SC.HSM.contents['val'] = []
+		main("setdims 0 0")
 		main("setdims {0} {1}".format(height, width))
 		for i in range(0, height): # this is faster than using paint
 			for j in range(0,width): 
-				SC.HSM.contents['val'].append(val)
-				SC.HSM.contents['col'].append(j)
-				SC.HSM.contents['row'].append(i) 
-		SC.HSM.contents['nzentries'] = len(SC.HSM.contents['val'])
-		SC.HSM.contents['symmetry'] = 'ASYM' 
-		SC.HSM.contents['remarks'] = []
+				SC.HSM.setValue(i, j, val)
+		if SC.HSM.elements == None:
+			SC.HSM.nzentries = 0
+		else:
+			SC.HSM.nzentries = len(SC.HSM.elements['val'])
+		SC.HSM.symmetry = 'ASYM' 
+		SC.HSM.remarks = []
 
 		print("finished initializing matrix, new matrix info:")
 		main("info")
