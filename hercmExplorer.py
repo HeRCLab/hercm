@@ -124,6 +124,9 @@ from filename""")
 
 		SC.readMatrix(fileName, fileFormat)
 		print("done reading matrix")
+		if SC.HSM.symmetry == 'SYM':
+			print("INFO: matrix is symmetric, bottom triangle should be only " 
+				  +"zeros")
 
 	elif command == 'write':
 		if len(arguments) != 2:
@@ -156,6 +159,9 @@ verification  - - - - - - {4}
 									verification)) 
 
 	elif command == 'display':
+		if SC.HSM.symmetry == 'SYM':
+			print("INFO: matrix is symmetric, bottom triangle should be only "+
+				  "zeros")
 		matrix = None
 		try:
 			matrix = SC.HSM.getInFormat('csr')
