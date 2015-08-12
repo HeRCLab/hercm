@@ -43,6 +43,12 @@ touch [row] [col] [val] - changes the value at [row] [col] to [val]
 paint [x1] [y1] [x2] [y2] [val] - works the same way as range, but changes
 all values encountered to [val]
 
+paint-diag [begin] [end] [spread] [value] / 
+paint-diag [begin] [end] [spread] [value] [offset] - paints the value [value]
+at all indices along the diagonal, from the [begin]th to the [end]th. Paints 
+[spread] values to either side of said diagonal. Offsets the diagonal by 
+[offset] columns, if [offset] is given. 
+
 row-major - makes the matrix row major 
 
 rmzeros - remove zeros from matrix
@@ -325,6 +331,36 @@ verification  - - - - - - {4}
 				if col >= c1 and col <= c2:
 					if row >= r1 and row <= r2:
 						SC.HSM.setValue(row, col,val)
+
+	elif command == 'paint-diag': 
+		if len(arguments) < 4: 
+			print("ERROR: incorrect number of arguments")
+		begin = 0
+		end = 0 
+		spread = 0
+		val = 0
+		offset = 0
+
+		try:
+			begin  = int(arguments[0])
+			end    = int(arguments[1])
+			spread = int(arguments[2])
+			val    = float(arguments[3])
+			if len(arguments) == 5:
+				offset = int(arguments[4])
+		except ValueError:
+			print("ERROR: one or more arguments are not valid numbers")
+			return 
+
+		for i in range(begin, end):
+			for j in range(0, spread):
+				try:
+					col = offset + i + j # right side
+					SC.HSM.setValue(i, col, val)
+					col = offset + i - j # left side
+					SC.HSM.setValue(i, col, val)
+				except IndexError:
+					pass # out of bounds 
 						
 
 

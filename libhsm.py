@@ -199,9 +199,9 @@ class hsm:
 		# if assumeRowMajor is true, uses an optimized search routine
 
 
-		if row > this.height:
+		if row >= this.height:
 			raise IndexError("row out of bounds") 
-		if col > this.width:
+		if col >= this.width:
 			raise IndexError("col out of bounds") 
 		if row < 0:
 			raise IndexError("row out of bounds") 
@@ -226,9 +226,9 @@ class hsm:
 
 		# assumeRowMajor is passed through to getValue
 
-		if newRow > this.height:
+		if newRow >= this.height:
 			raise IndexError("newRow out of bounds") 
-		if newCol > this.width:
+		if newCol >= this.width:
 			raise IndexError("newCol out of bounds") 
 		if newRow < 0:
 			raise IndexError("newRow out of bounds") 
