@@ -269,6 +269,8 @@ class hsm:
 
 		if this.elements == None:
 			raise ValueError("cannot make nonexistent matrix row major")
+
+
 		this.elements = numpy.sort(this.elements, order=["row", "col"])
 
 

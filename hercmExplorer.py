@@ -60,6 +60,9 @@ Overwrites any already loaded matrix.
 gen-verification - updates verification sum to permit writing out matrix after 
 modification. 
 
+check-symmetry - check the symmetry attribute, and searches for any non zero
+elements in the bottom triangle, printing the first five if they exist. 
+
 exit - exits the program
 """
 
@@ -312,7 +315,6 @@ verification  - - - - - - {4}
 		height = SC.HSM.height
 
 		for row in range(0,height):
-			print("painting in row {0} of {1}...".format(row, height))
 			for col in range (0,width):
 				if col >= c1 and col <= c2:
 					if row >= r1 and row <= r2:
@@ -427,10 +429,32 @@ matrix, it does not modify any matrix elements""")
 		import pdb
 		pdb.set_trace()
 
+	elif command == 'check-symmetry':
+		if SC.HSM.symmetry != 'SYM':
+			print("symmetry attribute is not SYM")
+
+		foundElements = 0
+		for i in range(0, SC.HSM.nzentries): 
+			element = SC.HSM.getElement(i)
+			row = element[0]
+			col = element[1]
+			val = element[2] 
+			if row > col:
+				if val != 0:
+					if foundElements < 5:
+						print("non zero element at {0},{1}:{2}"
+							  .format(row, col, val))
+					if foundElements == 5:
+						print("""Found more than five elements in bottom 
+triangle, further messages will be squelched""")
+					foundElements = foundElements + 1
+		print("If no previous messages were displayed, the matrix is symmetric")
+
+
 
 	elif command == 'gen-verification':
-		newSum = SC.HERCMIO.generateVerificationSum(SC.HSM.contents)
-		SC.HSM.contents['verification'] = newSum 
+		newSum = SC.HERCMIO.generateVerificationSum(SC.HSM)
+		SC.HSM.verification = newSum 
 		print("updated verification sum to: {0}".format(newSum))
 
 	else:

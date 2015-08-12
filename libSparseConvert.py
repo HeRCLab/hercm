@@ -468,7 +468,11 @@ class sparseConvert:
 
 		if form == 'hercm':
 			# TODO: exception handling
-			this.HERCMIO.write(this.HSM, filename)
+			try:
+				this.HERCMIO.write(this.HSM, filename)
+			except HercmioValidationError:
+				print("ERROR: matrix did not pass validation!")
+				print("Matrix will not be written to file")
 			
 
 		elif form == 'mtx':
