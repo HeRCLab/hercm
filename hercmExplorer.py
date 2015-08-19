@@ -407,9 +407,14 @@ verification  - - - - - - {4}
 
 
 	elif command == 'setsym':
-		if len(arguments) != 1:
+		if len(arguments) < 1:
 			print("ERROR: incorrect number of arguments")
 			return 
+		if len(arguments) == 2:
+			method = arguments[1]
+			if method not in ['truncate', 'add', 'smart']:
+				print("method {0} is not valid, defaulting to truncate")
+				method = truncate
 
 		validOptions = ['SYM','ASYM','asymmetric','symmetric',
 		'symmetrical','asymmetrical'] 
@@ -429,7 +434,7 @@ verification  - - - - - - {4}
 
 		if symmetry != SC.HSM.symmetry:
 			if symmetry == 'SYM':
-				SC.HSM.makeSymmetrical('add')
+				SC.HSM.makeSymmetrical(method)
 
 
 		SC.HSM.symmetry = symmetry

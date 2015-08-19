@@ -295,7 +295,7 @@ class hsm:
 			this.nzentries = nzentries 
 
 		elif method == 'add':
-			lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'))
+			lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'),k=-1)
 
 			this.makeSymmetrical(method='truncate')
 			
@@ -309,8 +309,26 @@ class hsm:
 			this.elements['col'] = newMatrix.col.astype(numpy.int32)
 			this.elements['val'] = newMatrix.data.astype(numpy.float64)
 			this.nzentries = len(this.elements['val'])
-			
 
+		elif method == 'smart': 
+			# this is horrifyingly show O(n) = n^2 (n=nzentries) 
+
+			for i in range(0, this.nzentries):
+				row = this.elements['row'][i]
+				col = this.elements['col'][i]
+				val = this.elements['val'][i]
+				for j in range(0,this.nzentries):
+					innerRow = this.elements['row'][j]
+					innerCol = this.elements['col'][j]
+
+					if innerRow == col:
+						if innerCol == row:
+							if innerRow > innerCol: 
+								if val != 0:
+									this.elements['val'][j] = 0
+
+			this.removeZeros()
+			this.makeSymmetrical('add')
 
 
 	def makeRowMajor(this):
