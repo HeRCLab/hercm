@@ -5,6 +5,8 @@ import scipy
 import numpy
 import scipy.io
 from numpy.lib.recfunctions import append_fields
+import traceback
+import pprint 
 
 class HercmioValidationError(Exception):
 	pass
@@ -92,7 +94,7 @@ class hercmio:
 		fieldname	    = ''
 		ctype		    = ''
 		vtype 		    = ''
-		currentContents = None
+		currentContents = []
 		for line in lines:
 			if not inField:
 				currentHeader = line.rstrip() 
@@ -104,7 +106,7 @@ class hercmio:
 			elif 'ENDFIELD' in line:
 				inField = False 
 				contents[fieldname.lower()] = currentContents 
-				currentContents = None
+				currentContents = []
 				inField = False 
 			else:
 				if ctype == 'SINGLE':
@@ -125,7 +127,6 @@ class hercmio:
 					else: 
 						currentContents = line.rstrip() 
 				elif ctype == 'LIST':
-					currentContents = []
 					for value in line.split():
 						
 						if vtype == 'INT':
@@ -157,10 +158,24 @@ class hercmio:
 				raise HercmioValidationError("field {0} is missing from file"
 											 .format(field)) 
 
+		for field in ['row','val','col']:
+			if len(contents[field]) != HSM.nzentries:
+				this.logger.log("length of {0} {1} does not match nzentries {2}"
+					.format(field, 
+						len(contents[field]), 
+						HSM.nzentries), 
+					'warning')
+
 		for i in range(0,HSM.nzentries):
-			HSM.addElement([contents['row'][i],
-							contents['col'][i],
-							contents['val'][i]])
+			try:
+				HSM.addElement([contents['row'][i],
+								contents['col'][i],
+								contents['val'][i]])
+			except IndexError:
+				this.logger.log("""could not add index {0} of contents to HSM 
+ instance. Nzentries is {1} and len val is {2}""".format(i, HSM.nzentries, 
+								len(contents['val'])),'warning')
+				raise IndexError("Unable to add index {0} to HSM".format(i))
 		
 		if this.verify(contents): 
 			return HSM
@@ -383,10 +398,20 @@ class sparseConvert:
  
 
 		this.logger.log("reading matrix {0} which is format {1}"
-					 	.format(filename, format))
+					 	.format(filename, form))
 
 		if form == 'hercm':
-			matrix = this.HERCMIO.read(filename)
+			matrix = None 
+			try:
+				matrix = this.HERCMIO.read(filename)
+			except Exception as e:
+				print("ERROR: could not read matrix")
+				print("stack trace...")
+				print(traceback.format_exc())
+				print("log...")
+				pp = pprint.PrettyPrinter()
+				pp.pprint(this.logger.contents)
+
 			this.HSM = matrix
 			this.HSM.nzentries = len(this.HSM.elements['val'])
 
@@ -396,8 +421,6 @@ class sparseConvert:
 			from numpy import array
 	
 			# reads in an MTX file and converts it to hercm 
-	
-			# returns STATUS_SUCCESS or STATUS_ERROR
 	
 			try:
 
@@ -467,7 +490,6 @@ class sparseConvert:
 		this.HSM.makeRowMajor()
 
 		if form == 'hercm':
-			# TODO: exception handling
 			try:
 				this.HERCMIO.write(this.HSM, filename)
 			except HercmioValidationError:
