@@ -211,3 +211,32 @@ Removes any zero elements of the matrix (missing elements in COO are assumed to 
 | | |
 
 Converts the matrix stored in the HSM instance to row major form. 
+
+
+### def makeSymmetrical(this, method='truncate'):
+
+|argument|expected type|description|default|
+|--------|-------------|-----------|-------|
+| `method`| string | one of `truncate`, `add`, or `smart` describing method by which to make the matrix symmetrical | `truncate` |
+
+|return type|description|condition|
+|-----------|-----------|---------|
+|None|N/A|always|
+
+|exceptions|cause| 
+|----------|-----|
+| | |
+
+Makes the HSM instance symmetrical. Does not change `this.verification` or `this.symmetry`, dealing only with the actual matrix as it is stored. Can change symmetry in one of three ways...
+
+* `truncate` - all elements in the lower triangle of the matrix are discarded, only the upper triangle is stored 
+* `add` - all elements in the lower triangle of the matrix are added to their corresponding elements in the upper. The diagonal is ignored. In other words the lower triangle is transposed and added to the upper.  
+* `smart` - all elements in the lower triangle whose partner in the upper is not zero are deleted. Remaining elements are moved to the upper triangle with the `add` method. This method is very slow, taking `nzentries` * 2 iterations, plus the normal time taken by the `add` method. 
+
+All three methods have been tested. `truncate` and `add` took less than 20 seconds to operate on a matrix with approximately 4.5 million non zero elements. 
+
+**NOTE**: The following is a ballpark estimation, real world numbers may differ by a significant margin. 
+
+The `smart` method was tested with a matrix containing roughly 4.5 million nonzero elements, and allowed to run for roughly five minutes. During that time, it completed 347104152 of 23240990033881 iterations required to finish the operation. Thus, it would take approximately 334784 minutes to complete the operation, or 5579 hours, or 232 days. This, the `smart` method is currently unsuitable for large matrices. 
+
+Improving the speed of the `smart` method is currently considered low priority, as it's uses are fairly limited. 
