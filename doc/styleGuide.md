@@ -7,12 +7,16 @@ Names should always be as descriptive as possible, even if that makes them long.
 Names should always be camelCased. Here are some examples:
 
 ## Preferred 
+
 * `variableName`
 * `longVariableName` 
+
 ## Acceptable 
 * `VariableName`
 * `LongVariableName`
+
 ## Unacceptable 
+
 * `variable_name`
 * `long_variableName`
 
@@ -24,6 +28,7 @@ All code files should strictly adhere to a maximum line length of 80 characters.
 As many function names are long, and have many arguments, it is acceptable to split arguments over several lines. Examples: 
 
 ## Preferred 
+
 ```
 myReallLongFunctionCall(longArgumentOne, 
 	longArgumentTwo, 
