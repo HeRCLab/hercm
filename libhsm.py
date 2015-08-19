@@ -298,19 +298,17 @@ class hsm:
 			lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'))
 
 			this.makeSymmetrical(method='truncate')
-			for i in range(0, len(lowerTriangle.data)): 
-				print("{0} of {1}".format(i, len(lowerTriangle.data)))
-				# row and col are deliberately reversed for reflection
-				row = numpy.int32(lowerTriangle.col[i])
-				col = numpy.int32(lowerTriangle.row[i])
-				val = numpy.float64(lowerTriangle.data[i])
+			
+			newMatrix = lowerTriangle.transpose() + \
+						this.getInFormat('coo')
 
-				if row != col:
-					currentValue = this.getValue(row, col)
-					if currentValue == 0:
-						this.setValue(row, col, val)
-					else:
-						this.setValue(row, col, (val + currentValue))
+			newMatrix = scipy.sparse.coo_matrix(newMatrix)
+
+			this.elements.resize(len(newMatrix.data))
+			this.elements['row'] = newMatrix.row.astype(numpy.int32)
+			this.elements['col'] = newMatrix.col.astype(numpy.int32)
+			this.elements['val'] = newMatrix.data.astype(numpy.float64)
+			this.nzentries = len(this.elements['val'])
 			
 
 
