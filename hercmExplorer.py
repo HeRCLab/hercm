@@ -425,8 +425,12 @@ verification  - - - - - - {4}
 		else:
 			symmetry = 'ASYM'
 
-		print("""WARNING: setsym only modifies the symmetry attribute of the 
-matrix, it does not modify any matrix elements""")
+
+
+		if symmetry != SC.HSM.symmetry:
+			if symmetry == 'SYM':
+				SC.HSM.makeSymmetrical()
+
 
 		SC.HSM.symmetry = symmetry
 

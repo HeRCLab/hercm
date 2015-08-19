@@ -262,6 +262,37 @@ class hsm:
 				this.removeElement(i)
 		this.nzentries = len(this.elements['val'])
 
+	def makeSymmetrical(this, method='truncate'):
+		# makes this matrix symmetrical 
+		# if method is 'truncate', this will be done by discarding the
+		# bottom triangle, regardless of contents 
+
+		# if method is 'add', this will be done by adding all elements 
+		# from the bottom triangle to the corresponding element in the 
+		# top triangle, ignoring the diagonal
+
+		# if method is 'smart', this will be done by adding all elements
+		# from the bottom triangle to the top triangle ONLY if the corresponding
+		# element in the top triangle is zero, and otherwise discarding elements
+		# from the bottom triangle. This is the slowest method 
+
+		# truncate should work for any 'true' symmetric matrix, where numpy
+		# has silently duplicate elements from the bottom triangle to the top
+		# thus, it is the default
+
+		# the other methods are useful for turning asymmetrical matrices
+		# symmetric 
+
+		if method == 'truncate': 
+			upperTriangle = scipy.sparse.triu(this.getInFormat('coo'))
+			nzentries = len(upperTriangle.data)
+
+			this.elements.resize((nzentries))
+	
+			this.elements['row'] = upperTriangle.row.astype(numpy.int32)
+			this.elements['col'] = upperTriangle.col.astype(numpy.int32)
+			this.elements['val'] = upperTriangle.data.astype(numpy.float64)
+
 
 
 	def makeRowMajor(this):
