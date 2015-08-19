@@ -24,4 +24,4 @@ A wrapper and fronted for sparseConvert, created for the purpose of batch conver
 Documentation may be found in the [doc](doc) folder.
 
 ## How to contribute 
-New contributors should become familiar with he project's documentation, and with the [style guide](styleGuide.md). New contributors are also advised to review the open issues in the issue tracker to find tasks to work on. General code cleanup and formatting, as well as editing or improving the documentation is also welcome and appreciated. 
+New contributors should become familiar with he project's documentation, and with the [style guide](doc/styleGuide.md). New contributors are also advised to review the open issues in the issue tracker to find tasks to work on. General code cleanup and formatting, as well as editing or improving the documentation is also welcome and appreciated. 
