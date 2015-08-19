@@ -429,7 +429,7 @@ verification  - - - - - - {4}
 
 		if symmetry != SC.HSM.symmetry:
 			if symmetry == 'SYM':
-				SC.HSM.makeSymmetrical()
+				SC.HSM.makeSymmetrical('add')
 
 
 		SC.HSM.symmetry = symmetry

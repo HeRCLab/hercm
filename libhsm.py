@@ -292,6 +292,26 @@ class hsm:
 			this.elements['row'] = upperTriangle.row.astype(numpy.int32)
 			this.elements['col'] = upperTriangle.col.astype(numpy.int32)
 			this.elements['val'] = upperTriangle.data.astype(numpy.float64)
+			this.nzentries = nzentries 
+
+		elif method == 'add':
+			lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'))
+
+			this.makeSymmetrical(method='truncate')
+			for i in range(0, len(lowerTriangle.data)): 
+				print("{0} of {1}".format(i, len(lowerTriangle.data)))
+				# row and col are deliberately reversed for reflection
+				row = numpy.int32(lowerTriangle.col[i])
+				col = numpy.int32(lowerTriangle.row[i])
+				val = numpy.float64(lowerTriangle.data[i])
+
+				if row != col:
+					currentValue = this.getValue(row, col)
+					if currentValue == 0:
+						this.setValue(row, col, val)
+					else:
+						this.setValue(row, col, (val + currentValue))
+			
 
 
 
