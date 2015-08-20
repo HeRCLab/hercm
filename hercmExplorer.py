@@ -410,14 +410,18 @@ verification  - - - - - - {4}
 		if len(arguments) < 1:
 			print("ERROR: incorrect number of arguments")
 			return 
+
+		method = 'truncate'
+
 		if len(arguments) == 2:
 			method = arguments[1]
 			if method not in ['truncate', 'add', 'smart']:
 				print("method {0} is not valid, defaulting to truncate")
-				method = truncate
-
-		validOptions = ['SYM','ASYM','asymmetric','symmetric',
+				
+		validOptions = ['sym','asym','asymmetric','symmetric',
 		'symmetrical','asymmetrical'] 
+
+		arguments[0] = arguments[0].lower()
 
 		if arguments[0] not in validOptions:
 			print("ERROR: argument {0} is not a valid symmetry option, Valid ")
@@ -425,7 +429,7 @@ verification  - - - - - - {4}
 			pp.pprint(validOptions)
 			return 
 
-		if arguments[0] in ['SYM','symmetric','symmetrical']:
+		if arguments[0] in ['sym','symmetric','symmetrical']:
 			symmetry = 'SYM'
 		else:
 			symmetry = 'ASYM'

@@ -262,6 +262,19 @@ class hsm:
 				this.removeElement(i)
 		this.nzentries = len(this.elements['val'])
 
+	def replaceContents(this, newContents):
+		# replaces the contents of this instance with newContents
+
+		# newContents is anything that can be cast to scipy.sparse.coo_matrix
+
+		newContents = scipy.sparse.coo_matrix(newContents)
+
+		this.elements.resize(len(newContents.data))
+		this.elements['row'] = newContents.row.astype(numpy.int32)
+		this.elements['col'] = newContents.col.astype(numpy.int32)
+		this.elements['val'] = newContents.data.astype(numpy.float64)
+		this.nzentries = len(this.elements['val'])
+
 	def makeSymmetrical(this, method='truncate'):
 		# makes this matrix symmetrical 
 		# if method is 'truncate', this will be done by discarding the
@@ -285,14 +298,7 @@ class hsm:
 
 		if method == 'truncate': 
 			upperTriangle = scipy.sparse.triu(this.getInFormat('coo'))
-			nzentries = len(upperTriangle.data)
-
-			this.elements.resize((nzentries))
-	
-			this.elements['row'] = upperTriangle.row.astype(numpy.int32)
-			this.elements['col'] = upperTriangle.col.astype(numpy.int32)
-			this.elements['val'] = upperTriangle.data.astype(numpy.float64)
-			this.nzentries = nzentries 
+			this.replaceContents(upperTriangle)
 
 		elif method == 'add':
 			lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'),k=-1)
@@ -304,31 +310,40 @@ class hsm:
 
 			newMatrix = scipy.sparse.coo_matrix(newMatrix)
 
-			this.elements.resize(len(newMatrix.data))
-			this.elements['row'] = newMatrix.row.astype(numpy.int32)
-			this.elements['col'] = newMatrix.col.astype(numpy.int32)
-			this.elements['val'] = newMatrix.data.astype(numpy.float64)
-			this.nzentries = len(this.elements['val'])
+			this.replaceContents(newMatrix)
 
 		elif method == 'smart': 
 			# this is horrifyingly show O(n) = n^2 (n=nzentries) 
 
-			for i in range(0, this.nzentries):
-				row = this.elements['row'][i]
-				col = this.elements['col'][i]
-				val = this.elements['val'][i]
-				for j in range(0,this.nzentries):
-					innerRow = this.elements['row'][j]
-					innerCol = this.elements['col'][j]
+			this.removeZeros()
+			upperTriangle = scipy.sparse.triu(this.getInFormat('coo'))
+			lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'), k=-1)
 
-					if innerRow == col:
-						if innerCol == row:
-							if innerRow > innerCol: 
-								if val != 0:
-									this.elements['val'][j] = 0
+			# remove redundant entries 
+
+			progCounter = 0
+
+			for row, col in zip(upperTriangle.row, upperTriangle.col):
+				print("iteration {0} of {1}".format(progCounter, upperTriangle.nnz))
+				progCounter = progCounter + 1
+				
+				lcounter = 0 # counter in lower triangle
+				for lrow, lcol in zip(lowerTriangle.row, lowerTriangle.col):
+					# lrow and lcol refer to the lower column and lower row 
+					# of the lower triangle coo matrix 
+					if lcol == row:
+						if lrow == col:
+							lowerTriangle.data[lcounter] = 0
+					lcounter = lcounter + 1
+			newMatrix = upperTriangle + lowerTriangle 
+
+			this.replaceContents(newMatrix)
+
+			this.makeSymmetrical('add')
 
 			this.removeZeros()
-			this.makeSymmetrical('add')
+
+
 
 
 	def makeRowMajor(this):
