@@ -5,6 +5,8 @@
 import libSparseConvert
 import readline
 import libhsm
+import matplotlib
+import matplotlib.pyplot
 
 
 MTXIO = None 
@@ -68,6 +70,8 @@ modification.
 
 check-symmetry - check the symmetry attribute, and searches for any non zero
 elements in the bottom triangle, printing the first five if they exist. 
+
+plot - plots the matrix graphically using matplotlib 
 
 exit - exits the program
 """
@@ -439,6 +443,8 @@ verification  - - - - - - {4}
 		if symmetry != SC.HSM.symmetry:
 			if symmetry == 'SYM':
 				SC.HSM.makeSymmetrical(method)
+			elif symmetry == 'ASYM':
+				SC.HSM.makeAsymmetrical(method)
 
 
 		SC.HSM.symmetry = symmetry
@@ -511,6 +517,13 @@ triangle, further messages will be squelched""")
 		newSum = SC.HERCMIO.generateVerificationSum(SC.HSM)
 		SC.HSM.verification = newSum 
 		print("updated verification sum to: {0}".format(newSum))
+
+	elif command == 'plot':
+		matrix = SC.HSM.getInFormat('coo')
+		
+		matplotlib.pyplot.spy(matrix)
+		matplotlib.pyplot.show()
+
 
 	else:
 		print("ERROR: Command not recognized") 

@@ -342,6 +342,36 @@ class hsm:
 				"expected one of: truncate, add, smart")
 
 
+	def makeAsymmetrical(this, method='truncate'): 
+		# if method is truncate
+		# reflects everything above the diagonal into the lower triangle, 
+		# ignoring the diagonal
+		# any values in the lower triangle will be lost 
+
+		# if method is add 
+		# adds everything in the upper triangle to the lower triangle, ignoring
+		# the diagonal
+
+		# if method is smart 
+		# copies each element of the upper triangle into the lower, only if 
+		# the element in the lower triangle is zero 
+
+		if method == 'truncate':
+			upperTriangle = scipy.sparse.triu(this.getInFormat('coo'))
+			this.replaceContents(upperTriangle)
+			upperTriangle = scipy.sparse.triu(this.getInFormat('coo'), k=1)
+
+			newMatrix = this.getInFormat('coo') + upperTriangle.transpose()
+
+			this.replaceContents(newMatrix)
+		elif method == 'add':
+			#upperTriangle = scipy.sparse.triu(this.getInFormat('coo'), k=1)
+			raise NotImplementedError("add method not implemented yet")
+		elif method == 'smart':
+			raise NotImplementedError("smart method not implemented yet")
+		else: 
+			raise ValueError("method \"{0}\" is not valid, ".format(method)+
+				"expected one of: truncate, add, smart")
 
 
 	def makeRowMajor(this):
