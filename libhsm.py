@@ -319,14 +319,8 @@ class hsm:
 			upperTriangle = scipy.sparse.triu(this.getInFormat('coo'))
 			lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'), k=-1)
 
-			# remove redundant entries 
-
-			progCounter = 0
-
+			# remove conflicting entries 
 			for row, col in zip(upperTriangle.row, upperTriangle.col):
-				print("iteration {0} of {1}".format(progCounter, upperTriangle.nnz))
-				progCounter = progCounter + 1
-				
 				lcounter = 0 # counter in lower triangle
 				for lrow, lcol in zip(lowerTriangle.row, lowerTriangle.col):
 					# lrow and lcol refer to the lower column and lower row 
