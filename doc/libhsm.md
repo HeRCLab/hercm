@@ -212,6 +212,21 @@ Removes any zero elements of the matrix (missing elements in COO are assumed to 
 
 Converts the matrix stored in the HSM instance to row major form. 
 
+### def replaceContents(this, newContents):
+|argument|expected type|description|default|
+|--------|-------------|-----------|-------|
+| newContents| any cast-able with `scipy.sparse.coo_matrix()` | new contents for instance | N/A
+
+|return type|description|condition|
+|-----------|-----------|---------|
+|None|N/A|always|
+
+|exceptions|cause| 
+|----------|-----|
+| | |
+
+Replaces the instance's contents with any matrix which can be cast using `scipy.sparse.coo_matrix()`. Does not catch exceptions from `scipy.sparse.coo_matrix()`. 
+
 
 ### def makeSymmetrical(this, method='truncate'):
 
