@@ -337,6 +337,10 @@ class hsm:
 
 			this.removeZeros()
 
+		else:
+			raise ValueError("method \"{0}\" is not valid, ".format(method)+
+				"expected one of: truncate, add, smart")
+
 
 
 

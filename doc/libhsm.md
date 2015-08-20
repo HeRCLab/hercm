@@ -240,7 +240,7 @@ Replaces the instance's contents with any matrix which can be cast using `scipy.
 
 |exceptions|cause| 
 |----------|-----|
-| | |
+| ValueError | `method` is not of a valid value |
 
 Makes the HSM instance symmetrical. Does not change `this.verification` or `this.symmetry`, dealing only with the actual matrix as it is stored. Can change symmetry in one of three ways...
 
