@@ -275,6 +275,20 @@ class hsm:
 		this.elements['val'] = newContents.data.astype(numpy.float64)
 		this.nzentries = len(this.elements['val'])
 
+	def checkSymmetry(this):
+		# returns true if this matrix contains no elements in the lower triangle
+		# returns false otherwise 
+
+		for i in range(0, this.nzentries): 
+			element = this.getElement(i)
+			row = element[0]
+			col = element[1]
+			val = element[2] 
+			if row > col:
+				if val != 0:
+					return False 
+			return True
+
 	def makeSymmetrical(this, method='truncate'):
 		# makes this matrix symmetrical 
 		# if method is 'truncate', this will be done by discarding the
@@ -365,10 +379,29 @@ class hsm:
 
 			this.replaceContents(newMatrix)
 		elif method == 'add':
-			#upperTriangle = scipy.sparse.triu(this.getInFormat('coo'), k=1)
-			raise NotImplementedError("add method not implemented yet")
+			upperTriangle = scipy.sparse.triu(this.getInFormat('coo'), k=1)
+			upperTriangle = upperTriangle.transpose()
+
+			newMatrix = this.getInFormat('coo') + upperTriangle
+
+			this.replaceContents(newMatrix)
+
 		elif method == 'smart':
-			raise NotImplementedError("smart method not implemented yet")
+			upperTriangle = scipy.sparse.triu(this.getInFormat('coo'), k=1)
+			uppertriangle = upperTriangle.transpose()
+			lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'), k=-1)
+			for i in range(0, upperTriangle.nnz):
+				for j in range(0, lowerTriangle.nnz):
+					# remember upperTriangle has already been transposed 
+					if upperTriangle.row[i] == lowerTriangle.row[j]:
+						if upperTriangle.col[i] == lowerTriangle.col[j]:
+							if lowerTriangle.data[j] != 0: 
+								upperTriangle.data[i] = 0
+
+			# lower triangle is not modified, just use the one that is live 
+			newMatrix = this.getInFormat('coo') + upperTriangle
+			this.replaceContents(newMatrix) 
+
 		else: 
 			raise ValueError("method \"{0}\" is not valid, ".format(method)+
 				"expected one of: truncate, add, smart")
