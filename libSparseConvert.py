@@ -7,6 +7,7 @@ import scipy.io
 from numpy.lib.recfunctions import append_fields
 import traceback
 import pprint 
+import os 
 
 class HercmioValidationError(Exception):
 	pass
@@ -487,9 +488,14 @@ class sparseConvert:
 		# format is a string indicating file format (mtx or hercm)
 		# returns True on success, None on failure
 
+		if os.path.isfile(filename):
+			this.logger.log("file already exists, cannot write file!",'error')
+			raise FileExistsError("could not write to file {0}".format(filename)
+				+ " file already exists!")
+
 		if this.HSM.symmetry == 'SYM':
 			this.HSM.makeSymmetrical('truncate')
-		
+
 		this.logger.log("writing matrix to file {0} in format {1}"
 						.format(filename, format))
 
@@ -505,9 +511,7 @@ class sparseConvert:
 			
 
 		elif form == 'mtx':
-			print("WARNING: scipy.io.mmwrite does not support writing mtx ")
-			print("matrices in symmetric mode! Matrix will be converted to ")
-			print("Asymmetric! ")
+			
 	
 			try:
 				scipy.io.mmwrite(filename, this.HSM.getInFormat('coo'))
@@ -520,10 +524,22 @@ class sparseConvert:
 								" matrix: {0} (412)".format(str(e)),'error')
 				raise IOError("encountered exception while writing matrix")
 	
+			# fix header of mtx file 
+			if this.HSM.symmetry == 'SYM':
+				with open(filename) as inputFile:
+					lines = inputFile.readlines() 
+				lines[0]="%%MatrixMarket matrix coordinate pattern symmetric\n"
+
+				with open('filename','w+') as outputFile:
+					for line in lines:
+						outputFile.write(line) 
+
 		else:
 			this.logger.log("format must be hercm or mtx, cannot use format {0}"
 							.format(form), 'error')
 			raise SparseConvertFormatError("{0} is not a valid format"
 											.format(form))
+
+
 
 
