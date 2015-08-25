@@ -477,12 +477,19 @@ class sparseConvert:
 		this.logger.log("converting matrix to row major format...")
 		this.HSM.makeRowMajor()
 
+		if this.HSM.symmetry == 'SYM':
+			this.HSM.makeSymmetrical('truncate') 
+
 
 	def writeMatrix(this, filename, form):
 		# writes this.HSM to the file 
 		# filename is a string indicating path of file
 		# format is a string indicating file format (mtx or hercm)
 		# returns True on success, None on failure
+
+		if this.HSM.symmetry == 'SYM':
+			this.HSM.makeSymmetrical('truncate')
+		
 		this.logger.log("writing matrix to file {0} in format {1}"
 						.format(filename, format))
 
