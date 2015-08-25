@@ -530,7 +530,7 @@ class sparseConvert:
 					lines = inputFile.readlines() 
 				lines[0]="%%MatrixMarket matrix coordinate pattern symmetric\n"
 
-				with open('filename','w+') as outputFile:
+				with open(filename,'w') as outputFile:
 					for line in lines:
 						outputFile.write(line) 
 
