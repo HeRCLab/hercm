@@ -457,7 +457,12 @@ class sparseConvert:
 				col = numpy.rec.array(col, dtype=[(('col'), numpy.int32)])
 				row = numpy.rec.array(row, dtype=[(('row'), numpy.int32)])
 
-				this.HSM.elements = append_fields(row, 'col', col, usemask = False, dtypes=[numpy.int32])
+				this.HSM.elements = append_fields(row, 
+					'col', 
+					col, 
+					usemask = False, 
+					dtypes=[numpy.int32])
+				
 				this.HSM.elements = append_fields(this.HSM.elements, 'val', val, usemask = False, dtypes=[numpy.float64])
 
 				
@@ -480,7 +485,8 @@ class sparseConvert:
 
 			try:
 			
-				rawMatrix = scipy.sparse.coo_matrix(scipy.io.loadmat(filename)['matrix'])
+				rawMatrix = scipy.sparse.coo_matrix(
+					scipy.io.loadmat(filename)['matrix'])
 				
 				
 
@@ -508,8 +514,14 @@ class sparseConvert:
 				col = numpy.rec.array(col, dtype=[(('col'), numpy.int32)])
 				row = numpy.rec.array(row, dtype=[(('row'), numpy.int32)])
 
-				this.HSM.elements = append_fields(row, 'col', col, usemask = False, dtypes=[numpy.int32])
-				this.HSM.elements = append_fields(this.HSM.elements, 'val', val, usemask = False, dtypes=[numpy.float64])
+				this.HSM.elements = append_fields(row, 
+					'col', 
+					col, 
+					usemask = False, 
+					dtypes=[numpy.int32])
+
+				this.HSM.elements = append_fields(this.HSM.elements, 
+					'val', val, usemask = False, dtypes=[numpy.float64])
 
 				
 				this.HSM.nzentries = len(this.HSM.elements['val'])
