@@ -479,15 +479,10 @@ class sparseConvert:
 			from numpy import array 
 
 			try:
-				# TODO: this code should be modularized, as it is basically
-				# identical to the mtx code, other than loadmat vs mmread 
+			
+				rawMatrix = scipy.sparse.coo_matrix(scipy.io.loadmat(filename)['matrix'])
 				
-				rawMatrix = scipy.sparse.coo_matrix(scipy.io.loadmat(filename)) 
-	
-				if 'symmetric' in io.mminfo(filename):
-					this.HSM.symmetry = "SYM"
-				else:
-					this.HSM.symmetry = "ASYM"
+				
 
 				hercm = {} # needed to generate verification 
 	
@@ -518,6 +513,10 @@ class sparseConvert:
 
 				
 				this.HSM.nzentries = len(this.HSM.elements['val'])
+
+				if this.HSM.checkSymmetry():
+					this.HSM.symmetry = 'SYM'
+
 				
 			
 		
@@ -597,8 +596,7 @@ class sparseConvert:
 			from scipy import sparse 
 			from numpy import array 
 
-			scipy.io.savemat(filename, 
-				scipy.sparse.m_dict(this.HSM.getInFormat('coo')))
+			scipy.io.savemat(filename, {'matrix':this.HSM.getInFormat('coo')})
 
 
 		else:
