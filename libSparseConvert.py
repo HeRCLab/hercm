@@ -1,6 +1,5 @@
 # permits IO and conversion on various sparse matrix formats.
 import libhsm 
-import clogs
 import scipy
 import numpy
 import scipy.io

@@ -7,6 +7,7 @@ import readline
 import libhsm
 import matplotlib
 import matplotlib.pyplot
+import logging
 
 
 MTXIO = None 
@@ -524,6 +525,12 @@ triangle, further messages will be squelched""")
 		matplotlib.pyplot.spy(matrix)
 		matplotlib.pyplot.show()
 
+	elif command == 'log-info':
+		print("setting loglevel to info")
+		logging.basicConfig(level=logging.INFO)
+	elif command == 'log-debug':
+		print("setting loglevel to debug")
+		logging.basicConfig(level=logging.DEBUG)
 
 	else:
 		print("ERROR: Command not recognized") 
