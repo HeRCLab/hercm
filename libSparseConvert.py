@@ -8,20 +8,15 @@ from numpy.lib.recfunctions import append_fields
 import traceback
 import pprint 
 import os 
+import logging 
 
 class HercmioValidationError(Exception):
 	pass
 
 class hercmio:
 	# permits IO on HeRCM files 
-	def __init__(this, logger=None):
-		# logger may optionally by an existing instance of clogs.clogs 
-		if logger == None:
-			this.logger = clogs.clogs() 
-		else:
-			this.logger = logger
-
-		this.logger.log('new hercmio instance instantiated')
+	def __init__(this):
+		logging.debug("instantiated new instance of libSprseConvert.hercmio")
 
 	def read(this, filename):
 		# reads in the HeRCM file specified by filename 
@@ -30,17 +25,16 @@ class hercmio:
 		HSM = libhsm.hsm()
 		contents = {}
 
-		this.logger.log("Reading HeRCM file {0}".format(filename))
+		logging.info("Reading HeRCm file {0}".format(filename))
 
 		try:
 			fileObject = open(filename, 'r')
 		except FileNotFoundError: 
-			this.logger.log("could not open file: file not found (31)", "error")
+			logging.warning("(lsc-33) could not open file: file not found") 
 			raise FileNotFoundError("could not open file: {0} no such file"
 									.format(filename))
 		except PermissionError: 
-			this.logger.log("could not open file: permissions error (34)", 
-							"error")
+			logging.warning("(lsc-37) could not open file: permissions error") 
 			raise PermissionError("could not open file: {0}, permission denied"
 								  .format(filename))
 
@@ -53,12 +47,13 @@ class hercmio:
 		splitHeader = header.split() 
 
 		if len(splitHeader) != 6:
-			this.logger.log("invalid header: too few fields (46)","error")
+			logging.warning("(lsc-50) invalid header: too few fields \n{0}".format(
+				header))
 			raise HercmioValidationError("header contains too few fields")
 
 		if splitHeader[0] != 'HERCM':
-			this.logger.log("could not read file, not a HeRCM file (50)", 
-						    "error")
+			logging.warning("(lsc-55)could not read file, not a HeRCM file or "+ 
+				"mangled header")
 			raise HercmioValidationError("header does not contain HeRCM") 
 		try:
 			width = int(splitHeader[1])
@@ -66,13 +61,17 @@ class hercmio:
 			nzentries = int(splitHeader[3])
 			verification = float(splitHeader[5])
 		except ValueError:
-			this.logger.log("could not read file, mangled header (57)", "error")
+			logging.warning("(lsc-64) could not read file: mangled header")
 			raise HercmioValidationError("Could not extract values from header")
 
 		symmetry = splitHeader[4]
 		if symmetry not in ['SYM','ASYM']:
 			raise HercmioValidationError("header contains invalid symmetry")
 		
+
+		logging.info("read header...")
+		logging.info("width: {0}\nheight: {1}\nnzentries:{2}\nverification:{3}"
+			.format(width, height, nzentries, verification))
 
 		HSM.width 		= width
 		HSM.height 		= height
@@ -115,15 +114,15 @@ class hercmio:
 						try:
 							currentContents = int(line)
 						except ValueError:
-							this.logger.log("could not read file: bad vtype " +
-											"99", "error")
+							logging.warning("(lsc-117) could not read file, "+
+								"bad vtype")
 							return None 
 					elif vtype == 'FLOAT':
 						try:
 							currentContents = float(line)
 						except ValueError:
-							this.logger.log("could not read file: bad vtype " + 
-											"(104)", "error")
+							logging.warning("(lsc-124) could not read file, " +
+								" bad vtype")
 							return None 
 					else: 
 						currentContents = line.rstrip() 
@@ -134,38 +133,35 @@ class hercmio:
 							try:
 								currentContents.append(int(value))
 							except ValueError:
-								this.logger.log("could not read file: bad vtype " +
-												"(115)", "error")
+								logging.warning("(lsc-138) could not read file"+
+									", bad vtype")
 								return None 
 						elif vtype == 'FLOAT':
 							try:
 								currentContents.append(float(value))
 							except ValueError:
-								this.logger.log("could not read file: bad vtype " + 
-												"(115)", "error")
+								logging.warning("(lsc-145) could not read " +
+									" bad vtype")
 								return None
 						else: 
 							currentContents.append(value)
 				else:
-					this.logger.log("could not read file: bad cytpe (125)",
-									"error")
+					logging.warning("(lsc-151) could not read file, bad ctype")
 					return None 
 
 		for field in ['val','col','row','nzentries','width','height','symmetry',
 					  'verification']:
 			if field not in contents:
-				this.logger.log("read file, but needed field {0} missing (136)"
-								.format(field), 'error')
+				logging.warning("""(lsc-157) read file, but needed field 
+{0} missing""".format(field))
 				raise HercmioValidationError("field {0} is missing from file"
 											 .format(field)) 
 
 		for field in ['row','val','col']:
 			if len(contents[field]) != HSM.nzentries:
-				this.logger.log("length of {0} {1} does not match nzentries {2}"
-					.format(field, 
-						len(contents[field]), 
-						HSM.nzentries), 
-					'warning')
+				logging.warning("""(lsc-162) length of {0} {1} does not 
+match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries) 
+
 
 		for i in range(0,HSM.nzentries):
 			try:
@@ -173,15 +169,16 @@ class hercmio:
 								contents['col'][i],
 								contents['val'][i]])
 			except IndexError:
-				this.logger.log("""could not add index {0} of contents to HSM 
- instance. Nzentries is {1} and len val is {2}""".format(i, HSM.nzentries, 
-								len(contents['val'])),'warning')
+				logging.warning("""(lsc-172) could not add index {0} of contents
+ to HSM instance. Nzentries is {1} and len val is {2}"""
+ 					.format(i, HSM.nzentries, len(contents['val'])),'warning')
+
 				raise IndexError("Unable to add index {0} to HSM".format(i))
 		
 		if this.verify(contents): 
 			return HSM
 		else: 
-			this.logger.log("verification failed (155)", "error")
+			logging.warning("(lsc-181) verification failed")
 			return None 
 
 	def generateVerificationSum(this,hercm):
@@ -208,22 +205,26 @@ class hercmio:
 					for value in hercm[field]:
 						sum += value 
 				except KeyError as e:
-					this.logger.log("could not verify, missing field (157)",
-						"error")
+					logging.warning("(lsc-208) could not verify, missing field")
 					raise KeyError("missing field... ",str(e))
 				except TypeError as e:
-					this.logger.log("could not verify, mangled field (159)",
-									"error")
+					logging.warning("(lsc-213) could not verify, mangled field")
 					raise TypeError("one or more fields is of invalid type",
 									str(e))
-	
+		
+
+			logging.info("generated verification sum {0}"
+				.format(sum % float(len(hercm['val']))))
+
 			return sum % float(len(hercm['val']))
 		else:
 			val = hercm.elements['val']
 			row = hercm.elements['row']
 			col = hercm.elements['col'] 
 
-			return this.generateVerificationSum({'val':val, 'row':row,'col':col})
+			return this.generateVerificationSum({'val':val, 
+				'row':row,
+				'col':col})
 		
 		
 
@@ -236,7 +237,6 @@ class hercmio:
 		# returns False if it is not 
 		# returns None if an error is encountered 
 
-		this.logger.log("verifying HeRCM...")
 
 		if type(hercm) == dict:
 			try:
@@ -245,7 +245,8 @@ class hercmio:
 				raise KeyError("failed to generate verification sum... ",str(e))
 				return None 
 			except TypeError as e:
-				raise TypeError("failed to generate verification sum... ",str(e))
+				raise TypeError("failed to generate verification sum... ",
+					str(e))
 				return None
 	
 			try: 
@@ -253,8 +254,8 @@ class hercmio:
 					this.logger.log("verification passed")
 					return True
 				else:
-					this.logger.log("verification failed, expected {0}, got {1}"
-									.format(hercm['verification'], verification))
+					loggin.warning("""(lsc-257) verification failed, expected
+ {0}, got {1}""".format(hercm['verification'], verification))
 					return False 
 			except ValueError as e:
 				this.logger.log("could not verify, mangled field (165)", "error")
@@ -462,7 +463,7 @@ class sparseConvert:
 					col, 
 					usemask = False, 
 					dtypes=[numpy.int32])
-				
+
 				this.HSM.elements = append_fields(this.HSM.elements, 'val', val, usemask = False, dtypes=[numpy.float64])
 
 				
