@@ -8,20 +8,15 @@ from numpy.lib.recfunctions import append_fields
 import traceback
 import pprint 
 import os 
+import logging 
 
 class HercmioValidationError(Exception):
 	pass
 
 class hercmio:
 	# permits IO on HeRCM files 
-	def __init__(this, logger=None):
-		# logger may optionally by an existing instance of clogs.clogs 
-		if logger == None:
-			this.logger = clogs.clogs() 
-		else:
-			this.logger = logger
-
-		this.logger.log('new hercmio instance instantiated')
+	def __init__(this):
+		logging.debug("instantiated new instance of libSprseConvert.hercmio")
 
 	def read(this, filename):
 		# reads in the HeRCM file specified by filename 
@@ -30,17 +25,16 @@ class hercmio:
 		HSM = libhsm.hsm()
 		contents = {}
 
-		this.logger.log("Reading HeRCM file {0}".format(filename))
+		logging.info("Reading HeRCm file {0}".format(filename))
 
 		try:
 			fileObject = open(filename, 'r')
 		except FileNotFoundError: 
-			this.logger.log("could not open file: file not found (31)", "error")
+			logging.warning("(lsc-33) could not open file: file not found") 
 			raise FileNotFoundError("could not open file: {0} no such file"
 									.format(filename))
 		except PermissionError: 
-			this.logger.log("could not open file: permissions error (34)", 
-							"error")
+			logging.warning("(lsc-37) could not open file: permissions error") 
 			raise PermissionError("could not open file: {0}, permission denied"
 								  .format(filename))
 
@@ -53,12 +47,13 @@ class hercmio:
 		splitHeader = header.split() 
 
 		if len(splitHeader) != 6:
-			this.logger.log("invalid header: too few fields (46)","error")
+			logging.warning("(lsc-50) invalid header: too few fields \n{0}".format(
+				header))
 			raise HercmioValidationError("header contains too few fields")
 
 		if splitHeader[0] != 'HERCM':
-			this.logger.log("could not read file, not a HeRCM file (50)", 
-						    "error")
+			logging.warning("(lsc-55)could not read file, not a HeRCM file or "+ 
+				"mangled header")
 			raise HercmioValidationError("header does not contain HeRCM") 
 		try:
 			width = int(splitHeader[1])
@@ -66,13 +61,17 @@ class hercmio:
 			nzentries = int(splitHeader[3])
 			verification = float(splitHeader[5])
 		except ValueError:
-			this.logger.log("could not read file, mangled header (57)", "error")
+			logging.warning("(lsc-64) could not read file: mangled header")
 			raise HercmioValidationError("Could not extract values from header")
 
 		symmetry = splitHeader[4]
 		if symmetry not in ['SYM','ASYM']:
 			raise HercmioValidationError("header contains invalid symmetry")
 		
+
+		logging.info("read header...")
+		logging.info("width: {0}\nheight: {1}\nnzentries:{2}\nverification:{3}"
+			.format(width, height, nzentries, verification))
 
 		HSM.width 		= width
 		HSM.height 		= height
@@ -115,15 +114,15 @@ class hercmio:
 						try:
 							currentContents = int(line)
 						except ValueError:
-							this.logger.log("could not read file: bad vtype " +
-											"99", "error")
+							logging.warning("(lsc-117) could not read file, "+
+								"bad vtype")
 							return None 
 					elif vtype == 'FLOAT':
 						try:
 							currentContents = float(line)
 						except ValueError:
-							this.logger.log("could not read file: bad vtype " + 
-											"(104)", "error")
+							logging.warning("(lsc-124) could not read file, " +
+								" bad vtype")
 							return None 
 					else: 
 						currentContents = line.rstrip() 
@@ -134,38 +133,35 @@ class hercmio:
 							try:
 								currentContents.append(int(value))
 							except ValueError:
-								this.logger.log("could not read file: bad vtype " +
-												"(115)", "error")
+								logging.warning("(lsc-138) could not read file"+
+									", bad vtype")
 								return None 
 						elif vtype == 'FLOAT':
 							try:
 								currentContents.append(float(value))
 							except ValueError:
-								this.logger.log("could not read file: bad vtype " + 
-												"(115)", "error")
+								logging.warning("(lsc-145) could not read " +
+									" bad vtype")
 								return None
 						else: 
 							currentContents.append(value)
 				else:
-					this.logger.log("could not read file: bad cytpe (125)",
-									"error")
+					logging.warning("(lsc-151) could not read file, bad ctype")
 					return None 
 
 		for field in ['val','col','row','nzentries','width','height','symmetry',
 					  'verification']:
 			if field not in contents:
-				this.logger.log("read file, but needed field {0} missing (136)"
-								.format(field), 'error')
+				logging.warning("""(lsc-157) read file, but needed field 
+{0} missing""".format(field))
 				raise HercmioValidationError("field {0} is missing from file"
 											 .format(field)) 
 
 		for field in ['row','val','col']:
 			if len(contents[field]) != HSM.nzentries:
-				this.logger.log("length of {0} {1} does not match nzentries {2}"
-					.format(field, 
-						len(contents[field]), 
-						HSM.nzentries), 
-					'warning')
+				logging.warning("""(lsc-162) length of {0} {1} does not 
+match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries)) 
+
 
 		for i in range(0,HSM.nzentries):
 			try:
@@ -173,15 +169,16 @@ class hercmio:
 								contents['col'][i],
 								contents['val'][i]])
 			except IndexError:
-				this.logger.log("""could not add index {0} of contents to HSM 
- instance. Nzentries is {1} and len val is {2}""".format(i, HSM.nzentries, 
-								len(contents['val'])),'warning')
+				logging.warning("""(lsc-172) could not add index {0} of contents
+ to HSM instance. Nzentries is {1} and len val is {2}"""
+ 					.format(i, HSM.nzentries, len(contents['val'])),'warning')
+
 				raise IndexError("Unable to add index {0} to HSM".format(i))
 		
 		if this.verify(contents): 
 			return HSM
 		else: 
-			this.logger.log("verification failed (155)", "error")
+			logging.warning("(lsc-181) verification failed")
 			return None 
 
 	def generateVerificationSum(this,hercm):
@@ -208,22 +205,26 @@ class hercmio:
 					for value in hercm[field]:
 						sum += value 
 				except KeyError as e:
-					this.logger.log("could not verify, missing field (157)",
-						"error")
+					logging.warning("(lsc-208) could not verify, missing field")
 					raise KeyError("missing field... ",str(e))
 				except TypeError as e:
-					this.logger.log("could not verify, mangled field (159)",
-									"error")
+					logging.warning("(lsc-213) could not verify, mangled field")
 					raise TypeError("one or more fields is of invalid type",
 									str(e))
-	
+		
+
+			logging.info("generated verification sum {0}"
+				.format(sum % float(len(hercm['val']))))
+
 			return sum % float(len(hercm['val']))
 		else:
 			val = hercm.elements['val']
 			row = hercm.elements['row']
 			col = hercm.elements['col'] 
 
-			return this.generateVerificationSum({'val':val, 'row':row,'col':col})
+			return this.generateVerificationSum({'val':val, 
+				'row':row,
+				'col':col})
 		
 		
 
@@ -236,7 +237,6 @@ class hercmio:
 		# returns False if it is not 
 		# returns None if an error is encountered 
 
-		this.logger.log("verifying HeRCM...")
 
 		if type(hercm) == dict:
 			try:
@@ -245,7 +245,8 @@ class hercmio:
 				raise KeyError("failed to generate verification sum... ",str(e))
 				return None 
 			except TypeError as e:
-				raise TypeError("failed to generate verification sum... ",str(e))
+				raise TypeError("failed to generate verification sum... ",
+					str(e))
 				return None
 	
 			try: 
@@ -253,15 +254,17 @@ class hercmio:
 					this.logger.log("verification passed")
 					return True
 				else:
-					this.logger.log("verification failed, expected {0}, got {1}"
-									.format(hercm['verification'], verification))
+					loggin.warning("""(lsc-257) verification failed, expected
+ {0}, got {1}""".format(hercm['verification'], verification))
 					return False 
 			except ValueError as e:
-				this.logger.log("could not verify, mangled field (165)", "error")
+				logging.warning("(lsc-262) verification failed, mangled field")
+
 				raise ValueError("Could not verify, mangled field...",str(e))
 				return None 
 			except KeyError:
-				this.logger.log("could not verify, missing field (168)", "error")
+				logging.warning("(lsc-267) could not verify, missing field")
+
 				raise KeyError("could not verify, missing field...",str(e))
 				return None 
 		else:
@@ -282,22 +285,21 @@ class hercmio:
 		# writes a hercm file with contents matching hercm to filename 
 
 
-		this.logger.log("writing file {0}".format(filename))
+		logging.info("writing hercm file {0}".format(filename))
 
 		try:
 			fileObject = open(filename, 'w')
 		except FileNotFoundError as e: 
-			this.logger.log("could not open file: file not found (207)","error")
+			logging.warning("(lsc-294) could not open file: file not found")
 			raise FileNotFoundError("could not open file {0}... "
 									.format(filename), str(e))
 		except PermissionError as e: 
-			this.logger.log("could not open file: permissions error (210)", 
-							"error")
+			logging.warning("(lsc-299) could not open file: permissions error")
 			raise PermissionError("Could not open file {0}..."
 								  .format(filename), str(e)) 
 
 		if not this.verify(HSM): 
-			this.logger.log("verification failed (217)", "warning")
+			logging.warning("(lsc-303) verification failed")
 			raise HercmioValidationError("matrix did not pass validation")
 			
 
@@ -308,14 +310,16 @@ class hercmio:
 		header = header + str(HSM.symmetry) + ' '
 		header = header + str(HSM.verification) + '\n'
 
-		this.logger.log("generated header: {0}".format(header))
+		logging.info("generated header: {0}".format(header))
 
 		fileObject.write(header)
 
+		logging.info("writing remarks") 
 		fileObject.write('REMARKS LIST STRING\n')
 		itemcounter = 0
 		line = ''
 		for item in HSM.remarks:
+			logging.debug("writing item {0} in remarks".format(item))
 			line = line + item + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -326,10 +330,12 @@ class hercmio:
 			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
+		logging.info("writing val")
 		fileObject.write('VAL LIST FLOAT\n')
 		itemcounter = 0
 		line = ''
 		for item in HSM.elements['val']:
+			logging.debug("writing item {0} in val".format(str(item)))
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -340,10 +346,12 @@ class hercmio:
 			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
+		logging.info("writing row") 
 		fileObject.write('ROW LIST INT\n')
 		itemcounter = 0
 		line = ''
 		for item in HSM.elements['row']:
+			logging.debug("writing item {0} in row".format(str(item)))
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -354,10 +362,12 @@ class hercmio:
 			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
+		logging.info("writing col") 
 		fileObject.write('COL LIST INT\n')
 		itemcounter = 0
 		line = ''
 		for item in HSM.elements['col']:
+			logging.debug("writing item {0} in col".format(str(item)))
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -368,24 +378,20 @@ class hercmio:
 			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
+		logging.info("finished writing, closing file")
 		fileObject.close() 
 
 class SparseConvertFormatError:
 	pass
 
 class sparseConvert:
-	def __init__(this, logger=None):
+	def __init__(this):
 		# if a clogs.clogs instance is given as logger, it will be used for 
 		# logging. Otherwise, a new clogs.clogs instance will be created 
 
 		this.HSM = libhsm.hsm() 
-		
-		if logger == None:
-			this.logger = clogs.clogs() 
-		else:
-			this.logger = logger 
 
-		this.HERCMIO = hercmio(this.logger)
+		this.HERCMIO = hercmio()
 
 
 	def readMatrix(this, filename, form):
@@ -395,11 +401,7 @@ class sparseConvert:
 		# reads the matrix into this.HSM for later processing 
 		# converts non-hercm matrices to hercm internally 
 
-		# verbose will cause the progress of reading the matrix to be printed 
- 
-
-		this.logger.log("reading matrix {0} which is format {1}"
-					 	.format(filename, form))
+		logging.info("reading matrix {0} in format {1}".format(filename, form))
 
 		if form == 'hercm':
 			matrix = None 
@@ -409,9 +411,6 @@ class sparseConvert:
 				print("ERROR: could not read matrix")
 				print("stack trace...")
 				print(traceback.format_exc())
-				print("log...")
-				pp = pprint.PrettyPrinter()
-				pp.pprint(this.logger.contents)
 
 			this.HSM = matrix
 			this.HSM.nzentries = len(this.HSM.elements['val'])
@@ -462,18 +461,19 @@ class sparseConvert:
 					col, 
 					usemask = False, 
 					dtypes=[numpy.int32])
-				
-				this.HSM.elements = append_fields(this.HSM.elements, 'val', val, usemask = False, dtypes=[numpy.float64])
+
+				this.HSM.elements = append_fields(this.HSM.elements, 
+					'val', 
+					val, 
+					usemask = False, 
+					dtypes=[numpy.float64])
 
 				
 				this.HSM.nzentries = len(this.HSM.elements['val'])
-				
-			
-
 
 					
 			except IOError as e: # make sure the file exists and is readable
-				this.logger.log("could not open matrix file (375)", "error")
+				logging.warning("(lsc-480) could not open matrix file")
 				raise IOError("could not open matrix file for writing...",
 							  str(e))
 			
@@ -533,7 +533,7 @@ class sparseConvert:
 			
 		
 			except IOError as e: # make sure the file exists and is readable
-				this.logger.log("could not open matrix file (375)", "error")
+				logging.warning("(lsc-536)could not open matrix file")
 				raise IOError("could not open matrix file for writing...",
 							  str(e))
 
@@ -542,12 +542,13 @@ class sparseConvert:
 		else:
 			this.logger.log("format must be hercm or mtx, cannot use format {0}"
 							.format(form), "error")
-			raise SparseConvertFormatError("{0} is not a valid format"
-											.format(form))
-		this.logger.log("converting matrix to row major format...")
+			logging.warning("(lsc-545) format {0} is not valid".format(form))
+			
+		logging.info("converting matrix to row-major")
 		this.HSM.makeRowMajor()
 
 		if this.HSM.symmetry == 'SYM':
+			logging.info("matrix is symmetric, truncating lowe rtriangle") 
 			this.HSM.makeSymmetrical('truncate') 
 
 
@@ -557,18 +558,21 @@ class sparseConvert:
 		# format is a string indicating file format (mtx or hercm)
 		# returns True on success, None on failure
 
+		logging.info("writing matrix {0} in format {1}..."
+			.format(filename, form))
+
 		if os.path.isfile(filename):
-			this.logger.log("file already exists, cannot write file!",'error')
+			logging.warning("(lsc-566) file exists, cannot write")
 			raise FileExistsError("could not write to file {0}".format(filename)
 				+ " file already exists!")
 
 		if this.HSM.symmetry == 'SYM':
+			logging.info("matrix is symmetric, truncating lower triangle")
 			this.HSM.makeSymmetrical('truncate')
 
-		this.logger.log("writing matrix to file {0} in format {1}"
-						.format(filename, format))
 
-		this.logger.log("converting matrix to row majro format...")
+
+		logging.info("making matrix row major...")
 		this.HSM.makeRowMajor()
 
 		if form == 'hercm':
@@ -578,23 +582,23 @@ class sparseConvert:
 				print("ERROR: matrix did not pass validation!")
 				print("Matrix will not be written to file")
 			
-
 		elif form == 'mtx':
-			
-	
 			try:
 				scipy.io.mmwrite(filename, this.HSM.getInFormat('coo'))
 			except ValueError as e: 
-				this.logger.log("""encountered ValueError exception while
- writing file. Exception: {0}. You probably have out of bounds indices in row or
- col""".format(e), 'error')
+				logging.warning("""(lsc-589) encountered ValueError exception 
+while writing file. Exception: {0}. You probably have out of bounds indices 
+in row or col""".format(e))
 			except Exception as e:
-				this.logger.log("encountered exception while writing" +
-								" matrix: {0} (412)".format(str(e)),'error')
+				logging.warning("""(lsc-593) encountered general error while
+ writing: {0}""".format(str(e)))
+
 				raise IOError("encountered exception while writing matrix")
 	
 			# fix header of mtx file 
 			if this.HSM.symmetry == 'SYM':
+				logging.info("format is mtx and matrix is symmetric, fixing" +
+					" header...")
 				with open(filename) as inputFile:
 					lines = inputFile.readlines() 
 				lines[0]="%%MatrixMarket matrix coordinate pattern symmetric\n"
@@ -612,8 +616,7 @@ class sparseConvert:
 
 
 		else:
-			this.logger.log("format must be hercm or mtx, cannot use format {0}"
-							.format(form), 'error')
+			logging.warning("(lsc-621) format {0} is not valid".format(form))
 			raise SparseConvertFormatError("{0} is not a valid format"
 											.format(form))
 
