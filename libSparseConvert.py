@@ -160,7 +160,7 @@ class hercmio:
 		for field in ['row','val','col']:
 			if len(contents[field]) != HSM.nzentries:
 				logging.warning("""(lsc-162) length of {0} {1} does not 
-match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries) 
+match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries)) 
 
 
 		for i in range(0,HSM.nzentries):
@@ -258,11 +258,13 @@ match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries)
  {0}, got {1}""".format(hercm['verification'], verification))
 					return False 
 			except ValueError as e:
-				this.logger.log("could not verify, mangled field (165)", "error")
+				logging.warning("(lsc-262) verification failed, mangled field")
+
 				raise ValueError("Could not verify, mangled field...",str(e))
 				return None 
 			except KeyError:
-				this.logger.log("could not verify, missing field (168)", "error")
+				logging.warning("(lsc-267) could not verify, missing field")
+
 				raise KeyError("could not verify, missing field...",str(e))
 				return None 
 		else:
@@ -283,22 +285,21 @@ match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries)
 		# writes a hercm file with contents matching hercm to filename 
 
 
-		this.logger.log("writing file {0}".format(filename))
+		logging.info("writing hercm file {0}".format(filename))
 
 		try:
 			fileObject = open(filename, 'w')
 		except FileNotFoundError as e: 
-			this.logger.log("could not open file: file not found (207)","error")
+			logging.warning("(lsc-294) could not open file: file not found")
 			raise FileNotFoundError("could not open file {0}... "
 									.format(filename), str(e))
 		except PermissionError as e: 
-			this.logger.log("could not open file: permissions error (210)", 
-							"error")
+			logging.warning("(lsc-299) could not open file: permissions error")
 			raise PermissionError("Could not open file {0}..."
 								  .format(filename), str(e)) 
 
 		if not this.verify(HSM): 
-			this.logger.log("verification failed (217)", "warning")
+			logging.warning("(lsc-303) verification failed")
 			raise HercmioValidationError("matrix did not pass validation")
 			
 
@@ -309,14 +310,16 @@ match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries)
 		header = header + str(HSM.symmetry) + ' '
 		header = header + str(HSM.verification) + '\n'
 
-		this.logger.log("generated header: {0}".format(header))
+		logging.info("generated header: {0}".format(header))
 
 		fileObject.write(header)
 
+		logging.info("writing remarks") 
 		fileObject.write('REMARKS LIST STRING\n')
 		itemcounter = 0
 		line = ''
 		for item in HSM.remarks:
+			logging.debug("writing item {0} in remarks".format(item))
 			line = line + item + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -327,10 +330,12 @@ match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries)
 			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
+		logging.info("writing val")
 		fileObject.write('VAL LIST FLOAT\n')
 		itemcounter = 0
 		line = ''
 		for item in HSM.elements['val']:
+			logging.debug("writing item {0} in val".format(str(item)))
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -341,10 +346,12 @@ match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries)
 			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
+		logging.info("writing row") 
 		fileObject.write('ROW LIST INT\n')
 		itemcounter = 0
 		line = ''
 		for item in HSM.elements['row']:
+			logging.debug("writing item {0} in row".format(str(item)))
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -355,10 +362,12 @@ match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries)
 			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
+		logging.info("writing col") 
 		fileObject.write('COL LIST INT\n')
 		itemcounter = 0
 		line = ''
 		for item in HSM.elements['col']:
+			logging.debug("writing item {0} in col".format(str(item)))
 			line = line + str(item) + ' '
 			itemcounter += 1
 			if itemcounter == 9:
@@ -369,24 +378,20 @@ match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries)
 			fileObject.write(line+'\n')
 		fileObject.write('ENDFIELD\n')
 
+		logging.info("finished writing, closing file")
 		fileObject.close() 
 
 class SparseConvertFormatError:
 	pass
 
 class sparseConvert:
-	def __init__(this, logger=None):
+	def __init__(this):
 		# if a clogs.clogs instance is given as logger, it will be used for 
 		# logging. Otherwise, a new clogs.clogs instance will be created 
 
 		this.HSM = libhsm.hsm() 
-		
-		if logger == None:
-			this.logger = clogs.clogs() 
-		else:
-			this.logger = logger 
 
-		this.HERCMIO = hercmio(this.logger)
+		this.HERCMIO = hercmio()
 
 
 	def readMatrix(this, filename, form):
@@ -396,11 +401,7 @@ class sparseConvert:
 		# reads the matrix into this.HSM for later processing 
 		# converts non-hercm matrices to hercm internally 
 
-		# verbose will cause the progress of reading the matrix to be printed 
- 
-
-		this.logger.log("reading matrix {0} which is format {1}"
-					 	.format(filename, form))
+		logging.info("reading matrix {0} in format {1}".format(filename, form))
 
 		if form == 'hercm':
 			matrix = None 
@@ -410,9 +411,6 @@ class sparseConvert:
 				print("ERROR: could not read matrix")
 				print("stack trace...")
 				print(traceback.format_exc())
-				print("log...")
-				pp = pprint.PrettyPrinter()
-				pp.pprint(this.logger.contents)
 
 			this.HSM = matrix
 			this.HSM.nzentries = len(this.HSM.elements['val'])
@@ -464,17 +462,18 @@ class sparseConvert:
 					usemask = False, 
 					dtypes=[numpy.int32])
 
-				this.HSM.elements = append_fields(this.HSM.elements, 'val', val, usemask = False, dtypes=[numpy.float64])
+				this.HSM.elements = append_fields(this.HSM.elements, 
+					'val', 
+					val, 
+					usemask = False, 
+					dtypes=[numpy.float64])
 
 				
 				this.HSM.nzentries = len(this.HSM.elements['val'])
-				
-			
-
 
 					
 			except IOError as e: # make sure the file exists and is readable
-				this.logger.log("could not open matrix file (375)", "error")
+				logging.warning("(lsc-480) could not open matrix file")
 				raise IOError("could not open matrix file for writing...",
 							  str(e))
 			
@@ -534,7 +533,7 @@ class sparseConvert:
 			
 		
 			except IOError as e: # make sure the file exists and is readable
-				this.logger.log("could not open matrix file (375)", "error")
+				logging.warning("(lsc-536)could not open matrix file")
 				raise IOError("could not open matrix file for writing...",
 							  str(e))
 
@@ -543,12 +542,13 @@ class sparseConvert:
 		else:
 			this.logger.log("format must be hercm or mtx, cannot use format {0}"
 							.format(form), "error")
-			raise SparseConvertFormatError("{0} is not a valid format"
-											.format(form))
-		this.logger.log("converting matrix to row major format...")
+			logging.warning("(lsc-545) format {0} is not valid".format(form))
+			
+		logging.info("converting matrix to row-major")
 		this.HSM.makeRowMajor()
 
 		if this.HSM.symmetry == 'SYM':
+			logging.info("matrix is symmetric, truncating lowe rtriangle") 
 			this.HSM.makeSymmetrical('truncate') 
 
 
@@ -558,18 +558,21 @@ class sparseConvert:
 		# format is a string indicating file format (mtx or hercm)
 		# returns True on success, None on failure
 
+		logging.info("writing matrix {0} in format {1}..."
+			.format(filename, form))
+
 		if os.path.isfile(filename):
-			this.logger.log("file already exists, cannot write file!",'error')
+			logging.warning("(lsc-566) file exists, cannot write")
 			raise FileExistsError("could not write to file {0}".format(filename)
 				+ " file already exists!")
 
 		if this.HSM.symmetry == 'SYM':
+			logging.info("matrix is symmetric, truncating lower triangle")
 			this.HSM.makeSymmetrical('truncate')
 
-		this.logger.log("writing matrix to file {0} in format {1}"
-						.format(filename, format))
 
-		this.logger.log("converting matrix to row majro format...")
+
+		logging.info("making matrix row major...")
 		this.HSM.makeRowMajor()
 
 		if form == 'hercm':
@@ -579,23 +582,23 @@ class sparseConvert:
 				print("ERROR: matrix did not pass validation!")
 				print("Matrix will not be written to file")
 			
-
 		elif form == 'mtx':
-			
-	
 			try:
 				scipy.io.mmwrite(filename, this.HSM.getInFormat('coo'))
 			except ValueError as e: 
-				this.logger.log("""encountered ValueError exception while
- writing file. Exception: {0}. You probably have out of bounds indices in row or
- col""".format(e), 'error')
+				logging.warning("""(lsc-589) encountered ValueError exception 
+while writing file. Exception: {0}. You probably have out of bounds indices 
+in row or col""".format(e))
 			except Exception as e:
-				this.logger.log("encountered exception while writing" +
-								" matrix: {0} (412)".format(str(e)),'error')
+				logging.warning("""(lsc-593) encountered general error while
+ writing: {0}""".format(str(e)))
+
 				raise IOError("encountered exception while writing matrix")
 	
 			# fix header of mtx file 
 			if this.HSM.symmetry == 'SYM':
+				logging.info("format is mtx and matrix is symmetric, fixing" +
+					" header...")
 				with open(filename) as inputFile:
 					lines = inputFile.readlines() 
 				lines[0]="%%MatrixMarket matrix coordinate pattern symmetric\n"
@@ -613,8 +616,7 @@ class sparseConvert:
 
 
 		else:
-			this.logger.log("format must be hercm or mtx, cannot use format {0}"
-							.format(form), 'error')
+			logging.warning("(lsc-621) format {0} is not valid".format(form))
 			raise SparseConvertFormatError("{0} is not a valid format"
 											.format(form))
 
