@@ -250,7 +250,7 @@ match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries))
 	
 			try: 
 				if verification == hercm['verification']:
-					this.logger.log("verification passed")
+					logging.info("verification passed")
 					return True
 				else:
 					loggin.warning("""(lsc-257) verification failed, expected
