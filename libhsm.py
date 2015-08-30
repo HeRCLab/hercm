@@ -44,6 +44,15 @@ class hsm:
 
 		try: 
 			element = this.castElement(element)
+			if this.symmetry == 'SYM':
+				if element['row'] > element['col']: 
+					# put element in the top triangle, this matrix is 
+					# symmetric! 
+					temp = numpy.array(this.dtype)
+					temp = element 
+					element['row'] = temp['col']
+					element['col'] = temp['row']
+
 			if this.elements == None:
 				this.elements = numpy.array([element],dtype=this.dtype)
 			else:
@@ -198,6 +207,14 @@ class hsm:
 		# returns the value stored at row, col  
 		# if assumeRowMajor is true, uses an optimized search routine
 
+		if this.symmetry == 'SYM': 
+			if row > col: 
+				# extrapolate for values in lower triangle 
+				tempRow = row
+				tempCol = col 
+				row = tempCol
+				col = tempRow 
+
 
 		if row >= this.height:
 			raise IndexError("row out of bounds") 
@@ -234,6 +251,14 @@ class hsm:
 			raise IndexError("newRow out of bounds") 
 		if newCol < 0:
 			raise IndexError("newCol out of bounds")  
+
+		if this.symmetry == 'SYM':
+			if newRow > newCol:
+				# put value in the correct triangle 
+				tempRow = newRow
+				tempCol = newCol
+				newRow = tempCol 
+				newCol = tempRow 
 
 		if this.getValue(newRow, newCol) != 0:
 			for i in range(0,this.nzentries):
