@@ -140,7 +140,7 @@ class hercmio:
 								currentContents.append(float(value))
 							except ValueError:
 								logging.warning("(lsc-145) could not read " +
-									" bad vtype")
+									str(value) + " bad vtype")
 								return None
 						else: 
 							currentContents.append(value)
@@ -253,7 +253,7 @@ match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries))
 					logging.info("verification passed")
 					return True
 				else:
-					loggin.warning("""(lsc-257) verification failed, expected
+					logging.warning("""(lsc-257) verification failed, expected
  {0}, got {1}""".format(hercm['verification'], verification))
 					return False 
 			except ValueError as e:
