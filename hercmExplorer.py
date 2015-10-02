@@ -186,6 +186,8 @@ verification  - - - - - - {4}
 			print("ERROR: out of memory error, array to large to display")
 		except AttributeError:
 			print("ERROR: no matrix loaded")
+		except ValuerError:
+			print("ERROR: matrix is too large")
 
 
 	elif command == 'csrdisplay':
@@ -531,6 +533,10 @@ triangle, further messages will be squelched""")
 	elif command == 'log-debug':
 		print("setting loglevel to debug")
 		logging.basicConfig(level=logging.DEBUG)
+
+	elif command == "transpose":
+		# reflects the matrix around the diagonal
+		raise NotImplementedError("transpose command is not implemented yet")
 
 	else:
 		print("ERROR: Command not recognized") 
