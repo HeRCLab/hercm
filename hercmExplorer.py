@@ -536,7 +536,11 @@ triangle, further messages will be squelched""")
 
 	elif command == "transpose":
 		# reflects the matrix around the diagonal
-		raise NotImplementedError("transpose command is not implemented yet")
+		print("performing matrix tranpose, please wait...")
+		matrix = SC.HSM.getInFormat('coo')
+		matrix = matrix.transpose()
+		SC.HSM.replaceContents(matrix)
+		pribnt("matrix transpose complete")
 
 	else:
 		print("ERROR: Command not recognized") 
