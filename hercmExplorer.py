@@ -549,7 +549,7 @@ triangle, further messages will be squelched""")
 		matrix = SC.HSM.getInFormat('coo')
 		matrix = matrix.transpose()
 		SC.HSM.replaceContents(matrix)
-		pribnt("matrix transpose complete")
+		print("matrix transpose complete")
 
 	elif command == "ls":
 		directory = ''
