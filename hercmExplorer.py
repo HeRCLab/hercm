@@ -8,6 +8,7 @@ import libhsm
 import matplotlib
 import matplotlib.pyplot
 import logging
+import os
 
 
 MTXIO = None 
@@ -73,6 +74,14 @@ check-symmetry - check the symmetry attribute, and searches for any non zero
 elements in the bottom triangle, printing the first five if they exist. 
 
 plot - plots the matrix graphically using matplotlib 
+
+head [file path] - prints the first 10 lines of file at [file path]
+
+cat [file path] - prints all lines from [file path] 
+
+ls - get directory listing
+
+pwd - print current working directory 
 
 exit - exits the program
 """
@@ -541,6 +550,43 @@ triangle, further messages will be squelched""")
 		matrix = matrix.transpose()
 		SC.HSM.replaceContents(matrix)
 		pribnt("matrix transpose complete")
+
+	elif command == "ls":
+		directory = ''
+		if len(arguments) > 0:
+			if os.path.exists(arguments[0]):
+				directory = arguments[0] 
+			elif os.path.exists(os.path.join(os.getcwd(), arguments[0])):
+				directory = os.path.join(os.getcwd(), arguments[0])
+			else:
+				print("ERROR: could not get directory listing")
+				print(arguments[0], " is not a valid path")
+				print(os.path.join(os.getcwd(), arguments[0]), 
+					" is not a valid path")
+				directory = os.getcwd()
+				
+		print("Directory listing for: ", directory)
+		for item in os.listdir(directory):
+			print(item)
+
+	elif command == "pwd":
+		print(os.getcwd())
+
+	elif command == "head":
+		if len(arguments) != 1:
+			print("ERROR: incorrect number of arguments")
+			return 
+		f = open(arguments[0])
+		for line in f.readlines()[0:10]:
+			print(line, end='')
+
+	elif command == "cat":
+		if len(arguments) != 1:
+			print("ERROR: incorrect number of arguments")
+			return 
+		f = open(arguments[0])
+		for line in f.readlines():
+			print(line, end='')
 
 	else:
 		print("ERROR: Command not recognized") 
