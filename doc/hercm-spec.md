@@ -81,6 +81,8 @@ Every valid HeRCM 2.0 file must contain a verification sum, used to verify the v
 4. Sum A, B, and C, call this D 
 4. Modulo D by the number of non zero entries (indicated by the header), this the the verification sum. 
 
+# Symmetric matrices 
+By convention, a symmetric HeRCM formatted matrix file must store **only** the **upper** triangle. However, any fully compliant io implementation **must** provide methods for reading the upper triangle, lower triangle (extrapolated from the contents of the upper), and the entire matrix in asymmetrical format. This is because some 3rd party libraries expect asymmetric matrices, or matrices where the lower triangle is stored, rather than the upper. 
 
 # Example 
 Consider the following matrix: 
