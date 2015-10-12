@@ -16,17 +16,21 @@ libhsm, (HSM is an abbreviation for HeRC Sparse Matrix), is a python library con
 ## `libhsm.hsm`
 |member functions |
 |-----------------|
-|`getInFormat()`  |
-|`addElement()`   |
-|`getElement()`   |
-|`castElement()`  |
-|`searchElement()`|
-|`removeElement()`|
-|`getValue()`     |
-|`setValue()`     |
-|`removeZeros()`  |
-|`makeRowMajor()` | 
-
+| `getInFormat()`  		|
+| `addElement()`   		|
+| `getElement()`   		|
+| `castElement()`  		|
+| `searchElement()`		|
+| `removeElement()`		|
+| `getValue()`     		|
+| `setValue()`     		|
+| `removeZeros()`  		|
+| `replaceContents`		|
+| `checkSymmetry`  		|
+| `makeSymmetrical()`   |
+| `makeAsymmetrical()`  | 
+| `makeRowMajor()` 		| 
+ 
 |constructor arguments|
 |---------------------|
 |					  |
@@ -196,6 +200,37 @@ Sets the value at row `newRow` and column `newCol` equal to `newVal`. If `newVal
 
 Removes any zero elements of the matrix (missing elements in COO are assumed to be zero). 
 
+### def replaceContents(this, newContents):
+|argument|expected type|description|default|
+|--------|-------------|-----------|-------|
+| `newContents` | anything which `scipy.sparse.coo_matrix()` will accept | new contents for the matrix | N/A | 
+
+|return type|description|condition|
+|-----------|-----------|---------|
+|None|N/A|always|
+
+|exceptions|cause| 
+|----------|-----|
+| | |
+
+Overwrites the contents of this hsm instance with `newContents` by casing `newContents` with `scipy.sparse.coo_matrix()`. 
+
+### def checkSymmetry(this):
+|argument|expected type|description|default|
+|--------|-------------|-----------|-------|
+| | | |
+
+|return type|description|condition|
+|-----------|-----------|---------|
+| bool | N/A | true if the matrix is symmetrical, else false |
+
+|exceptions|cause| 
+|----------|-----|
+| | |
+
+Returns true or false to indicate if the matrix is symmetrical. Note that `checkSymmetry()` actually checks all elements stored in the matrix, ignoring the matrix attribute and header (if any). 
+
+def makeSymmetrical(this, method='truncate'):
 
 ### def makeRowMajor(this): 
 |argument|expected type|description|default|
@@ -255,3 +290,25 @@ All three methods have been tested. `truncate` and `add` took less than 20 secon
 The `smart` method was tested with a matrix containing roughly 4.5 million nonzero elements, and allowed to run for roughly five minutes. During that time, it completed 347104152 of 23240990033881 iterations required to finish the operation. Thus, it would take approximately 334784 minutes to complete the operation, or 5579 hours, or 232 days. This, the `smart` method is currently unsuitable for large matrices. 
 
 Improving the speed of the `smart` method is currently considered low priority, as it's uses are fairly limited. 
+
+### def makeAsymmetrical(this, method='truncate'): 
+|argument|expected type|description|default|
+|--------|-------------|-----------|-------|
+| `method`| string | one of `truncate`, `add`, or `smart` describing method by which to make the matrix symmetrical | `truncate` |
+
+|return type|description|condition|
+|-----------|-----------|---------|
+|None|N/A|always|
+
+|exceptions|cause| 
+|----------|-----|
+| ValueError | `method` is not of a valid value |
+
+Makes the HSM instance asymmetrical. Does not change `this.verification` or `this.symmetry`, dealing only with the actual matrix as it is stored. Can change symmetry in one of three ways...
+
+* `truncate` - all elements in the upper triangle of the matrix are copied into the lower triangle
+* `add` - all elements in the upper triangle are added to those into the lower triangle
+* `smart` - all elements in the upper triangle are copied into the lower triangle. Any elements in the lower triangle will be unmodified, even if the corresponding element in the upper triangle is not zero. 
+
+
+**NOTE**: the diagonal is ignored in call of the above cases
