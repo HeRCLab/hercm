@@ -142,7 +142,12 @@ from filename""")
 		fileName = arguments[0]
 		fileFormat = arguments[1] 
 
-		SC.readMatrix(fileName, fileFormat)
+		try:
+			SC.readMatrix(fileName, fileFormat)
+		except AttributeError:
+			print("ERROR: file does not exist")
+			return
+
 		print("done reading matrix")
 		if SC.HSM.symmetry == 'SYM':
 			print("INFO: matrix is symmetric, bottom triangle should be only " 
@@ -156,7 +161,12 @@ from filename""")
 		fileFormat = arguments[1]
 		print("Writing {0} in format {1}".format(fileName, fileFormat))
 
-		SC.writeMatrix(fileName, fileFormat)
+		try:
+			SC.writeMatrix(fileName, fileFormat)
+		except FileExistsError:
+			print("ERROR: file already exists!")
+			return 
+
 		
 
 	elif command == 'info':
@@ -184,9 +194,9 @@ verification  - - - - - - {4}
 				  "zeros")
 		matrix = None
 		try:
-			matrix = SC.HSM.getInFormat('csr')
+			matrix = SC.HSM.getInFormat('coo')
 		except TypeError:
-			print("ERROR: could not get matrix in CSR format")
+			print("ERROR: could not get matrix in COO format")
 		try:
 			import numpy
 			numpy.set_printoptions(precision=5, suppress=True)
