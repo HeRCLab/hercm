@@ -565,7 +565,7 @@ triangle, further messages will be squelched""")
 					" is not a valid path")
 				directory = os.getcwd()
 		else:
-			os.path.join(os.getcwd(), arguments[0])
+			directory = os.getcwd()
 
 		print("Directory listing for: ", directory)
 		for item in os.listdir(directory):
