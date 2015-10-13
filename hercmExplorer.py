@@ -210,7 +210,7 @@ verification  - - - - - - {4}
 
 
 	elif command == 'csrdisplay':
-		if SC.HSM.contents['nzentries'] > 25:
+		if SC.HSM.nzentries > 25:
 			print("WARNING: matrix contains more than 25 entries, ")
 			print("are you sure you wish to proceed?")
 			if input('(yes/no)> ').upper() != "YES":
@@ -220,7 +220,7 @@ verification  - - - - - - {4}
 		print("val:"      ,matrix.data)
 		print("row_ptr:"  ,matrix.indices)
 		print("colind:"   ,matrix.indptr)
-		print("nzentries:",SC.HSM.contents['nzentries'])
+		print("nzentries:",SC.HSM.nzentries)
 
 	elif command == 'raw':
 		main("info")
