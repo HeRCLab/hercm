@@ -9,7 +9,7 @@ HeRC Matrix Tools is a collection of open source sparse and symmetric matrix too
 ## Better Matrix Format (BXF)
 Better Matrix Format (previously called "HeRCM format", with the `.hercm` file extension) is a simple matrix storage format, which stores COO-compressed sparse matrices in a human-readable and writable format. BXF tries to avoid unneeded complexity by utilizing a simple, rigid file format.
 
-For more information, review the [bxf specification](doc/bxf-sepec.md). 
+For more information, review the [bxf specification](doc/bxf-spec.md). 
 
 ## BXFExplorer
 BXFExplorer (formerly "HeRCM Explorer") is a tool which can be used for interacting with sparse matrix files. It can read and write matrices in a variety of formats, including `.bxf`, `.mtx`, and `.mat` formats. 
