@@ -12,6 +12,41 @@ Better Matrix Format (previously called "HeRCM format", with the `.hercm` file e
 For more information, review the [bxf specification](doc/bxf-sepec.md). 
 
 ## BXFExplorer
-BXFExplorer is a tool which can be used for interacting with sparse matrix files. It can read and write matrices in a variety of formats, including `.bxf`, `.mtx`, and `.mat` formats. 
+BXFExplorer (formerly "HeRCM Explorer") is a tool which can be used for interacting with sparse matrix files. It can read and write matrices in a variety of formats, including `.bxf`, `.mtx`, and `.mat` formats. 
 
 For more information, review the [BXFExplorer documentation](doc/bxf-explorer.md)
+
+## libHercMatrix 
+libHercMatrix, (formerly "libhsm") provides the class object used by HeRCM Python code to store matrices. It also provides a variety of helper functions for manipulating said matrices, and providing interoperability with scipy/numpy. Note that libHercMatrix uses numpy internally via a custom dtype, and is fully inter-operable with scipy sparse-matrix data types. 
+
+## libBXF
+libBFX (formerly part of "libSparseConvert") provides Python functions for storing and loading BXF files. 
+
+## libHercmIO 
+libHercmIO (formerly part of "libSparseConvert") provides Python functions for storing and loading matrices in a variety of formats. It uses libBXF as a back-end for `.bxf` files, and various other tools and libraries for other matrix formats.
+
+## bxfio
+bxfio (formerly "hercmio") provides methods for storing and loading matrices in `.bxf` format via C++98. 
+
+# Support status 
+
+## File formats
+
+| file format | status | provided by | maintainer | notes |
+|-------------|--------|-------------|------------|-------|
+| `.bxf` | fully supported | in-house | Charles Daniels | |
+| `.hercm` | fully supported | in-house | Charles Daniels | `.hercm` was the original name for `.bxf`, so both formats can be read in exactly the same way | 
+| `.mtx` | fully supported | [scipy.io](http://docs.scipy.org/doc/scipy/reference/io.html) | N/A | | 
+| `.mat` | fully supported | [scipy.io](http://docs.scipy.org/doc/scipy/reference/io.html) | N/A | | 
+| `.valcol` | support planned | in-house planned | N/A | | 
+| Harwell-Boeing | support planned | in-house planned | N/A | | 
+
+## Programming languages
+
+| language | read bxf | write bxf | read other | write other | development status | maintainer | 
+|----------|----------|-----------|------------|-------------|--------------------|--------------|
+| Python 3.x | yes | yes | yes: mtx, mat | yes: mtx, mat | in progress | Charles Daniels |
+| C++ 98 | yes | yes | no; valcol palnned | no | in progress | Charles Daniels 
+
+Additionally, support is planned for C and Python 2.7.X in the future (pull requests welcome!) 
+
