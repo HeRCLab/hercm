@@ -1,11 +1,11 @@
-# The HeRCM file format specification, revision 2.0
+# The BXF file format specification, revision 2.0
 # Introduction
-The HeRCM (HeRC Matrix) file format was created to store compressed arrays, for later reading into other software. The format is specifically designed to be simple, fast to read, and easy to understand and parse. File size and initial conversion overhead were not major design concerns however. 
+The BXF (Better Matrix Format, formerly named "HeRCM") file format was created to store compressed arrays, for later reading into other software. The format is specifically designed to be simple, fast to read, and easy to understand and parse. File size and initial conversion overhead were not major design concerns however. 
 
-All HeRCM files should be stored in row-major format. 
+All BXF files should be stored in row-major format. 
 
 # Layout
-A HeRCM file has two sections. The first section contains one line, and is the header, containing key information about the matrix. 
+A BXF file has two sections. The first section contains one line, and is the header, containing key information about the matrix. 
 
 The second sections contains one or more fields. 
 
@@ -14,7 +14,7 @@ A field contains a header, on it's own line, and is terminated by `ENDFIELD` on 
 
 Field headers take the format `NAME CTYPE VTYPE`, where `NAME` can be any string, `CTYPE` can be either `SINGLE` or `LIST`, indicating whether the field contains a list or a single value, and `VTYPE` indicates the variable type of the field, and can be either `FLOAT`, `INT`, or `STRING`. 
 
-**NOTE**: HeRCM does not differentiate between float and double, and either may be written to a `FLOAT` field. It is up to the parser to determine how to read in `FLOAT` fields. 
+**NOTE**: BXF does not differentiate between float and double, and either may be written to a `FLOAT` field. It is up to the parser to determine how to read in `FLOAT` fields. 
 
 All of the following are valid examples of fields. 
 ```
@@ -39,7 +39,7 @@ ENDFIELD
 ```
 
 ## Header
-The first line of a HeRCM file is the header. A valid header contains the string "HERCM" as it's first five characters. 
+The first line of a BXF file is the header. A valid header contains the string `BXF  `as it's first five characters. For backwards compatibility, a file which contains `HERCM` as it's first five characters is also valid. 
 
 The header should also contain the width, height, and number of non zero entries, in that order, separated by whitespace. 
 
@@ -48,17 +48,17 @@ The header should contain an indicator for the symmetry of the matrix. Valid opt
 * `SYM` - the matrix is symmetrical
 * `ASYM` - the matrix is asymmetrical
 
-Last, the header should contain the HeRCM verification sum, which is discussed in the later section
+Last, the header should contain the BXF verification sum, which is discussed in the later section
 
 An example of a valid header would look like this: 
 ```
-HERCM 5 5 8 ASYM 7
+BXF   5 5 8 ASYM 7
 ```
 
 This example would be valid for a 5 x 5 CSR matrix, with 8 non-zero entries, which is asymmetrical.  
 
 ## Required Fields 
-A valid HeRCM file used for storing sparse matrices must have several specific fields, which follow. Note that HeRCM always stores matrices in COO format for easy conversion to CSR, CSC, and for easy per-index access. 
+A valid BXF file used for storing sparse matrices must have several specific fields, which follow. Note that BXF always stores matrices in COO format for easy conversion to CSR, CSC, and for easy per-index access. 
 
 ### `REMARKS LIST STRING` 
 Effectively a comments field. This field is ignored by any compliant parser, and may contain any content the creator of the file desires. 
@@ -73,7 +73,7 @@ The `row` vector for a COO matrix, sometimes referred to as `row_ind`, or `row_p
 The `col` vector for a COO matrix, sometimes referred to as `col_ind`, or `col_ptr`. 
 
 ## Verification sum
-Every valid HeRCM 2.0 file must contain a verification sum, used to verify the validity of the file. The verification sum is generated as such: 
+Every valid BXF 2.0 file must contain a verification sum, used to verify the validity of the file. The verification sum is generated as such: 
 
 1. Sum the contents of `VAL`, call this A
 2. Sum the contents of `ROW`, call this B
@@ -82,7 +82,7 @@ Every valid HeRCM 2.0 file must contain a verification sum, used to verify the v
 4. Modulo D by the number of non zero entries (indicated by the header), this the the verification sum. 
 
 # Symmetric matrices 
-By convention, a symmetric HeRCM formatted matrix file must store **only** the **upper** triangle. However, any fully compliant io implementation **must** provide methods for reading the upper triangle, lower triangle (extrapolated from the contents of the upper), and the entire matrix in asymmetrical format. This is because some 3rd party libraries expect asymmetric matrices, or matrices where the lower triangle is stored, rather than the upper. 
+By convention, a symmetric BXF formatted matrix file must store **only** the **upper** triangle. However, any fully compliant io implementation **must** provide methods for reading the upper triangle, lower triangle (extrapolated from the contents of the upper), and the entire matrix in asymmetrical format. This is because some 3rd party libraries expect asymmetric matrices, or matrices where the lower triangle is stored, rather than the upper. 
 
 **NOTE**: it is also acceptable for io implementations to simple provide methods for getting the lower triangle or the asymmetric matrix after reading, if this is more convenient. 
 
@@ -128,9 +128,9 @@ Thus, the header would be:
 
 Thus, the full matrix could be reproduced as such: 
 ```
-HERCM 4 4 8 ASYM 7 
+BXF   4 4 8 ASYM 7 
 REMARKS LIST STRING
-This is an example matrix created for the HeRCM documentation. This field is ignored because it's title is REMARKS. 
+This is an example matrix created for the BXF documentation. This field is ignored because it's title is REMARKS. 
 ENDFIELD
 VAL LIST FLOAT
 8 7 5 3 4 2 1 6

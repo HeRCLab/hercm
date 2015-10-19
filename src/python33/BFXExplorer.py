@@ -12,7 +12,7 @@ import os
 
 
 MTXIO = None 
-helpString = """- HeRCM Explorer Help -
+helpString = """- BXF Explorer Help -
 help - display this message
 
 log / log [N] - prints the libSparseConvert log. If [N] is specified, print only
