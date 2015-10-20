@@ -11,17 +11,14 @@ import os
 import logging 
 
 
-class SparseConvertFormatError:
+class hercmIOConvertFormatError:
 	pass
 
-class sparseConvert:
+class hercmIO:
 	def __init__(this):
-		# if a clogs.clogs instance is given as logger, it will be used for 
-		# logging. Otherwise, a new clogs.clogs instance will be created 
-
-		this.HSM = libhsm.hsm() 
-
-		this.HERCMIO = hercmio()
+		this.HSM = libHercMatrix.hercMatrix()  #TODO: change this name from HSM to something
+		# more relevant 
+		this.HERCMIO = libBXF.bxfio()
 
 
 	def readMatrix(this, filename, form):

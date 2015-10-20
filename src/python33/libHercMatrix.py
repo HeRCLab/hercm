@@ -5,7 +5,7 @@
 import numpy 
 import scipy
 
-class hsm: 
+class hercMatrix: 
 	# hercm matrix class 
 	# stores hercm matricies and permits access by various methods 
 	def __init__(this):
