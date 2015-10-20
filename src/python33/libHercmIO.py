@@ -30,7 +30,7 @@ class hercmIO:
 
 		logging.info("reading matrix {0} in format {1}".format(filename, form))
 
-		if form == 'hercm':
+		if form == ('hercm' or 'bxf'):
 			matrix = None 
 			try:
 				matrix = this.HERCMIO.read(filename)
@@ -203,6 +203,13 @@ class hercmIO:
 		this.HSM.makeRowMajor()
 
 		if form == 'hercm':
+			try:
+				this.HERCMIO.write(this.HSM, filename, "HERCM")
+			except HercmioValidationError:
+				print("ERROR: matrix did not pass validation!")
+				print("Matrix will not be written to file")
+
+		if form == 'bxf':
 			try:
 				this.HERCMIO.write(this.HSM, filename)
 			except HercmioValidationError:
