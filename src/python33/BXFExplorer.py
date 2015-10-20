@@ -83,6 +83,11 @@ ls - get directory listing
 
 pwd - print current working directory 
 
+cd - change current working directory
+
+convert [src] [srcform] [dest] [destform] - converts file [src] in format
+[srcform] to [destform] then writes it to [dest]
+
 exit - exits the program
 """
 
