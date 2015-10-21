@@ -7,12 +7,7 @@ class command:
 
 		# func should be the actual function executed when this command is run
 
-		# argSpec should be a list of  argument specifiers which look like this: 
-		# [type, pos]
-		# type is the type (eg. int) WITHOUT quotes (not a string), pos is the
-		# int indicating the argument's position within split user input. eg.
-		# the argument specifier for "somecommand 5 8", for the first argument 
-		# (the 5) might be [int, 1] 
+		
 
 		# helpMessage is the help message for this command 
 
@@ -40,7 +35,20 @@ class command:
 
 class uiTools:
 	def __init__(this):
-		this.commands = []
+		this.argSpecs = {}
+		# argSpec should be dict of  argument specifiers which look like this: 
+		# [type, pos] - keys are command names
+		# type is the type (eg. int) WITHOUT quotes (not a string), pos is the
+		# int indicating the argument's position within split user input. eg.
+		# the argument specifier for "somecommand 5 8", for the first argument 
+		# (the 5) might be [int, 1] 
+
+		this.helpMessages = {} 
+		# help messages, with commands as keys 
+
+		this.argSpecs["help"] = [] 
+		this.argSpecs["viewLogs"] = []
+		
 
 
 class manipulation: 
