@@ -1,193 +1,104 @@
+# tools used by BXF explorer 
 
-#!/usr/bin/python3
-# utility for exploring and editing the contents of hercm matrix files 
+class command:
+	# an interactive command 
+	def __init__(this, name, func, argSpec, helpMesage):
+		# name is the command the user types to run the command
 
-import readline
-import libHercMatrix
-import libHercmIO
-import matplotlib
-import matplotlib.pyplot
-import logging
-import os
-
-
-
-"""
-log / log [N] - prints the libSparseConvert log. If [N] is specified, print only
- the most recent [N] lines. 
-
-load [path] [format] - loads the file at [path] with the format [format]. 
-[format] should be mtx or hercm.
-
-write [path] [format] - writes the matrix to the file at [path] using the format
-[format], which is mtx or hercm. Will silently overwrite any existing file at
-[path]. 
-
-info - prints information on the matrix 
-
-display - prints the entire matrix to the console in dense form
-
-csrdisplay - prints the matrix in csr format to the console 
-
-raw - prints the raw hercm matrix to the console 
-
-value [row] [col] - prints the value at [row],[col]
-
-row [row] - prints all non-zero values in the given row
-
-col [col] - prints all non-zero values in the given col
-
-range [r1] [c1] [r2] [c2] - prints all elements, zero or nonzero, which lie 
-between the upper left bound [r1],[c1], and the lower right bound [r2],[c2]
-
-touch [row] [col] [val] - changes the value at [row] [col] to [val] 
-
-paint [x1] [y1] [x2] [y2] [val] - works the same way as range, but changes
-all values encountered to [val]
-
-paint-diag [begin] [end] [spread] [value] / 
-paint-diag [begin] [end] [spread] [value] [offset] - paints the value [value]
-at all indices along the diagonal, from the [begin]th to the [end]th. Paints 
-[spread] values to either side of said diagonal. Offsets the diagonal by 
-[offset] columns, if [offset] is given. 
-
-row-major - makes the matrix row major 
-
-rmzeros - remove zeros from matrix
-
-setdims [height] [width] - sets the dimensions of the matrix to height by width
-
-setsym [symmetry] - sets symmetry. Will not change array elements, only modifies 
-symmetry attribute. 
-
-init / init [height] [width] / init [height] [width] [val] - sets matrix to
-a blank 5x5 matrix of zeros. If height and width are supplied, matrix is set to
-those dimensions. If val is supplied, initialize matrix elements to val.
-Overwrites any already loaded matrix. 
-
-gen-verification - updates verification sum to permit writing out matrix after 
-modification. 
-
-check-symmetry - check the symmetry attribute, and searches for any non zero
-elements in the bottom triangle, printing the first five if they exist. 
-
-plot - plots the matrix graphically using matplotlib 
-
-head [file path] - prints the first 10 lines of file at [file path]
-
-cat [file path] - prints all lines from [file path] 
-
-ls - get directory listing
-
-pwd - print current working directory 
-
-cd - change current working directory
-
-convert [src] [srcform] [dest] [destform] - converts file [src] in format
-[srcform] to [destform] then writes it to [dest]
-
-exit - exits the program
-"""
-
-
-def main(override = None):
-	# override will be parsted instead of the user's input, if specified
-
-	import pprint
-	pp = pprint.PrettyPrinter()
-
-	if override == None:
-		usrIn = input("> ")
-	else:
-		usrIn = override 
-
-	usrIn = usrIn.rstrip()
-	splitInput = usrIn.split()
-	try: 
-		command = splitInput[0] 
-		arguments = splitInput[1:]
-	except IndexError:
-		return
-	
-
-	if command == 'help':
-		print(helpString)
-	elif command == 'exit':
-		exit() 
-
-	elif command == 'log':
-		if len(arguments) == 0:
-			pp.pprint(SC.logger.contents)
-		elif len(arguments) == 1: 
-			numberOfLines = 0
-			try: 
-				numberOfLines = int(arguments[0])
-			except ValueError:
-				print("ERROR: {0} is not a valid number of lines"
-					  .format(arguments[0]))
-				return 
-			pp.pprint(SC.logger.contents[- numberOfLines:])
-
-	elif command == 'load':
-		if len(arguments) == 1:
-			if 'hercm' in arguments[0]:
-				print("""WARNING: matrix format not specified, assuming hercm 
-from filename""")
-				arguments.append('hercm')
-			elif 'mtx' in arguments[0]:
-				print("""WARNING: matrix format not specified, assuming mtx 
-from filename""")
-				arguments.append('mtx')
-			elif 'mat' in arguments[0]:
-				print("""WARNING: matrix format not specified, assuming mtx 
-from filename""")
-				arguments.append('mat')
-			elif 'bxf' in arguments[0]:
-				print("""WARNING: matrix format not specified, assuming mtx 
-from filename""")
-				arguments.append('bxf')
-
-		if len(arguments) != 2:
-			print("ERROR: incorrect number of arguments")
-			return
-		fileName = arguments[0]
-		fileFormat = arguments[1] 
-
-		try:
-			SC.readMatrix(fileName, fileFormat)
-		except AttributeError:
-			print("ERROR: file does not exist")
-			return
-		except OSError:
-			print("ERROR: file does not exist")
-
-		print("done reading matrix")
-		if SC.HSM.symmetry == 'SYM':
-			print("INFO: matrix is symmetric, bottom triangle should be only " 
-				  +"zeros")
-
-	elif command == 'write':
-		if len(arguments) != 2:
-			print("ERROR: incorrect number of arguments")
-			return
-		fileName = arguments[0]
-		fileFormat = arguments[1]
-		print("Writing {0} in format {1}".format(fileName, fileFormat))
-
-		try:
-			SC.writeMatrix(fileName, fileFormat)
-		except FileExistsError:
-			print("ERROR: file already exists!")
-			return 
+		# func should be the actual function executed when this command is run
 
 		
 
-	elif command == 'info':
-		height    = SC.HSM.height
-		width     = SC.HSM.width
-		nzentries = SC.HSM.nzentries
-		symmetry  = SC.HSM.symmetry
-		verification = SC.HSM.verification
+		# helpMessage is the help message for this command 
+
+		this.func = func 
+		this.argSpec = args 
+		this.helpMessage = helpMessage
+		this.name = name
+
+	def run(this, arguments):
+		# arguments should be a list of strings, which is already split on ' '
+		# including the command 
+
+		if arguments[0] != this.name: # this should never happen
+			raise ValueError("cannot run command " + this.name + 
+				" with command " + arguments[0])
+		for i in range(1,len(arguments)):
+			currentSpec = None
+			for spec in this.argSpec: 
+				if spec[1] == i:
+					currentSpec = spec 
+			if currentSpec == None:
+				raise IndexError("ERROR: no argument spec for argument " + i)
+
+
+
+class uiTools:
+	def __init__(this):
+		this.argSpecs = {}
+		# argSpec should be dict of  argument specifiers which look like this: 
+		# [type, pos] - keys are command names
+		# type is the type (eg. int) WITHOUT quotes (not a string), pos is the
+		# int indicating the argument's position within split user input. eg.
+		# the argument specifier for "somecommand 5 8", for the first argument 
+		# (the 5) might be [int, 1] 
+
+		this.helpMessages = {} 
+		# help messages, with commands as keys 
+
+		this.argSpecs["help"] = [] 
+		this.argSpecs["viewLogs"] = []
+		
+
+
+class manipulation: 
+	# matrix manipulation utils used by BXFExplorer
+
+	def __init__(this, HERCMIO):
+		this.HERCMIO = HERCMIO # HERCMIO instance used internally
+
+	def help(this):
+		print(this.helpString)
+
+	def viewLogs(this, numberOfLines=0):
+		# this is supposed to print current logs, but it probably does not work 
+		# anymore
+
+		if numberOfLines == 0:
+			pp.pprint(this.HERCMIO.logger.contents)
+		else:
+			pp.pprint(this.HERCMIO.logger.contents[- numberOfLines:])
+
+	def load(this, path, form):
+		# loads the file at path, which is format form (bxf, hercmio, mat, or
+		# mtx)
+		
+		try:
+			this.HERCMIO.readMatrix(path, form)
+		except AttributeError:
+			raise FileNotFoundError("file " + path + " does not exist!")
+		except OSError:
+			raise FileNotFoundError("file " + path + " does not exist!")
+
+
+	def write(this, path, form):
+		# writes out the contents of this instance's HERCMIO instance to path
+		# in format form 
+
+		try:
+			this.HERCMIO.writeMatrix(fileName, fileFormat)
+		except FileExistsError:
+			raise FileExistsError("file " + path + " already exists")
+
+		
+
+	def printInfo(this):
+		# pirint info about matrix 
+		height    = this.HERCMIO.HSM.height
+		width     = this.HERCMIO.HSM.width
+		nzentries = this.HERCMIO.HSM.nzentries
+		symmetry  = this.HERCMIO.HSM.symmetry
+		verification = this.HERCMIO.verification
 
 		print("""- matrix properties -
 height (number of rows) - {0}
@@ -201,13 +112,14 @@ verification  - - - - - - {4}
 									symmetry, 
 									verification)) 
 
-	elif command == 'display':
-		if SC.HSM.symmetry == 'SYM':
+	def displayMatrix(this):
+		# displays the matrix densely 
+		if this.HERCMIO.HSM.symmetry == 'SYM':
 			print("INFO: matrix is symmetric, bottom triangle should be only "+
 				  "zeros")
 		matrix = None
 		try:
-			matrix = SC.HSM.getInFormat('coo')
+			matrix = this.HERCMIO.HSM.getInFormat('coo')
 		except TypeError:
 			print("ERROR: could not get matrix in COO format")
 		try:
@@ -222,25 +134,28 @@ verification  - - - - - - {4}
 			print("ERROR: matrix is too large")
 
 
-	elif command == 'csrdisplay':
-		if SC.HSM.nzentries > 25:
+	def CSRDisplay(this):
+		# print out the contents of the matrix in CSR format
+
+		if this.HERCMIO.HSM.nzentries > 25:
 			print("WARNING: matrix contains more than 25 entries, ")
 			print("are you sure you wish to proceed?")
 			if input('(yes/no)> ').upper() != "YES":
 				return
 
-		matrix = SC.HSM.getInFormat('csr')
+		matrix = this.HERCMIO.HSM.getInFormat('csr')
 		print("val:"      ,matrix.data)
 		print("row_ptr:"  ,matrix.indices)
 		print("colind:"   ,matrix.indptr)
-		print("nzentries:",SC.HSM.nzentries)
+		print("nzentries:",this.HERCMIO.nzentries)
 
-	elif command == 'raw':
-		main("info")
+	def rawDisplay(this):
+		# pint out the contents of the matrix in COO format 
+
 		print("- raw matrix contents -")
 		print("{0:6} {1:6} {2:6}".format("row","col","val"))
-		for i in range (0,SC.HSM.nzentries):
-			element = SC.HSM.getElement(i)
+		for i in range (0,this.HERCMIO.HSM.nzentries):
+			element = this.HERCMIO.getElement(i)
 			row = element[0]
 			col = element[1]
 			val = element[2]
@@ -254,7 +169,7 @@ verification  - - - - - - {4}
 		row = int(arguments[0])
 		col = int(arguments[1])
 		print("value of {0},{1}:".format(row, col), 
-			  SC.HSM.getValue(row, col))
+			  this.HERCMIO.getValue(row, col))
 
 	elif command == 'row':
 		if len(arguments) != 1:
@@ -267,7 +182,7 @@ verification  - - - - - - {4}
 			print("ERROR: {0} is not a valid row number".format(arguments[0]))
 			return
 
-		matrix = SC.HSM.getInFormat('coo')
+		matrix = this.HERCMIO.getInFormat('coo')
 		print("row {0} contents: \n{1}"
 			  .format(rowNumber, matrix.getrow(rowNumber)))
 
@@ -282,7 +197,7 @@ verification  - - - - - - {4}
 			print("ERROR: {0} is not a valid column number".format(arguments[0]))
 			return
 
-		matrix = SC.HSM.getInFormat('coo')
+		matrix = this.HERCMIO.getInFormat('coo')
 		print("column {0} contents: \n{1}"
 			  .format(colNumber, matrix.getcol(colNumber)))
 
@@ -304,15 +219,15 @@ verification  - - - - - - {4}
 			print("ERROR: one or more arguments are not valid integers")
 			return 
 
-		width = SC.HSM.width
-		height = SC.HSM.height
+		width = this.HERCMIO.width
+		height = this.HERCMIO.height
 
 		for row in range(0,height):
 			for col in range (0,width):
 				if col >= c1 and col <= c2:
 					if row >= r1 and row <= r2:
 						print("{0},{1} = {2}".format(row, col, 
-													 SC.HSM.getValue(row, col)))
+													 this.HERCMIO.getValue(row, col)))
 
 	elif command == 'touch':
 		if len(arguments) != 3:
@@ -330,11 +245,11 @@ verification  - - - - - - {4}
 			print("ERROR: one or more arguments are not valid numbers")
 			return 
 
-		oldValue = SC.HSM.getValue(row, col)
+		oldValue = this.HERCMIO.getValue(row, col)
 
-		SC.HSM.setValue(row, col, val)
+		this.HERCMIO.setValue(row, col, val)
 		print("updated value of {0},{1}: {2}"
-			  .format(row, col, SC.HSM.getValue(row, col)))
+			  .format(row, col, this.HERCMIO.getValue(row, col)))
 		
 		if oldValue == 0 and val != 0: 
 			print("WARNING: you have added a new non zero entry, COO vectors")
@@ -362,14 +277,14 @@ verification  - - - - - - {4}
 
 		print("painting values... (this may take several minutes)")
 
-		width = SC.HSM.width
-		height = SC.HSM.height
+		width = this.HERCMIO.width
+		height = this.HERCMIO.height
 
 		for row in range(0,height):
 			for col in range (0,width):
 				if col >= c1 and col <= c2:
 					if row >= r1 and row <= r2:
-						SC.HSM.setValue(row, col,val)
+						this.HERCMIO.setValue(row, col,val)
 
 	elif command == 'paint-diag': 
 		if len(arguments) < 4: 
@@ -395,9 +310,9 @@ verification  - - - - - - {4}
 			for j in range(0, spread):
 				try:
 					col = offset + i + j # right side
-					SC.HSM.setValue(i, col, val)
+					this.HERCMIO.setValue(i, col, val)
 					col = offset + i - j # left side
-					SC.HSM.setValue(i, col, val)
+					this.HERCMIO.setValue(i, col, val)
 				except IndexError:
 					pass # out of bounds 
 						
@@ -405,12 +320,12 @@ verification  - - - - - - {4}
 
 	elif command == 'row-major':
 		print("making matrix row major, standby...")
-		SC.HSM.makeRowMajor() 
+		this.HERCMIO.makeRowMajor() 
 		print("done")
 
 	elif command == 'rmzeros':
 		print("removing zeros, standby...")
-		SC.HSM.removeZeros()
+		this.HERCMIO.removeZeros()
 		print("done")
 
 	elif command == 'setdims':
@@ -428,18 +343,18 @@ verification  - - - - - - {4}
 			return 
 
 		# remove out of bounds entries 
-		for i in reversed(range(0, SC.HSM.nzentries)):
-			if SC.HSM.elements['row'][i] >= height:
-				SC.HSM.setValue(SC.HSM.elements['row'][i], 
-								SC.HSM.elements['col'][i], 0)
-			elif SC.HSM.elements['col'][i] >= width:
-				SC.HSM.setValue(SC.HSM.elements['row'][i], 
-								SC.HSM.elements['col'][i], 0)
+		for i in reversed(range(0, this.HERCMIO.nzentries)):
+			if this.HERCMIO.elements['row'][i] >= height:
+				this.HERCMIO.setValue(this.HERCMIO.elements['row'][i], 
+								this.HERCMIO.elements['col'][i], 0)
+			elif this.HERCMIO.elements['col'][i] >= width:
+				this.HERCMIO.setValue(this.HERCMIO.elements['row'][i], 
+								this.HERCMIO.elements['col'][i], 0)
 
-		SC.HSM.height = height
-		SC.HSM.width = width 
+		this.HERCMIO.height = height
+		this.HERCMIO.width = width 
 
-		SC.HSM.removeZeros()
+		this.HERCMIO.removeZeros()
 
 		print("Updated matrix dimensions. New values:")
 		main("info")
@@ -475,14 +390,14 @@ verification  - - - - - - {4}
 
 
 
-		if symmetry != SC.HSM.symmetry:
+		if symmetry != this.HERCMIO.symmetry:
 			if symmetry == 'SYM':
-				SC.HSM.makeSymmetrical(method)
+				this.HERCMIO.makeSymmetrical(method)
 			elif symmetry == 'ASYM':
-				SC.HSM.makeAsymmetrical(method)
+				this.HERCMIO.makeAsymmetrical(method)
 
 
-		SC.HSM.symmetry = symmetry
+		this.HERCMIO.symmetry = symmetry
 
 	elif command == 'init': 
 		height = 5
@@ -506,13 +421,13 @@ verification  - - - - - - {4}
 		main("setdims {0} {1}".format(height, width))
 		for i in range(0, height): # this is faster than using paint
 			for j in range(0,width): 
-				SC.HSM.setValue(i, j, val)
-		if SC.HSM.elements == None:
-			SC.HSM.nzentries = 0
+				this.HERCMIO.setValue(i, j, val)
+		if this.HERCMIO.elements == None:
+			this.HERCMIO.nzentries = 0
 		else:
-			SC.HSM.nzentries = len(SC.HSM.elements['val'])
-		SC.HSM.symmetry = 'ASYM' 
-		SC.HSM.remarks = []
+			this.HERCMIO.nzentries = len(this.HERCMIO.elements['val'])
+		this.HERCMIO.symmetry = 'ASYM' 
+		this.HERCMIO.remarks = []
 
 		print("finished initializing matrix, new matrix info:")
 		main("info")
@@ -526,12 +441,12 @@ verification  - - - - - - {4}
 		pdb.set_trace()
 
 	elif command == 'check-symmetry':
-		if SC.HSM.symmetry != 'SYM':
+		if this.HERCMIO.symmetry != 'SYM':
 			print("symmetry attribute is not SYM")
 
 		foundElements = 0
-		for i in range(0, SC.HSM.nzentries): 
-			element = SC.HSM.getElement(i)
+		for i in range(0, this.HERCMIO.nzentries): 
+			element = this.HERCMIO.getElement(i)
 			row = element[0]
 			col = element[1]
 			val = element[2] 
@@ -549,12 +464,12 @@ triangle, further messages will be squelched""")
 
 
 	elif command == 'gen-verification':
-		newSum = SC.HERCMIO.generateVerificationSum(SC.HSM)
-		SC.HSM.verification = newSum 
+		newSum = SC.HERCMIO.generateVerificationSum(this.HERCMIO)
+		this.HERCMIO.verification = newSum 
 		print("updated verification sum to: {0}".format(newSum))
 
 	elif command == 'plot':
-		matrix = SC.HSM.getInFormat('coo')
+		matrix = this.HERCMIO.getInFormat('coo')
 		
 		matplotlib.pyplot.spy(matrix)
 		matplotlib.pyplot.show()
@@ -569,7 +484,9 @@ triangle, further messages will be squelched""")
 	elif command == "transpose":
 		# reflects the matrix around the diagonal
 		print("performing matrix tranpose, please wait...")
-		SC.HSM.transpose()
+		matrix = this.HERCMIO.getInFormat('coo')
+		matrix = matrix.transpose()
+		this.HERCMIO.replaceContents(matrix)
 		print("matrix transpose complete")
 
 	elif command == "ls":
@@ -648,12 +565,3 @@ triangle, further messages will be squelched""")
 	else:
 		print("ERROR: Command not recognized") 
 	
-
-
-def runMain():
-	while True:
-		main()
-
-print("welcome to BXFExplorer. Enter \"help\" for help")
-SC = libHercmIO.hercmIO()
-runMain()
