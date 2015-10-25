@@ -441,5 +441,14 @@ class hercMatrix:
 
 		this.elements = numpy.sort(this.elements, order=["row", "col"])
 
+	def transpose(this): 
+		# perform matrix transpose, switching the top and bottom triangles about
+		# the diagonal 
+
+		for element in this.elements:
+			originalRow = element[0]
+			originalCol = element[1]
+			element[0] = originalCol
+			element[1] = originalRow 
 
 

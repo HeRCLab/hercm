@@ -571,9 +571,7 @@ triangle, further messages will be squelched""")
 	elif command == "transpose":
 		# reflects the matrix around the diagonal
 		print("performing matrix tranpose, please wait...")
-		matrix = SC.HSM.getInFormat('coo')
-		matrix = matrix.transpose()
-		SC.HSM.replaceContents(matrix)
+		SC.HSM.transpose()
 		print("matrix transpose complete")
 
 	elif command == "ls":
