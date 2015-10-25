@@ -110,10 +110,12 @@ int readHercmHeader(string fileName,
 		return HERCMIO_STATUS_FAILURE;
 	}
 
-	if (header.substr(0,5) != "HERCM")
+	if (header.substr(0,5) != "BXF  " && 
+		header.substr(0,5) != "HERCM" &&
+		header.substr(0,3) != "BXF")
 	{
-		cout << "ERROR: malformed  or not a HeRCM file. read ";
-		cout << header.substr(0,10) <<" expected HERCM" << endl;
+		cout << "ERROR: malformed  or not a BXF file. read ";
+		cout << header.substr(0,10) <<" expected HERCM or BXF" << endl;
 		return HERCMIO_STATUS_FAILURE;
 	}
 
@@ -122,7 +124,7 @@ int readHercmHeader(string fileName,
 
 	if (headerItemsVector.size() != 6)
 	{
-		cout << "ERROR: malformed or not a HeRCM file. Expected 6 fields,";
+		cout << "ERROR: malformed or not a BXF file. Expected 6 fields,";
 		cout << " read ";
 		cout << headerItemsVector.size() << " from " << header << endl;
 		return HERCMIO_STATUS_FAILURE;
@@ -865,7 +867,7 @@ int writeHercm(string fileName,
 		return HERCMIO_STATUS_FAILURE;
 	}
 
-	header = "HERCM ";
+	header = "BXF   ";
 	// these are the easiest ways to cast ints and floats to string
 	header.append(static_cast<ostringstream*>( 
 				  &(ostringstream() << width) )->str()); 
