@@ -20,7 +20,7 @@ class bxfio:
 		# reads in the HeRCM file specified by filename 
 		# returns it as an instance of libhsm.hsm
 
-		HSM = libhsm.hsm()
+		HSM = libHercMatrix.hercMatrix()
 		contents = {}
 
 		logging.info("Reading BXF file {0}".format(filename))

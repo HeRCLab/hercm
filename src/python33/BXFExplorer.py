@@ -9,10 +9,7 @@ import matplotlib
 import matplotlib.pyplot
 import logging
 import os
-
-
-
-
+import BXFUtils
 
 
 def main(override = None):
@@ -34,57 +31,96 @@ def main(override = None):
 	except IndexError:
 		return
 	
+	commandInfo = {} 
+	commandInfo['help'] = {'requiredArguments':None,
+		'optionalArguments':[[0, str, 'command']],
+		'argumentInfo':['specific command to retrieve help for'],
+		'help':'Prints help for all commands, or prints the help for the ' + 
+		'command specified in the first argument'}
+	commandInfo['exit'] = {'requiredArguments':None, 
+		'optionalArguments':None, 
+		'argumentInfo':None,
+		'help':'exits the program'}
+	commandInfo['load'] = {'requiredArguments':[[0, str, 'path'],
+			[1,str,'format']],
+		'optionalArguments':None,
+		'argumentInfo':['The file to load', 'The format of said file'],
+		'help':'Reads in the file for viewing and manipulation'}
+	commandInfo['write'] = {'requiredArguments':[[0, str, 'path'], 
+			[1, str, 'format']], 
+		'optionalArguments':None,
+		'argumentInfo':['The file to write to', 'The format of said file'],
+		'help':'Writes current matrix to specified file, in specified format' +
+		' note that the given path should include the desired file extension'}
+	commandInfo['info'] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'Prints information about the loaded matrix'}
+	
+
+	if command not in commandInfo:
+		print("WARNING: command is not in commandInfo, cannot check required " +
+			"arguments!")
+	else:
+		if commandInfo[command]['requiredArguments'] != None:
+			if len(arguments) < len(commandInfo[command]['requiredArguments']):
+				print("ERROR, incorrect number of arguments for {0}"
+					.format(command))
+				firstMisingArgument = len(arguments)
+				for i in range(firstMisingArgument, 
+					len(commandInfo[command]['requiredArguments'])):
+					print("Missing argument '{1}' at position {0}".format(i,
+						commandInfo[command]['requiredArguments'][i][2]))
+				return
+			
+			for arg in commandInfo[command]['requiredArguments']:
+				try:
+					arg[1](arguments[arg[0]])
+				except Exception:
+					print("ERROR: argument {0} was present, but is not of " +
+						" required type {1}".format(arg[0], str(arg[1])))
+					return
+
+		if commandInfo[command]['optionalArguments'] != None:
+			for arg in commandInfo[command]['optionalArguments']:
+				argOffset = 0
+				if commandInfo[command]['requiredArguments'] != None:
+					argOffset = len(commandInfo[command]['requiredArguments'])
+				if argOffset + arg[0] > len(arguments): # this optional arg was
+				# not given
+					break
+
+				try:
+					arg[1](arguments[arg[0] + argOffset])
+
+				except IndexError:
+					pass
+				except Exception:
+					print("ERROR: argument {0} was present, but of type {1} " +
+						" not required type {2}".format(arg[0] + argOffset,
+						 	type(arguments[arg[0]+argOffset]),
+						 	str(arg[1])))
+					return
 
 	if command == 'help':
-		print(helpString)
+		if len(arguments) > 0:
+			BXFUtils.printHelp(commandInfo, arguments[0])
+		else:
+			BXFUtils.printHelp(commandInfo)
+
 	elif command == 'exit':
 		exit() 
 
-	elif command == 'log':
-		if len(arguments) == 0:
-			pp.pprint(SC.logger.contents)
-		elif len(arguments) == 1: 
-			numberOfLines = 0
-			try: 
-				numberOfLines = int(arguments[0])
-			except ValueError:
-				print("ERROR: {0} is not a valid number of lines"
-					  .format(arguments[0]))
-				return 
-			pp.pprint(SC.logger.contents[- numberOfLines:])
-
 	elif command == 'load':
-		if len(arguments) == 1:
-			if 'hercm' in arguments[0]:
-				print("""WARNING: matrix format not specified, assuming hercm 
-from filename""")
-				arguments.append('hercm')
-			elif 'mtx' in arguments[0]:
-				print("""WARNING: matrix format not specified, assuming mtx 
-from filename""")
-				arguments.append('mtx')
-			elif 'mat' in arguments[0]:
-				print("""WARNING: matrix format not specified, assuming mtx 
-from filename""")
-				arguments.append('mat')
-			elif 'bxf' in arguments[0]:
-				print("""WARNING: matrix format not specified, assuming mtx 
-from filename""")
-				arguments.append('bxf')
-
-		if len(arguments) != 2:
-			print("ERROR: incorrect number of arguments")
-			return
-		fileName = arguments[0]
-		fileFormat = arguments[1] 
-
 		try:
-			SC.readMatrix(fileName, fileFormat)
+			BXFUtils.load(arguments[0], arguments[1], SC)
 		except AttributeError:
 			print("ERROR: file does not exist")
 			return
 		except OSError:
 			print("ERROR: file does not exist")
+		except KeyError:
+			print("ERROR: requested format is not supported")
 
 		print("done reading matrix")
 		if SC.HSM.symmetry == 'SYM':
@@ -92,39 +128,17 @@ from filename""")
 				  +"zeros")
 
 	elif command == 'write':
-		if len(arguments) != 2:
-			print("ERROR: incorrect number of arguments")
-			return
 		fileName = arguments[0]
 		fileFormat = arguments[1]
-		print("Writing {0} in format {1}".format(fileName, fileFormat))
-
 		try:
-			SC.writeMatrix(fileName, fileFormat)
+			BXFUtils.write(fileName, fileFormat, SC)
 		except FileExistsError:
 			print("ERROR: file already exists!")
 			return 
 
-		
 
 	elif command == 'info':
-		height    = SC.HSM.height
-		width     = SC.HSM.width
-		nzentries = SC.HSM.nzentries
-		symmetry  = SC.HSM.symmetry
-		verification = SC.HSM.verification
-
-		print("""- matrix properties -
-height (number of rows) - {0}
-width (number of cols)  - {1}
-non zero elements - - - - {2} 
-symmetry  - - - - - - - - {3}
-verification  - - - - - - {4} 
-- end matrix properties -""".format(height, 
-									width, 
-									nzentries, 
-									symmetry, 
-									verification)) 
+		BXFUtils.printInfo(SC.HSM)
 
 	elif command == 'display':
 		if SC.HSM.symmetry == 'SYM':

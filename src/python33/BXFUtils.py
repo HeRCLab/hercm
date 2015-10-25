@@ -7,89 +7,43 @@ import matplotlib
 import matplotlib.pyplot
 import logging
 import os
+import textwrap
 
-helpString = """
-log / log [N] - prints the libSparseConvert log. If [N] is specified, print only
- the most recent [N] lines. 
-
-load [path] [format] - loads the file at [path] with the format [format]. 
-[format] should be mtx or hercm.
-
-write [path] [format] - writes the matrix to the file at [path] using the format
-[format], which is mtx or hercm. Will silently overwrite any existing file at
-[path]. 
-
-info - prints information on the matrix 
-
-display - prints the entire matrix to the console in dense form
-
-csrdisplay - prints the matrix in csr format to the console 
-
-raw - prints the raw hercm matrix to the console 
-
-value [row] [col] - prints the value at [row],[col]
-
-row [row] - prints all non-zero values in the given row
-
-col [col] - prints all non-zero values in the given col
-
-range [r1] [c1] [r2] [c2] - prints all elements, zero or nonzero, which lie 
-between the upper left bound [r1],[c1], and the lower right bound [r2],[c2]
-
-touch [row] [col] [val] - changes the value at [row] [col] to [val] 
-
-paint [x1] [y1] [x2] [y2] [val] - works the same way as range, but changes
-all values encountered to [val]
-
-paint-diag [begin] [end] [spread] [value] / 
-paint-diag [begin] [end] [spread] [value] [offset] - paints the value [value]
-at all indices along the diagonal, from the [begin]th to the [end]th. Paints 
-[spread] values to either side of said diagonal. Offsets the diagonal by 
-[offset] columns, if [offset] is given. 
-
-row-major - makes the matrix row major 
-
-rmzeros - remove zeros from matrix
-
-setdims [height] [width] - sets the dimensions of the matrix to height by width
-
-setsym [symmetry] - sets symmetry. Will not change array elements, only modifies 
-symmetry attribute. 
-
-init / init [height] [width] / init [height] [width] [val] - sets matrix to
-a blank 5x5 matrix of zeros. If height and width are supplied, matrix is set to
-those dimensions. If val is supplied, initialize matrix elements to val.
-Overwrites any already loaded matrix. 
-
-gen-verification - updates verification sum to permit writing out matrix after 
-modification. 
-
-check-symmetry - check the symmetry attribute, and searches for any non zero
-elements in the bottom triangle, printing the first five if they exist. 
-
-plot - plots the matrix graphically using matplotlib 
-
-head [file path] - prints the first 10 lines of file at [file path]
-
-cat [file path] - prints all lines from [file path] 
-
-ls - get directory listing
-
-pwd - print current working directory 
-
-cd - change current working directory
-
-convert [src] [srcform] [dest] [destform] - converts file [src] in format
-[srcform] to [destform] then writes it to [dest]
-
-exit - exits the program
-"""
-
-def printHelp(command=None):
+def printHelp(commandInfo, command=None):
 	if command == None:
-		print(helpString)
+		for c in commandInfo:
+			printHelp(commandInfo, c)
 	else:
-		print("Sorry, per-command help is not implemented yet")
+		if command not in commandInfo:
+			print("Sorry, no help is available for this command")
+			return 
+
+		print("-"*40)
+		print(command, end='')
+
+		if commandInfo[command]['requiredArguments'] != None:
+			for arg in commandInfo[command]['requiredArguments']:
+				print(' ['+arg[2]+'] ', end='')
+		if commandInfo[command]['optionalArguments'] != None:
+			for arg in commandInfo[command]['optionalArguments']:
+				print(' ('+arg[2]+') ', end='')
+		print("\n-- arguments --")
+		argCounter = 0
+		if commandInfo[command]['requiredArguments'] != None:
+			for arg in commandInfo[command]['requiredArguments']:
+				print('    ['+arg[2]+'] ' + str(arg[1]) + ' - ' + ' ' +
+					commandInfo[command]['argumentInfo'][argCounter])
+				argCounter += 1
+		if commandInfo[command]['optionalArguments'] != None:
+			for arg in commandInfo[command]['optionalArguments']:
+				print('    ('+arg[2]+') - ' + str(arg[1]) + ' ' +
+					commandInfo[command]['argumentInfo'][argCounter])
+				argCounter += 1
+		print("-- use --")
+		for line in textwrap.wrap(commandInfo[command]['help']):
+			print('    ' + line)
+
+
 
 
 def load(filename, form, HERCMIO):
@@ -99,16 +53,19 @@ def load(filename, form, HERCMIO):
 	if form not in ['bxf','hercm','mat','mtx']:
 		raise KeyError("format {0} is not supported".format(form))
 
-	HERCMIO.readMatrix(fileName, fileFormat)
+	print("Loading matrix...")
+	HERCMIO.readMatrix(filename, form)
+	print("Finished loading matrix.")
 
 
-def write(filename, form, HERMCIO):
+def write(filename, form, HERCMIO):
 	# write matrix stored in HERCMIO instance to filename in given format
 
 	if form not in ['bxf','hercm','mat','mtx']:
 		raise KeyError("format {0} is not supported".format(form))
-	HERCMIO.writeMatrix(fileName, fileFormat)
-
+	print("Writing matrix...")
+	HERCMIO.writeMatrix(filename, form)
+	print("Finished writing matrix.")
 		
 
 def printInfo(HERCMATRIX):
@@ -233,7 +190,7 @@ def paintDiagonal(begin, end, spread, val, HERCMATRIX, offset=0):
 				pass # out of bounds 
 					
 
-def setDims(width, height, HERCMATRIX):
+def setDims(height, width, HERCMATRIX):
 	# sets the dimensions of HERCMATRIX to width x height 
 
 		# remove out of bounds entries 
@@ -251,7 +208,7 @@ def setDims(width, height, HERCMATRIX):
 
 
 
-def setSymmetry(newSymmetry, HERCMATRIX method="truncate"):
+def setSymmetry(newSymmetry, HERCMATRIX, method="truncate"):
 	# wrapper for libHercMatrix.hercMatrix.makeSymmetrical/makeAsymmetrical
 
 		if method not in ['truncate', 'add', 'smart']:
@@ -281,162 +238,101 @@ def setSymmetry(newSymmetry, HERCMATRIX method="truncate"):
 
 		HERCMATRIX.symmetry = symmetry
 
-	elif command == 'init': 
-		height = 5
-		width = 5
-		val = 0
-		if len(arguments) >= 2:
-			try:
-				height = int(arguments[0]) 
-				width  = int(arguments[1])
-			except ValueError:
-				print("ERROR: cannot convert one or more arguments to integer")
-				return
-		if len(arguments) >= 3:
-			try:
-				val = float(arguments[2])
-			except ValueError:
-				print("ERROR: cannot convert {0} to float".format(arguments[2]))
-				return 
+def initilize(height, width, HERCMATRIX, val = 0):
+	# initializes a blank matrix height x width in size in the HERCMATRIX instance
+	# optionally sets all elements in the matrix equal to val
 
-		main("setdims 0 0")
-		main("setdims {0} {1}".format(height, width))
-		for i in range(0, height): # this is faster than using paint
-			for j in range(0,width): 
-				SC.HSM.setValue(i, j, val)
-		if SC.HSM.elements == None:
-			SC.HSM.nzentries = 0
-		else:
-			SC.HSM.nzentries = len(SC.HSM.elements['val'])
-		SC.HSM.symmetry = 'ASYM' 
-		SC.HSM.remarks = []
+	setDims(0,0,HERCMATRIX)
+	setDims(height, width, HERCMATRIX)
 
-		print("finished initializing matrix, new matrix info:")
-		main("info")
+	for i in range(0, height): # this is faster than using paint
+		for j in range(0,width): 
+			HERCMATRIX.setValue(i, j, val)
+	if HERCMATRIX.elements == None:
+		SC.HSM.nzentries = 0
+	else:
+		SC.HSM.nzentries = len(HERCMATRIX.elements['val'])
+	HERCMATRIX.symmetry = 'ASYM' 
+	HERCMATRIX.remarks = []
 
+def generateVerification(BXFIO, HERCMATRIX):
+	# updates verification sum of matrix 
+	newSum = BXFIO.generateVerificationSum(HERCMATRIX)
+	HERCMATRIX.verification = newSum 
 
-
-	elif command == 'shell':
-		print("Entering python interactive debug shell...")
-		print("Enter \"runMain()\" to return to normal execution")
-		import pdb
-		pdb.set_trace()
-
-	elif command == 'check-symmetry':
-		if SC.HSM.symmetry != 'SYM':
-			print("symmetry attribute is not SYM")
-
-		foundElements = 0
-		for i in range(0, SC.HSM.nzentries): 
-			element = SC.HSM.getElement(i)
-			row = element[0]
-			col = element[1]
-			val = element[2] 
-			if row > col:
-				if val != 0:
-					if foundElements < 5:
-						print("non zero element at {0},{1}:{2}"
-							  .format(row, col, val))
-					if foundElements == 5:
-						print("""Found more than five elements in bottom 
-triangle, further messages will be squelched""")
-					foundElements = foundElements + 1
-		print("If no previous messages were displayed, the matrix is symmetric")
-
-
-
-	elif command == 'gen-verification':
-		newSum = SC.HERCMIO.generateVerificationSum(SC.HSM)
-		SC.HSM.verification = newSum 
-		print("updated verification sum to: {0}".format(newSum))
-
-	elif command == 'plot':
-		matrix = SC.HSM.getInFormat('coo')
+def plot(HERCMATRIX):
+	# plots the matrix with matplotlib
+	matrix = HERCMATRIX.getInFormat('coo')
 		
-		matplotlib.pyplot.spy(matrix)
-		matplotlib.pyplot.show()
+	matplotlib.pyplot.spy(matrix)
+	matplotlib.pyplot.show()
 
-	elif command == 'log-info':
-		print("setting loglevel to info")
-		logging.basicConfig(level=logging.INFO)
-	elif command == 'log-debug':
-		print("setting loglevel to debug")
-		logging.basicConfig(level=logging.DEBUG)
 
-	elif command == "transpose":
-		# reflects the matrix around the diagonal
-		print("performing matrix transpose, please wait...")
-		SC.HSM.transpose()
-		print("matrix transpose complete")
-
-	elif command == "ls":
-		directory = ''
-		if len(arguments) > 0:
-			if os.path.exists(arguments[0]):
-				directory = arguments[0] 
-			elif os.path.exists(os.path.join(os.getcwd(), arguments[0])):
-				directory = os.path.join(os.getcwd(), arguments[0])
-			else:
-				print("ERROR: could not get directory listing")
-				print(arguments[0], " is not a valid path")
-				print(os.path.join(os.getcwd(), arguments[0]), 
-					" is not a valid path")
-				directory = os.getcwd()
+def printDirectoryListing(directory=None):
+	# prints a directory listing of directory, of cwd if directory=None
+	if directory != None:
+		if os.path.exists(directory):
+			pass 
+		elif os.path.exists(os.path.join(os.getcwd(), directory)):
+			directory = os.path.join(os.getcwd(), directory)
 		else:
+			print("ERROR: could not get directory listing")
+			print(directory, " is not a valid path")
+			print(os.path.join(os.getcwd(), directory), 
+				" is not a valid path")
 			directory = os.getcwd()
+	else:
+		directory = os.getcwd()
 
-		print("Directory listing for: ", directory)
-		for item in os.listdir(directory):
-			print(item)
+	print("Directory listing for: ", directory)
+	for item in os.listdir(directory):
+		print(item)
 
-	elif command == "pwd":
-		print(os.getcwd())
+def printWorkingDirectory():
+	# prints the CWD
+	
+	print(os.getcwd())
 
-	elif command == "head":
-		if len(arguments) != 1:
-			print("ERROR: incorrect number of arguments")
-			return 
-		f = open(arguments[0])
-		for line in f.readlines()[0:10]:
-			print(line, end='')
+def head(path, numlines=10):
+	# prints the first numlines of file at path
+	print("First {0} lines of file {1}".format(numlines, path))
+	f = open(path)
+	for line in f.readlines()[0:numlines]:
+		print(line, end='')
 
-	elif command == "cat":
-		if len(arguments) != 1:
-			print("ERROR: incorrect number of arguments")
-			return 
-		f = open(arguments[0])
-		for line in f.readlines():
-			print(line, end='')
+def cat(path):
+	# prints all lines in file at path
 
-	elif command == "cd":
-		if len(arguments) != 1:
-			print("ERROR: incorrect number of arguments")
-			return 
-		if not os.path.exists(arguments[0]):
-			print("ERROR: cannot cd to nonexistent path")
-			return 
-		if os.path.isfile(arguments[0]):
-			print("ERROR: {0} is not a directory".format(arguments[0]))
-			return
-		os.chdir(arguments[0])
+	print("Contents of file {0}".format(path))
+	f = open(path)
+	for line in f.readlines():
+		print(line, end='')
 
-	elif command == "convert":
-		if len(arguments) != 4:
-			print("ERROR: incorrect number of arguments")
-			return 
-		source = arguments[0] 
-		destination = arguments[2]
-		sourceFormat = arguments[1]
-		destinationFormat = arguments[3]
+def changeDirectory(newDir):
+	# changes cwd to newDir
+	if not os.path.exists(newDir):
+		print("ERROR: cannot cd to nonexistent path")
+		return 
+	if os.path.isfile(newDir):
+		print("ERROR: {0} is not a directory".format(arguments[0]))
+		return
+	os.chdir(newDir)
 
-		if not os.path.exists(source):
-			print("ERROR: load from nonexistent path")
-			return 
-		if not os.path.isfile(source ):
-			print("ERROR: {0} is not a file".format(source))
-			return
+def convert(source, destination, sourceFormat, destinationFormat):
+	# converts the matrix at source in sourceFormat to destinationFormat
+	# then writes out at destination
 
+	if not os.path.exists(source):
+		print("ERROR: load from nonexistent path")
+		return 
+	if not os.path.isfile(source ):
+		print("ERROR: {0} is not a file".format(source))
+		return
+	HERCMATRIX = libHercMatrix.hercMatrix()
+	BXFIO = libBXF.bxfio()
+	HERCMIO = libHercmIO.hercmIO()
+	HERCMIO.HSM = HERCMATRIX
+	HERCMIO.HERCMIO = BXFIO
 
-		main("load " + source)
-		main("gen-verification")
-		main("write " + destination + " " + destinationFormat)
+	generateVerification(BXFIO, HERCMATRIX)
+	write(destination, destinationFormat, HERCMIO)
