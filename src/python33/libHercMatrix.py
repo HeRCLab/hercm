@@ -53,7 +53,7 @@ class hercMatrix:
 					element['row'] = temp['col']
 					element['col'] = temp['row']
 
-			if this.elements == None:
+			if this.elements is None:
 				this.elements = numpy.array([element],dtype=this.dtype)
 			else:
 				this.elements = numpy.append(this.elements, element)
@@ -280,7 +280,7 @@ class hercMatrix:
 	def removeZeros(this):
 		# removes any instances of zero 
 
-		if this.elements == None: 
+		if this.elements is None: 
 			return 
 		for i in reversed(range(0,this.nzentries)):
 			if this.elements['val'][i] == 0:
@@ -435,7 +435,7 @@ class hercMatrix:
 	def makeRowMajor(this):
 		# re orders this matrix such that it is row major 
 
-		if this.elements == None:
+		if this.elements is None:
 			raise ValueError("cannot make nonexistent matrix row major")
 
 

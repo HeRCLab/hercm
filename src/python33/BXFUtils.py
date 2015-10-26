@@ -98,30 +98,21 @@ def displayMatrix(HERCMATRIX, maxHeight=10, maxWidth=10):
 	if maxWidth % 2 != 0:
 		raise ValueError("maxWidth must be an even number")
 
-
-	if HERCMATRIX.height < maxHeight:
-		if HERCMATRIX.width < maxWidth:
-			for col in range(0, HERCMATRIX.width):
-				for row in range(0,HERCMATRIX.height):
-					print(HERCMATRIX.getValue(row, col) + " ")
-					return 
-				print("")
-	else: 
-		row = 0
-		while row < HERCMATRIX.height:
-			if row == (maxWidth / 2):
-				row = HERCMATRIX.height - (maxHeight/2)
-				print("\n", end="")
-			col = 0
-			while col < HERCMATRIX.width:
-				if col == (maxWidth / 2):
-					col = HERCMATRIX.width - (maxWidth/2)
-					print(" ... ", end="")
-				print('{:7.1g} '
-					.format(round(HERCMATRIX.getValue(row, col),3)), end="")
-				col += 1
-			print("")
-			row += 1
+	row = 0
+	while row < HERCMATRIX.height:
+		if row == (maxWidth / 2):
+			row = HERCMATRIX.height - (maxHeight/2)
+			print("\n", end="")
+		col = 0
+		while col < HERCMATRIX.width:
+			if col == (maxWidth / 2):
+				col = HERCMATRIX.width - (maxWidth/2)
+				print(" ... ", end="")
+			print('{:9.3g} '
+				.format(round(HERCMATRIX.getValue(row, col),3)), end="")
+			col += 1
+		print("")
+		row += 1
 
 def printCSR(HERCMATRIX, firstRow = 0, lastRow = None):
 	# display the raw CSR matrix
@@ -175,46 +166,63 @@ def printRaw(HERCMATRIX):
 		val = element[2]
 		print("{0:6} {1:6} {2:6}".format(row, col, val))
 
-def printValue(row, col, HERCMATRIX):
+def printValue(col, row, HERCMATRIX):
 	# prints the value of HERCMATRIX at row, col
-	print("value of {0},{1}:".format(row, col), 
+	print("value of col {1}, row {0}:".format(row, col), 
 		 HERCMATRIX.getValue(row, col))
 
 def printRow(row, HERCMATRIX):
 	# prints the rowth row in HERCMATRIX
 
-		matrix = HERCMATRIX.getInFormat('coo')
-		print("row {0} contents: \n{1}"
-			  .format(rowNumber, matrix.getrow(rowNumber)))
+	for index in range(0, HERCMATRIX.nzentries-1):
+		try: 
+			if HERCMATRIX.getValue(row, index) != 0:
+				print("col {0}, row {1}: {2}"
+					.format(index, row, HERCMATRIX.getValue(row, index)))
+		except IndexError:
+			pass 
 
 def printCol(col, HERCMATRIX):
 	# prints the colth column in HERCMATRIX
 
-	matrix = HERCMATRIX.getInFormat('coo')
-	print("column {0} contents: \n{1}"
-		 .format(colNumber, matrix.getcol(colNumber)))
+	for index in range(0, HERCMATRIX.nzentries-1):
+		try: 
+			if HERCMATRIX.getValue(index, col) != 0:
+				print("col {0}, row {1}: {2}"
+					.format(col, index, HERCMATRIX.getValue(index, col)))
+		except IndexError:
+			pass 
 
 def printRange(row1, row2, col1, col2, HERCMATRIX):
 	# prints a rectangular range of values in HERCMATRIX, with row1, col1 as
 	# the top left corner, and row2, col2 in the bottom right
 
+	TMPMATRIX = libHercMatrix.hercMatrix()
+	TMPMATRIX.height = row2 - row1 + 1
+	TMPMATRIX.width = col2 - col1 + 1
+
+	#	def setValue(this, newRow, newCol, newVal):
+		# changes the value of row, col to val
 
 	width = HERCMATRIX.width
 	height = HERCMATRIX.height
 	for row in range(0,height):
 		for col in range (0,width):
 			if col >= col1 and col <= col2:
-				if row >= row1 and row <= row2:
-					print("{0},{1} = {2}".format(row, col, 
-												 SC.HSM.getValue(row, col)))
+				if row >= row1 and row <= row2: 
+					TMPMATRIX.setValue(row-row1, 
+						col-col1, 
+						HERCMATRIX.getValue(row, col))
+	TMPMATRIX.makeRowMajor()
+	displayMatrix(TMPMATRIX)
 
-def touch(row, col, val, HERCMATRIX):
+def touch(col, row, val, HERCMATRIX):
 	# sets the value at row, col to val 
 
 
 	oldValue = HERCMATRIX.getValue(row, col)
 	HERCMATRIX.setValue(row, col, val)
-	print("updated value of {0},{1} to {2} from {3}"
+	print("updated value of col {1}, row {0} to {2} from {3}"
 		  .format(row, col, HERCMATRIX.getValue(row, col), oldValue))
 	
 	if oldValue == 0 and val != 0: 
@@ -231,7 +239,7 @@ def paint(row1, row2, col1, col2, val, HERCMATRIX):
 		for col in range (0,width):
 			if col >= col1 and col <= col2:
 				if row >= row1 and row <= row2:
-					SC.HSM.setValue(row, col,val)
+					HERCMATRIX.setValue(row, col,val)
 
 def paintDiagonal(begin, end, spread, val, HERCMATRIX, offset=0):
 	# paints a diagonal, starting at column begin, ending at column end with 

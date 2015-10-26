@@ -63,11 +63,61 @@ def main(override = None):
 		'help':'Displays a visualization of the matrix. If the matrix is ' + 
 			'very large, only the corners will be displayed'}
 	commandInfo['csrdisplay'] = {'requiredArguments':None, 
-	'optionalArguments':[[0, int, 'rowStart'],[1,int,'rowEnd']],
-	'argumentInfo':['first row to display', 'last row to display'],
-	'help':'Displays the matrix as raw CSR data, prompts if nzentries > 25.' +
-	' if provided, will only display the CSR values between a particular' +
-	' range of rows in the matrix'}
+		'optionalArguments':[[0, int, 'rowStart'],[1,int,'rowEnd']],
+		'argumentInfo':['first row to display', 'last row to display'],
+		'help':'Displays the matrix as raw CSR data, prompts if nzentries > 25.' +
+		' if provided, will only display the CSR values between a particular' +
+		' range of rows in the matrix'}
+	commandInfo['raw'] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'display the raw COO format data for the matrix'}
+	commandInfo['value'] = {'requiredArguments':[[0, int, 'column'],
+		[1, int, 'row']], 
+		'optionalArguments':None,
+		'argumentInfo':['column of desired element','row of desired element'],
+		'help':'display the value at column, row'}
+	commandInfo['row'] = {'requiredArguments':[[0, int, 'row']], 
+		'optionalArguments':None,
+		'argumentInfo':['the row to display'],
+		'help':'Displays all elements in the specified row'}
+	commandInfo['col'] = {'requiredArguments':[[0, int, 'col']], 
+		'optionalArguments':None,
+		'argumentInfo':['the row to display'],
+		'help':'Displays all elements in the specified column'}
+	commandInfo['range'] = {'requiredArguments':[[0, int, 'col1'],
+			[1, int, 'row1'],
+			[2, int, 'col2'],
+			[3, int, 'row2']], 
+		'optionalArguments':None,
+		'argumentInfo':['column of top-left corner', 
+			'row of top-left corner',
+			'column of bottom-right corner',
+			'row of bottom-right corner'],
+		'help':'Displays all elements in the rectangular region given by '+
+			'(row1, col1), (row2, col2)'}
+	commandInfo['touch'] = {'requiredArguments':[[0, int, 'col'], 
+			[1, int, 'row'],
+			[2, float, 'val']], 
+		'optionalArguments':None,
+		'argumentInfo':['the column of the target element',
+			'the row of the target element',
+			'the new value for the element'],
+		'help':'Modifies the value of the matrix at the specified row and col'}
+	commandInfo['paint'] = {'requiredArguments':[[0, int, 'col1'],
+			[1, int, 'row1'],
+			[2, int, 'col2'],
+			[3, int, 'row2']], 
+		'optionalArguments':[[0, float, 'val']],
+		'argumentInfo':['column of top-left corner', 
+			'row of top-left corner',
+			'column of bottom-right corner',
+			'row of bottom-right corner', 
+			'new value for elements'],
+		'help':'Modifies the values of the rectangular range of elements ' +
+			'whose top-left corner is (col1, row1) and whose bottom right ' +
+			'corner is (col2, row2). If val is given, elements are set equal ' +
+			'val, otherwise they are set to zero'}
 	
 
 	if command not in commandInfo:
@@ -87,10 +137,10 @@ def main(override = None):
 			
 			for arg in commandInfo[command]['requiredArguments']:
 				try:
-					arg[1](arguments[arg[0]])
+					arguments[arg[0]] = arg[1](arguments[arg[0]])
 				except Exception:
-					print("ERROR: argument {0} was present, but is not of " +
-						" required type {1}".format(arg[0], str(arg[1])))
+					print("""ERROR: argument {0} was present, but is not of 
+ required type {1}""".format(arg[0], str(arg[1])))
 					return
 
 		if commandInfo[command]['optionalArguments'] != None:
@@ -110,8 +160,8 @@ def main(override = None):
 					print("ERROR: index error while accessing index {0} of {1}"
 						.format(arg[0] + argOffset, arguments))
 				except Exception:
-					print("ERROR: argument {0} was present, but of type {1} " +
-						" not required type {2}".format(arg[0] + argOffset,
+					print("""ERROR: argument {0} was present, but of type {1} 
+ not required type {2}""".format(arg[0] + argOffset,
 						 	type(arguments[arg[0]+argOffset]),
 						 	str(arg[1])))
 					return
@@ -176,129 +226,36 @@ def main(override = None):
 		BXFUtils.printRaw(SC.HSM)
 
 	elif command == 'value':
-		if len(arguments) != 2:
-			print("ERROR: incorrect number of arguments")
-			return
-
-		row = int(arguments[0])
-		col = int(arguments[1])
-		print("value of {0},{1}:".format(row, col), 
-			  SC.HSM.getValue(row, col))
+		BXFUtils.printValue(arguments[0], arguments[1], SC.HSM)
 
 	elif command == 'row':
-		if len(arguments) != 1:
-			print("ERROR: incorrect number of arguments") 
-			return 
-		rowNumber = 0
-		try: 
-			rowNumber = int(arguments[0])
-		except ValueError:
-			print("ERROR: {0} is not a valid row number".format(arguments[0]))
-			return
-
-		matrix = SC.HSM.getInFormat('coo')
-		print("row {0} contents: \n{1}"
-			  .format(rowNumber, matrix.getrow(rowNumber)))
+		BXFUtils.printRow(arguments[0], SC.HSM)
 
 	elif command == 'col':
-		if len(arguments) != 1:
-			print("ERROR: incorrect number of arguments") 
-			return 
-		colNumber = 0
-		try: 
-			colNumber = int(arguments[0])
-		except ValueError:
-			print("ERROR: {0} is not a valid column number".format(arguments[0]))
-			return
-
-		matrix = SC.HSM.getInFormat('coo')
-		print("column {0} contents: \n{1}"
-			  .format(colNumber, matrix.getcol(colNumber)))
+		BXFUtils.printCol(arguments[0], SC.HSM)
 
 	elif command == 'range':
-		if len(arguments) != 4:
-			print("ERROR: incorrect number of arguments")
-			return 
-		r1 = 0
-		r2 = 0
-		c1 = 0
-		c2 = 0 
-
-		try:
-			r1 = int(arguments[0])
-			c1 = int(arguments[1])
-			r2 = int(arguments[2])
-			c2 = int(arguments[3])
-		except ValueError:
-			print("ERROR: one or more arguments are not valid integers")
-			return 
-
-		width = SC.HSM.width
-		height = SC.HSM.height
-
-		for row in range(0,height):
-			for col in range (0,width):
-				if col >= c1 and col <= c2:
-					if row >= r1 and row <= r2:
-						print("{0},{1} = {2}".format(row, col, 
-													 SC.HSM.getValue(row, col)))
+		col1 = arguments[0] 
+		col2 = arguments[2]
+		row1 = arguments[1]
+		row2 = arguments[3]
+		BXFUtils.printRange(row1, row2, col1, col2, SC.HSM)
 
 	elif command == 'touch':
-		if len(arguments) != 3:
-			print("ERROR: incorrect number of arguments")
-			return 
-		row = 0
-		col = 0
-		val = 0
-
-		try:
-			row = int(arguments[0])
-			col = int(arguments[1])
-			val = float(arguments[2])
-		except ValueError:
-			print("ERROR: one or more arguments are not valid numbers")
-			return 
-
-		oldValue = SC.HSM.getValue(row, col)
-
-		SC.HSM.setValue(row, col, val)
-		print("updated value of {0},{1}: {2}"
-			  .format(row, col, SC.HSM.getValue(row, col)))
-		
-		if oldValue == 0 and val != 0: 
-			print("WARNING: you have added a new non zero entry, COO vectors")
-			print("may not be in row-major form!")
+		BXFUtils.touch(arguments[0], arguments[1], arguments[2], SC.HSM)
 
 	elif command == 'paint':
-		if len(arguments) != 5:
-			print("ERROR: incorrect number of arguments")
-			return 
-		r1 = 0
-		r2 = 0
-		c1 = 0
-		c2 = 0 
-		val = 0
+		val = 0.0
+		col1 = arguments[0]
+		row1 = arguments[1]
+		col2 = arguments[2]
+		row2 = arguments[3]
+		if len(arguments) == 5:
+			val = arguments[4]
 
-		try:
-			r1 = int(arguments[0])
-			c1 = int(arguments[1])
-			r2 = int(arguments[2])
-			c2 = int(arguments[3])
-			val = float(arguments[4])
-		except ValueError:
-			print("ERROR: one or more arguments are not valid numbers")
-			return 
+		BXFUtils.paint(row1, row2, col1, col2, val, SC.HSM)	
 
-		print("painting values... (this may take several minutes)")
 
-		width = SC.HSM.width
-		height = SC.HSM.height
-
-		for row in range(0,height):
-			for col in range (0,width):
-				if col >= c1 and col <= c2:
-					if row >= r1 and row <= r2:
-						SC.HSM.setValue(row, col,val)
 
 	elif command == 'paint-diag': 
 		if len(arguments) < 4: 
