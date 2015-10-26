@@ -160,6 +160,14 @@ def main(override = None):
 		'help':'Removes zero elements from the matrix (only affects COO data, '+
 			' not the contents of the matrix)'}
 
+	commandInfo['setdims'] = {'requiredArguments':[[0, int, 'with'],
+			[1, int, 'height']],
+		'optionalArguments':None,
+		'argumentInfo':['the new width for the matrix', 
+			'the new height for the matrix'],
+		'help':'Changes the dimensions of the matrix, truncating elements '+
+			'which become out of bounds'}
+
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
 			"arguments!")
@@ -322,35 +330,11 @@ def main(override = None):
 		print("done")
 
 	elif command == 'setdims':
-		if len(arguments) != 2:
-			print("ERROR: incorrect number of arguments") 
-			return
-		width = 0
-		height = 0
-
-		try:
-			height = int(arguments[0])
-			width = int(arguments[1])
-		except ValueError:
-			print("ERROR: one or more arguments are not valid integers")
-			return 
-
-		# remove out of bounds entries 
-		for i in reversed(range(0, SC.HSM.nzentries)):
-			if SC.HSM.elements['row'][i] >= height:
-				SC.HSM.setValue(SC.HSM.elements['row'][i], 
-								SC.HSM.elements['col'][i], 0)
-			elif SC.HSM.elements['col'][i] >= width:
-				SC.HSM.setValue(SC.HSM.elements['row'][i], 
-								SC.HSM.elements['col'][i], 0)
-
-		SC.HSM.height = height
-		SC.HSM.width = width 
-
-		SC.HSM.removeZeros()
-
-		print("Updated matrix dimensions. New values:")
-		main("info")
+		if arguments[1] > arguments[0]:
+			# TODO: fix this
+			print("WARNING: height is greater than width, this will probably " +
+				"break several commands (this is a known bug)")
+		BXFUtils.setDims(arguments[1], arguments[0], SC.HSM)
 
 
 	elif command == 'setsym':

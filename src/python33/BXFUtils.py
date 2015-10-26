@@ -108,8 +108,11 @@ def displayMatrix(HERCMATRIX, maxHeight=10, maxWidth=10):
 			if col == (maxWidth / 2):
 				col = HERCMATRIX.width - (maxWidth/2)
 				print(" ... ", end="")
-			print('{:9.3g} '
-				.format(round(HERCMATRIX.getValue(row, col),3)), end="")
+			try:
+				print('{:9.3g} '
+					.format(round(HERCMATRIX.getValue(row, col),3)), end="")
+			except IndexError:
+				print('   EE   ', end="")
 			col += 1
 		print("")
 		row += 1
@@ -266,11 +269,11 @@ def setDims(height, width, HERCMATRIX):
 		# remove out of bounds entries 
 		for i in reversed(range(0, HERCMATRIX.nzentries)):
 			if HERCMATRIX.elements['row'][i] >= height:
-				HERCMATRIX.setValue(SC.HSM.elements['row'][i], 
-								SC.HSM.elements['col'][i], 0)
+				HERCMATRIX.setValue(HERCMATRIX.elements['row'][i], 
+								HERCMATRIX.elements['col'][i], 0)
 			elif HERCMATRIX.elements['col'][i] >= width:
-				HERCMATRIX.setValue(SC.HSM.elements['row'][i], 
-								SC.HSM.elements['col'][i], 0)
+				HERCMATRIX.setValue(HERCMATRIX.elements['row'][i], 
+								HERCMATRIX.elements['col'][i], 0)
 
 		HERCMATRIX.height = height
 		HERCMATRIX.width = width 
