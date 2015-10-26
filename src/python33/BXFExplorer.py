@@ -154,6 +154,12 @@ def main(override = None):
 		'help':'Makes the matrix row-major (only affects COO data, not the '+
 			'contents of the matrix)'}
 
+	commandInfo['rmzeros'] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'Removes zero elements from the matrix (only affects COO data, '+
+			' not the contents of the matrix)'}
+
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
 			"arguments!")
