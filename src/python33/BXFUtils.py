@@ -310,6 +310,8 @@ def setSymmetry(newSymmetry, HERCMATRIX, method="truncate"):
 
 
 		HERCMATRIX.symmetry = symmetry
+		HERCMATRIX.makeRowMajor()
+		HERCMATRIX.removeZeros()
 
 def initilize(height, width, HERCMATRIX, val = 0):
 	# initializes a blank matrix height x width in size in the HERCMATRIX instance
@@ -340,6 +342,9 @@ def plot(HERCMATRIX):
 	matplotlib.pyplot.spy(matrix)
 	matplotlib.pyplot.show()
 
+def printSymmetry(HERCMATRIX):
+	print("Symmetry attribute is:",HERCMATRIX.symmetry)
+	print("Matrix is actually symmetric:",HERCMATRIX.checkSymmetry())
 
 def printDirectoryListing(directory=None):
 	# prints a directory listing of directory, of cwd if directory=None

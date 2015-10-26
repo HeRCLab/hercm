@@ -388,27 +388,7 @@ def main(override = None):
 		pdb.set_trace()
 
 	elif command == 'check-symmetry':
-		if SC.HSM.symmetry != 'SYM':
-			print("symmetry attribute is not SYM")
-
-		foundElements = 0
-		for i in range(0, SC.HSM.nzentries): 
-			element = SC.HSM.getElement(i)
-			row = element[0]
-			col = element[1]
-			val = element[2] 
-			if row > col:
-				if val != 0:
-					if foundElements < 5:
-						print("non zero element at {0},{1}:{2}"
-							  .format(row, col, val))
-					if foundElements == 5:
-						print("""Found more than five elements in bottom 
-triangle, further messages will be squelched""")
-					foundElements = foundElements + 1
-		print("If no previous messages were displayed, the matrix is symmetric")
-
-
+		BXFUtils.printSymmetry(SC.HSM)
 
 	elif command == 'gen-verification':
 		newSum = SC.HERCMIO.generateVerificationSum(SC.HSM)

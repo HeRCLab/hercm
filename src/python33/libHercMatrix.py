@@ -304,6 +304,8 @@ class hercMatrix:
 		# returns true if this matrix contains no elements in the lower triangle
 		# returns false otherwise 
 
+		# TODO: this does not actually work
+
 		for i in range(0, this.nzentries): 
 			element = this.getElement(i)
 			row = element[0]
