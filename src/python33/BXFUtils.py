@@ -219,6 +219,8 @@ def printRange(row1, row2, col1, col2, HERCMATRIX):
 def touch(col, row, val, HERCMATRIX):
 	# sets the value at row, col to val 
 
+	# TODO: make writes on symmetric matrices in lower triangle write to top
+	# triangle 
 
 	oldValue = HERCMATRIX.getValue(row, col)
 	HERCMATRIX.setValue(row, col, val)

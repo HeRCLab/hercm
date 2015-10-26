@@ -148,6 +148,12 @@ def main(override = None):
 			'be offset by offset elements to the left or right'
 		}
 
+	commandInfo['row-major'] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'Makes the matrix row-major (only affects COO data, not the '+
+			'contents of the matrix)'}
+
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
 			"arguments!")
@@ -300,7 +306,7 @@ def main(override = None):
 
 
 	elif command == 'row-major':
-		print("making matrix row major, standby...")
+		print("making matrix row major, this may take some time, standby...")
 		SC.HSM.makeRowMajor() 
 		print("done")
 
