@@ -8,6 +8,7 @@ import matplotlib.pyplot
 import logging
 import os
 import textwrap
+import pprint
 
 def printHelp(commandInfo, command=None):
 	if command == None:
@@ -88,9 +89,15 @@ verification  - - - - - - {4}
 									symmetry, 
 									verification)) 
 
-def displayMatrix(HERCMATRIX, maxWidth=20, maxHeight=20): 
+def displayMatrix(HERCMATRIX, maxHeight=10, maxWidth=10): 
 	# displays the matrix to the console 
 	# elements past 20 wide or 20 high will not be displayed
+
+	if maxHeight % 2 != 0:
+		raise ValueError("maxHeight must be an even number")
+	if maxWidth % 2 != 0:
+		raise ValueError("maxWidth must be an even number")
+
 
 	if HERCMATRIX.height < maxHeight:
 		if HERCMATRIX.width < maxWidth:
@@ -99,21 +106,74 @@ def displayMatrix(HERCMATRIX, maxWidth=20, maxHeight=20):
 					print(HERCMATRIX.getValue(row, col) + " ")
 					return 
 				print("")
-		else:
-			raise NotImplementedError("You are probably trying to preview a " +
-				"non-square matrix, which is not yet supported")
 	else: 
-		for col in range(0, HERCMATRIX.width):
-				for row in range(0,HERCMATRIX.height):
-					if col == (maxWidth / 2):
-						col = HERCMATIX.width - (maxWidth/2)
-						print(" ... ", end="")
-					if row == (maxWidth / 2):
-						row = HERCMATIX.height - (maxHeight/2)
-						print(" ... ", end="")
-					print(HERCMATRIX.getValue(row, col) + " ", end="")
-				print("")
-					
+		row = 0
+		while row < HERCMATRIX.height:
+			if row == (maxWidth / 2):
+				row = HERCMATRIX.height - (maxHeight/2)
+				print("\n", end="")
+			col = 0
+			while col < HERCMATRIX.width:
+				if col == (maxWidth / 2):
+					col = HERCMATRIX.width - (maxWidth/2)
+					print(" ... ", end="")
+				print('{:7.1g} '
+					.format(round(HERCMATRIX.getValue(row, col),3)), end="")
+				col += 1
+			print("")
+			row += 1
+
+def printCSR(HERCMATRIX, firstRow = 0, lastRow = None):
+	# display the raw CSR matrix
+	if lastRow == None:
+		lastRow = HERCMATRIX.nzentries - 1 
+
+	pp = pprint.PrettyPrinter()
+	if HERCMATRIX.nzentries > 25:
+		print("WARNING: matrix contains more than 25 entries, ")
+		print("are you sure you wish to proceed?")
+		if input('(yes/no)> ').upper() != "YES":
+			return
+
+	matrix = HERCMATRIX.getInFormat('csr')
+
+	print('{:6} {:10} {:7} {:7} {:7}'
+		.format('index', 'value', 'column','row_ptr', 'row'))
+	ptrCount = 0
+	currentRow = 0
+	for index in range(0,HERCMATRIX.nzentries-1):
+		if matrix.indptr[ptrCount] == index:
+			currentRow = ptrCount
+			if currentRow >= firstRow:
+				if currentRow <= lastRow: 
+					print('{:5} {:8.2g} {:7} {:7} {:7}'
+						.format(index, matrix.data[index], 
+						matrix.indices[index],
+						matrix.indptr[ptrCount], currentRow))
+			ptrCount += 1	
+		else:
+			try:
+				if currentRow >= firstRow:
+					if currentRow <= lastRow:
+						print('{:5} {:8.2g} {:7} {:7} {:7}'
+							.format(index, matrix.data[index],
+							matrix.indices[index],
+							' ', currentRow))
+			except IndexError:
+				# for some reason, matrix.data seems way too short 
+
+				print("IndexError! {0} out of bounds".format(index))
+				
+def printRaw(HERCMATRIX):
+	# display the matrix as raw COO data
+	print("- raw matrix contents -")
+	print("{0:6} {1:6} {2:6}".format("row","col","val"))
+	for i in range (0,HERCMATRIX.nzentries):
+		element = HERCMATRIX.getElement(i)
+		row = element[0]
+		col = element[1]
+		val = element[2]
+		print("{0:6} {1:6} {2:6}".format(row, col, val))
 
 def printValue(row, col, HERCMATRIX):
 	# prints the value of HERCMATRIX at row, col

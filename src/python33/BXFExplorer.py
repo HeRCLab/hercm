@@ -56,6 +56,18 @@ def main(override = None):
 		'optionalArguments':None,
 		'argumentInfo':None,
 		'help':'Prints information about the loaded matrix'}
+	commandInfo['display'] = {'requiredArguments':None, 
+		'optionalArguments':[[0, int, 'height'],[1, int, 'width']],
+		'argumentInfo':['maximum number of elemets to display vertically',
+			'maximum number of elements to display horizontally'],
+		'help':'Displays a visualization of the matrix. If the matrix is ' + 
+			'very large, only the corners will be displayed'}
+	commandInfo['csrdisplay'] = {'requiredArguments':None, 
+	'optionalArguments':[[0, int, 'rowStart'],[1,int,'rowEnd']],
+	'argumentInfo':['first row to display', 'last row to display'],
+	'help':'Displays the matrix as raw CSR data, prompts if nzentries > 25.' +
+	' if provided, will only display the CSR values between a particular' +
+	' range of rows in the matrix'}
 	
 
 	if command not in commandInfo:
@@ -91,10 +103,12 @@ def main(override = None):
 					break
 
 				try:
-					arg[1](arguments[arg[0] + argOffset])
+					arguments[arg[0] + argOffset] = \
+						arg[1](arguments[arg[0] + argOffset])
 
 				except IndexError:
-					pass
+					print("ERROR: index error while accessing index {0} of {1}"
+						.format(arg[0] + argOffset, arguments))
 				except Exception:
 					print("ERROR: argument {0} was present, but of type {1} " +
 						" not required type {2}".format(arg[0] + argOffset,
@@ -141,49 +155,25 @@ def main(override = None):
 		BXFUtils.printInfo(SC.HSM)
 
 	elif command == 'display':
-		if SC.HSM.symmetry == 'SYM':
-			print("INFO: matrix is symmetric, bottom triangle should be only "+
-				  "zeros")
-		matrix = None
-		try:
-			matrix = SC.HSM.getInFormat('coo')
-		except TypeError:
-			print("ERROR: could not get matrix in COO format")
-		try:
-			import numpy
-			numpy.set_printoptions(precision=5, suppress=True)
-			print(matrix.todense())
-		except MemoryError:
-			print("ERROR: out of memory error, array to large to display")
-		except AttributeError:
-			print("ERROR: no matrix loaded")
-		except ValuerError:
-			print("ERROR: matrix is too large")
+		if len(arguments) == 2:
+			height = arguments[0]
+			width = arguments[1]
+			try:
+				BXFUtils.displayMatrix(SC.HSM, height, width)
+			except ValueError:
+				print("ERROR: display dimensions must be even numbers!")
+		else:
+			BXFUtils.displayMatrix(SC.HSM)
 
 
 	elif command == 'csrdisplay':
-		if SC.HSM.nzentries > 25:
-			print("WARNING: matrix contains more than 25 entries, ")
-			print("are you sure you wish to proceed?")
-			if input('(yes/no)> ').upper() != "YES":
-				return
-
-		matrix = SC.HSM.getInFormat('csr')
-		print("val:"      ,matrix.data)
-		print("row_ptr:"  ,matrix.indices)
-		print("colind:"   ,matrix.indptr)
-		print("nzentries:",SC.HSM.nzentries)
+		if len(arguments) == 2:
+			BXFUtils.printCSR(SC.HSM, arguments[0], arguments[1])
+		else:
+			BXFUtils.printCSR(SC.HSM)
 
 	elif command == 'raw':
-		main("info")
-		print("- raw matrix contents -")
-		print("{0:6} {1:6} {2:6}".format("row","col","val"))
-		for i in range (0,SC.HSM.nzentries):
-			element = SC.HSM.getElement(i)
-			row = element[0]
-			col = element[1]
-			val = element[2]
-			print("{0:6} {1:6} {2:6}".format(row, col, val))
+		BXFUtils.printRaw(SC.HSM)
 
 	elif command == 'value':
 		if len(arguments) != 2:
