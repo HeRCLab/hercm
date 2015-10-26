@@ -189,6 +189,12 @@ def main(override = None):
 			' are added to the corresponding elements in the lower (sym->asym' +
 			'; smart - only overwrites values with are zero, very slow'}
 
+	commandInfo['shell'] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'Drop to Python debugging shell. WARNING: INTENDED FOR '+
+			'DEBUGGING USE ONLY'}
+
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
 			"arguments!")
