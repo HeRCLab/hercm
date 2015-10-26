@@ -168,6 +168,19 @@ def main(override = None):
 		'help':'Changes the dimensions of the matrix, truncating elements '+
 			'which become out of bounds'}
 
+	commandInfo['setsym'] = {'requiredArguments':[[0, str, 'symmetry']],
+		'optionalArguments':[[0, str, 'method']],
+		'argumentInfo':['the new symmetry for the matrix', 
+			'the algorithm to use'],
+		'help':'Makes the matrix symmetric or asymmetric, modifying COO data '+
+			'appropriately. By default, uses the truncate method. Available' +
+			' methods are: truncate - fastest, all elements from the bottom  ' +
+			'triangle are removed/overwritten as needed; add - all elements in'+
+			' in the lower triangle are added to corresponding elements in the'+
+			' upper triangle (asym->sym) OR all elements in the upper triangle'+
+			' are added to the corresponding elements in the lower (sym->asym' +
+			'; smart - only overwrites values with are zero, very slow'}
+
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
 			"arguments!")
@@ -338,43 +351,11 @@ def main(override = None):
 
 
 	elif command == 'setsym':
-		if len(arguments) < 1:
-			print("ERROR: incorrect number of arguments")
-			return 
-
+		symmetry = arguments[0]
 		method = 'truncate'
-
 		if len(arguments) == 2:
 			method = arguments[1]
-			if method not in ['truncate', 'add', 'smart']:
-				print("method {0} is not valid, defaulting to truncate")
-				
-		validOptions = ['sym','asym','asymmetric','symmetric',
-		'symmetrical','asymmetrical'] 
-
-		arguments[0] = arguments[0].lower()
-
-		if arguments[0] not in validOptions:
-			print("ERROR: argument {0} is not a valid symmetry option, Valid ")
-			print("options are: ")
-			pp.pprint(validOptions)
-			return 
-
-		if arguments[0] in ['sym','symmetric','symmetrical']:
-			symmetry = 'SYM'
-		else:
-			symmetry = 'ASYM'
-
-
-
-		if symmetry != SC.HSM.symmetry:
-			if symmetry == 'SYM':
-				SC.HSM.makeSymmetrical(method)
-			elif symmetry == 'ASYM':
-				SC.HSM.makeAsymmetrical(method)
-
-
-		SC.HSM.symmetry = symmetry
+		BXFUtils.setSymmetry(symmetry, SC.HSM, method) 
 
 	elif command == 'init': 
 		height = 5
