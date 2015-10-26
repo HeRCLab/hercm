@@ -251,9 +251,9 @@ def paintDiagonal(begin, end, spread, val, HERCMATRIX, offset=0):
 		for j in range(0, spread):
 			try:
 				col = offset + i + j # right side
-				SC.HSM.setValue(i, col, val)
+				HERCMATRIX.setValue(i, col, val)
 				col = offset + i - j # left side
-				SC.HSM.setValue(i, col, val)
+				HERCMATRIX.setValue(i, col, val)
 			except IndexError:
 				pass # out of bounds 
 					

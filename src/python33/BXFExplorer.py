@@ -37,54 +37,65 @@ def main(override = None):
 		'argumentInfo':['specific command to retrieve help for'],
 		'help':'Prints help for all commands, or prints the help for the ' + 
 		'command specified in the first argument'}
+
 	commandInfo['exit'] = {'requiredArguments':None, 
 		'optionalArguments':None, 
 		'argumentInfo':None,
 		'help':'exits the program'}
+
 	commandInfo['load'] = {'requiredArguments':[[0, str, 'path'],
 			[1,str,'format']],
 		'optionalArguments':None,
 		'argumentInfo':['The file to load', 'The format of said file'],
 		'help':'Reads in the file for viewing and manipulation'}
+
 	commandInfo['write'] = {'requiredArguments':[[0, str, 'path'], 
 			[1, str, 'format']], 
 		'optionalArguments':None,
 		'argumentInfo':['The file to write to', 'The format of said file'],
 		'help':'Writes current matrix to specified file, in specified format' +
 		' note that the given path should include the desired file extension'}
+
 	commandInfo['info'] = {'requiredArguments':None,
 		'optionalArguments':None,
 		'argumentInfo':None,
 		'help':'Prints information about the loaded matrix'}
+
 	commandInfo['display'] = {'requiredArguments':None, 
 		'optionalArguments':[[0, int, 'height'],[1, int, 'width']],
 		'argumentInfo':['maximum number of elemets to display vertically',
 			'maximum number of elements to display horizontally'],
 		'help':'Displays a visualization of the matrix. If the matrix is ' + 
 			'very large, only the corners will be displayed'}
+
 	commandInfo['csrdisplay'] = {'requiredArguments':None, 
 		'optionalArguments':[[0, int, 'rowStart'],[1,int,'rowEnd']],
 		'argumentInfo':['first row to display', 'last row to display'],
 		'help':'Displays the matrix as raw CSR data, prompts if nzentries > 25.' +
 		' if provided, will only display the CSR values between a particular' +
 		' range of rows in the matrix'}
+
 	commandInfo['raw'] = {'requiredArguments':None,
 		'optionalArguments':None,
 		'argumentInfo':None,
 		'help':'display the raw COO format data for the matrix'}
+
 	commandInfo['value'] = {'requiredArguments':[[0, int, 'column'],
 		[1, int, 'row']], 
 		'optionalArguments':None,
 		'argumentInfo':['column of desired element','row of desired element'],
 		'help':'display the value at column, row'}
+
 	commandInfo['row'] = {'requiredArguments':[[0, int, 'row']], 
 		'optionalArguments':None,
 		'argumentInfo':['the row to display'],
 		'help':'Displays all elements in the specified row'}
+
 	commandInfo['col'] = {'requiredArguments':[[0, int, 'col']], 
 		'optionalArguments':None,
 		'argumentInfo':['the row to display'],
 		'help':'Displays all elements in the specified column'}
+
 	commandInfo['range'] = {'requiredArguments':[[0, int, 'col1'],
 			[1, int, 'row1'],
 			[2, int, 'col2'],
@@ -96,6 +107,7 @@ def main(override = None):
 			'row of bottom-right corner'],
 		'help':'Displays all elements in the rectangular region given by '+
 			'(row1, col1), (row2, col2)'}
+
 	commandInfo['touch'] = {'requiredArguments':[[0, int, 'col'], 
 			[1, int, 'row'],
 			[2, float, 'val']], 
@@ -104,6 +116,7 @@ def main(override = None):
 			'the row of the target element',
 			'the new value for the element'],
 		'help':'Modifies the value of the matrix at the specified row and col'}
+
 	commandInfo['paint'] = {'requiredArguments':[[0, int, 'col1'],
 			[1, int, 'row1'],
 			[2, int, 'col2'],
@@ -118,7 +131,22 @@ def main(override = None):
 			'whose top-left corner is (col1, row1) and whose bottom right ' +
 			'corner is (col2, row2). If val is given, elements are set equal ' +
 			'val, otherwise they are set to zero'}
-	
+
+	commandInfo['paint-diag'] = {'requiredArguments':[[0, int, 'begin'],
+			[1, int, 'end'],
+			[2, int, 'spread'],
+			[3, float, 'val']],
+		'optionalArguments':[[0, int, 'offset']],
+		'argumentInfo':['the first column of the diagonal',
+			'the last column of the diagonal',
+			'the number of indices on either side of the diagonal to paint',
+			'the value to paint',
+			'the number of indices to the left or right to offset the diagonal'],
+		'help':'sets all elements along the diagonal of the matrix to val, as' +
+			'well as spread values to either side of the diagonal, starting ' +
+			'column begin, and ending with column end. The diagonal can also ' +
+			'be offset by offset elements to the left or right'
+		}
 
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
@@ -157,7 +185,7 @@ def main(override = None):
 						arg[1](arguments[arg[0] + argOffset])
 
 				except IndexError:
-					print("ERROR: index error while accessing index {0} of {1}"
+					print("WARNING: index error while accessing index {0} of {1}"
 						.format(arg[0] + argOffset, arguments))
 				except Exception:
 					print("""ERROR: argument {0} was present, but of type {1} 
@@ -258,34 +286,16 @@ def main(override = None):
 
 
 	elif command == 'paint-diag': 
-		if len(arguments) < 4: 
-			print("ERROR: incorrect number of arguments")
-		begin = 0
-		end = 0 
-		spread = 0
-		val = 0
+
+		begin  = arguments[0]
+		end    = arguments[1]
+		spread = arguments[2]
+		val    = arguments[3]
 		offset = 0
+		if len(arguments) == 5:
+				offset = arguments[4]
 
-		try:
-			begin  = int(arguments[0])
-			end    = int(arguments[1])
-			spread = int(arguments[2])
-			val    = float(arguments[3])
-			if len(arguments) == 5:
-				offset = int(arguments[4])
-		except ValueError:
-			print("ERROR: one or more arguments are not valid numbers")
-			return 
-
-		for i in range(begin, end):
-			for j in range(0, spread):
-				try:
-					col = offset + i + j # right side
-					SC.HSM.setValue(i, col, val)
-					col = offset + i - j # left side
-					SC.HSM.setValue(i, col, val)
-				except IndexError:
-					pass # out of bounds 
+		BXFUtils.paintDiagonal(begin, end, spread, val, SC.HSM, offset) 
 						
 
 
