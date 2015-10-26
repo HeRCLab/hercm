@@ -168,6 +168,14 @@ def main(override = None):
 		'help':'Changes the dimensions of the matrix, truncating elements '+
 			'which become out of bounds'}
 
+	commandInfo['init'] = {'requiredArguments':[[0, int, 'with'],
+			[1, int, 'height']],
+		'optionalArguments':[[0, float, 'val']],
+		'argumentInfo':['the width for the new matrix', 
+			'the height for the new matrix'],
+		'help':'Creates a new matrix with specified dimensions, with all '+
+			'elements initialized to zero, or to val if it is given'}
+
 	commandInfo['setsym'] = {'requiredArguments':[[0, str, 'symmetry']],
 		'optionalArguments':[[0, str, 'method']],
 		'argumentInfo':['the new symmetry for the matrix', 
@@ -358,37 +366,12 @@ def main(override = None):
 		BXFUtils.setSymmetry(symmetry, SC.HSM, method) 
 
 	elif command == 'init': 
-		height = 5
-		width = 5
+		height = arguments[1]
+		width = arguments[0]
 		val = 0
-		if len(arguments) >= 2:
-			try:
-				height = int(arguments[0]) 
-				width  = int(arguments[1])
-			except ValueError:
-				print("ERROR: cannot convert one or more arguments to integer")
-				return
-		if len(arguments) >= 3:
-			try:
-				val = float(arguments[2])
-			except ValueError:
-				print("ERROR: cannot convert {0} to float".format(arguments[2]))
-				return 
-
-		main("setdims 0 0")
-		main("setdims {0} {1}".format(height, width))
-		for i in range(0, height): # this is faster than using paint
-			for j in range(0,width): 
-				SC.HSM.setValue(i, j, val)
-		if SC.HSM.elements == None:
-			SC.HSM.nzentries = 0
-		else:
-			SC.HSM.nzentries = len(SC.HSM.elements['val'])
-		SC.HSM.symmetry = 'ASYM' 
-		SC.HSM.remarks = []
-
-		print("finished initializing matrix, new matrix info:")
-		main("info")
+		if len(arguments) == 3:
+			val = arguments[2]
+		BXFUtils.initilize(height, width, SC.HSM, val)
 
 
 

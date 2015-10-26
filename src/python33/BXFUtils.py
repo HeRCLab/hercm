@@ -321,10 +321,10 @@ def initilize(height, width, HERCMATRIX, val = 0):
 	for i in range(0, height): # this is faster than using paint
 		for j in range(0,width): 
 			HERCMATRIX.setValue(i, j, val)
-	if HERCMATRIX.elements == None:
-		SC.HSM.nzentries = 0
+	if HERCMATRIX.elements is None:
+		HERCMATRIX.nzentries = 0
 	else:
-		SC.HSM.nzentries = len(HERCMATRIX.elements['val'])
+		HERCMATRIX.nzentries = len(HERCMATRIX.elements['val'])
 	HERCMATRIX.symmetry = 'ASYM' 
 	HERCMATRIX.remarks = []
 
