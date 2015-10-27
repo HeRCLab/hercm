@@ -225,7 +225,11 @@ def touch(col, row, val, HERCMATRIX):
 	# TODO: make writes on symmetric matrices in lower triangle write to top
 	# triangle 
 
-	oldValue = HERCMATRIX.getValue(row, col)
+	try:
+		oldValue = HERCMATRIX.getValue(row, col)
+	except IndexError:
+		print("ERROR: row {0}, col {1} is out of bounds".format(row, col))
+		return 
 	HERCMATRIX.setValue(row, col, val)
 	print("updated value of col {1}, row {0} to {2} from {3}"
 		  .format(row, col, HERCMATRIX.getValue(row, col), oldValue))
@@ -293,7 +297,8 @@ def setSymmetry(newSymmetry, HERCMATRIX, method="truncate"):
 		newSymmetry = newSymmetry.lower()
 
 		if newSymmetry not in validOptions:
-			raise KeyError("{0} is not a valid symmetry".format(newSymmetry))
+			print("{0} is not a valid symmetry".format(newSymmetry))
+			return
 
 		if newSymmetry in ['sym','symmetric','symmetrical']:
 			symmetry = 'SYM'

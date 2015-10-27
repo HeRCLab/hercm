@@ -300,11 +300,10 @@ class hercMatrix:
 		this.elements['val'] = newContents.data.astype(numpy.float64)
 		this.nzentries = len(this.elements['val'])
 
-	def checkSymmetry(this):
+	def checkLowerTriangle(this):
 		# returns true if this matrix contains no elements in the lower triangle
 		# returns false otherwise 
 
-		# TODO: this does not actually work
 
 		for i in range(0, this.nzentries): 
 			element = this.getElement(i)
@@ -315,6 +314,26 @@ class hercMatrix:
 				if val != 0:
 					return False 
 			return True
+
+	def checkSymmetry(this):
+		# checks if the lower triangle is empty and symmetry attribute is SYM, 
+		# OR if there are no elements in the lower triangle which do not match
+		# the corresponding elements int he upper triangle. 
+
+		if this.checkLowerTriangle():
+			if this.symmetry == 'SYM':
+				return True
+
+		for i in range(0, this.nzentries):
+			element = this.getElement(i)
+			row = element[0]
+			col = element[1]
+			val = element[2] 
+			if row > col:
+				if val != this.getValue(col, row):
+					return False 
+		
+		return True 
 
 	def makeSymmetrical(this, method='truncate'):
 		# makes this matrix symmetrical 
@@ -378,9 +397,12 @@ class hercMatrix:
 
 			this.removeZeros()
 
+
 		else:
 			raise ValueError("method \"{0}\" is not valid, ".format(method)+
 				"expected one of: truncate, add, smart")
+
+		this.removeZeros()
 
 
 	def makeAsymmetrical(this, method='truncate'): 
@@ -429,10 +451,12 @@ class hercMatrix:
 			newMatrix = this.getInFormat('coo') + upperTriangle
 			this.replaceContents(newMatrix) 
 
+
 		else: 
 			raise ValueError("method \"{0}\" is not valid, ".format(method)+
 				"expected one of: truncate, add, smart")
 
+		this.removeZeros()
 
 	def makeRowMajor(this):
 		# re orders this matrix such that it is row major 

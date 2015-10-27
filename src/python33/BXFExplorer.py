@@ -222,10 +222,11 @@ def main(override = None):
 			for arg in commandInfo[command]['optionalArguments']:
 				argOffset = 0
 				if commandInfo[command]['requiredArguments'] != None:
-					argOffset = len(commandInfo[command]['requiredArguments'])-1
-				if argOffset + arg[0] > len(arguments): # this optional arg was
-				# not given
+					argOffset = len(commandInfo[command]['requiredArguments'])
+				if argOffset + arg[0] > (len(arguments) - 1): 
+				# this optional arg was not given
 					break
+
 
 				try:
 					arguments[arg[0] + argOffset] = \
