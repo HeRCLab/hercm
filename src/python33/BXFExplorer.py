@@ -195,6 +195,12 @@ def main(override = None):
 		'help':'Drop to Python debugging shell. WARNING: INTENDED FOR '+
 			'DEBUGGING USE ONLY'}
 
+	commandInfo['check-symmetry] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'Checks the symmetry attribute of the matrix, and whether or '+
+			'not the data in the matrix is actually symmetrical'}
+
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
 			"arguments!")
