@@ -3,7 +3,7 @@
 This page is incomplete. In the future, more detailed explanations, and usages examples and tutorials will be included. 
 
 # Help Message
-
+```
 ----------------------------------------
 paint [col1]  [row1]  [col2]  [row2]  (val)
 -- arguments --
@@ -236,3 +236,4 @@ help (command)
 -- use --
     Prints help for all commands, or prints the help for the command
     specified in the first argument
+```

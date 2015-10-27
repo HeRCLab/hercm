@@ -47,7 +47,7 @@ def printHelp(commandInfo, command=None):
 				argCounter += 1
 
 		print("-- use --")
-		for line in textwrap.wrap(commandInfo[command]['help']):
+		for line in textwrap.wrap(' '.join(commandInfo[command]['help'].split())):
 			print('    ' + line)
 
 
