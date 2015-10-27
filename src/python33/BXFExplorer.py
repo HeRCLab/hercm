@@ -210,6 +210,16 @@ def main(override = None):
 		'argumentInfo':None,
 		'help':'Plots the matrix graphically with matplotlib'}
 
+	commandInfo['transpose'] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'Reflects the matrix about the diagonal'}
+
+	commandInfo['ls'] = {'requiredArguments':None,
+		'optionalArguments':[[0, str, "path"]],
+		'argumentInfo':["the path to get a listing for - default is ./"],
+		'help':'Prints a directory listing for the specified path'}
+
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
 			"arguments!")
@@ -414,30 +424,13 @@ def main(override = None):
 
 
 	elif command == "transpose":
-		# reflects the matrix around the diagonal
-		print("performing matrix transpose, please wait...")
 		SC.HSM.transpose()
-		print("matrix transpose complete")
 
 	elif command == "ls":
-		directory = ''
-		if len(arguments) > 0:
-			if os.path.exists(arguments[0]):
-				directory = arguments[0] 
-			elif os.path.exists(os.path.join(os.getcwd(), arguments[0])):
-				directory = os.path.join(os.getcwd(), arguments[0])
-			else:
-				print("ERROR: could not get directory listing")
-				print(arguments[0], " is not a valid path")
-				print(os.path.join(os.getcwd(), arguments[0]), 
-					" is not a valid path")
-				directory = os.getcwd()
-		else:
-			directory = os.getcwd()
-
-		print("Directory listing for: ", directory)
-		for item in os.listdir(directory):
-			print(item)
+		directory = './'
+		if len(arguments) == 1:
+			directory = arguments[0]
+		BXFUtils.printDirectoryListing(directory)
 
 	elif command == "pwd":
 		print(os.getcwd())
