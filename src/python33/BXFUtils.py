@@ -38,9 +38,14 @@ def printHelp(commandInfo, command=None):
 				argCounter += 1
 		if commandInfo[command]['optionalArguments'] != None:
 			for arg in commandInfo[command]['optionalArguments']:
-				print('    ('+arg[2]+') - ' + str(arg[1]) + ' ' +
-					commandInfo[command]['argumentInfo'][argCounter])
+				try:
+					print('    ('+arg[2]+') - ' + str(arg[1]) + ' ' +
+						commandInfo[command]['argumentInfo'][argCounter])
+				except IndexError:
+					print("WARNING: commandInfo of {0} malformed"
+						.format(command))
 				argCounter += 1
+
 		print("-- use --")
 		for line in textwrap.wrap(commandInfo[command]['help']):
 			print('    ' + line)

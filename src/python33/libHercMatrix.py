@@ -239,9 +239,11 @@ class hercMatrix:
 
 	def setValue(this, newRow, newCol, newVal):
 		# changes the value of row, col to val
-		# all are integers 
 
-		# assumeRowMajor is passed through to getValue
+		if this.symmetry == 'SYM':
+			if newRow > newCol:
+				this.setValue(newCol, newRow, newVal)
+				return
 
 		if newRow >= this.height:
 			raise IndexError("newRow out of bounds") 
@@ -304,6 +306,8 @@ class hercMatrix:
 		# returns true if this matrix contains no elements in the lower triangle
 		# returns false otherwise 
 
+		this.removeZeros()
+		this.makeRowMajor()
 
 		for i in range(0, this.nzentries): 
 			element = this.getElement(i)
@@ -313,12 +317,16 @@ class hercMatrix:
 			if row > col:
 				if val != 0:
 					return False 
-			return True
+		
+		return True
 
 	def checkSymmetry(this):
 		# checks if the lower triangle is empty and symmetry attribute is SYM, 
 		# OR if there are no elements in the lower triangle which do not match
 		# the corresponding elements int he upper triangle. 
+
+		this.removeZeros()
+		this.makeRowMajor()
 
 		if this.checkLowerTriangle():
 			if this.symmetry == 'SYM':

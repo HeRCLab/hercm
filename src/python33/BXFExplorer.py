@@ -171,7 +171,8 @@ def main(override = None):
 			[1, int, 'height']],
 		'optionalArguments':[[0, float, 'val']],
 		'argumentInfo':['the width for the new matrix', 
-			'the height for the new matrix'],
+			'the height for the new matrix',
+			'the value to initialize all elements in the new matrix to'],
 		'help':'Creates a new matrix with specified dimensions, with all '+
 			'elements initialized to zero, or to val if it is given'}
 
@@ -252,6 +253,12 @@ def main(override = None):
 			'the format of the destination file'],
 		'help':'Reads the source file in the specified format, then writes it' +
 			'back out at the specified destination in the destination format'}
+
+	commandInfo['check-tril'] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'Prints whether or not there are nonzero elements in the ' +
+			'lower triangle'}
 
 
 	if command not in commandInfo:
@@ -486,6 +493,11 @@ def main(override = None):
 	elif command == "convert":
 		BXFUtils.convert(arguments[0], arguments[2], arguments[1], arguments[3])
 
+	elif command == 'check-tril':
+		if SC.HSM.checkLowerTriangle():
+			print("There are NO nonzero elements in the lower triangle")
+		else:
+			print("There ARE nonzero elements in the lower triangle")
 
 	else:
 		print("ERROR: Command not recognized") 
