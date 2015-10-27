@@ -205,6 +205,11 @@ def main(override = None):
 		'argumentInfo':None,
 		'help':'Updates the verification sum of the loaded matrix '}
 
+	commandInfo['plot'] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'Plots the matrix graphically with matplotlib'}
+
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
 			"arguments!")
@@ -405,10 +410,7 @@ def main(override = None):
 		BXFUtils.generateVerification(SC.HERCMIO, SC.HSM)
 
 	elif command == 'plot':
-		matrix = SC.HSM.getInFormat('coo')
-		
-		matplotlib.pyplot.spy(matrix)
-		matplotlib.pyplot.show()
+		BXFUtils.plot(SC.HSM)
 
 
 	elif command == "transpose":
