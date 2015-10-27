@@ -11,7 +11,6 @@ import logging
 import os
 import BXFUtils
 
-
 def main(override = None):
 	# override will be parsted instead of the user's input, if specified
 
@@ -195,11 +194,16 @@ def main(override = None):
 		'help':'Drop to Python debugging shell. WARNING: INTENDED FOR '+
 			'DEBUGGING USE ONLY'}
 
-	commandInfo['check-symmetry] = {'requiredArguments':None,
+	commandInfo['check-symmetry'] = {'requiredArguments':None,
 		'optionalArguments':None,
 		'argumentInfo':None,
 		'help':'Checks the symmetry attribute of the matrix, and whether or '+
 			'not the data in the matrix is actually symmetrical'}
+
+	commandInfo['gen-verification'] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'Updates the verification sum of the loaded matrix '}
 
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
@@ -398,9 +402,7 @@ def main(override = None):
 		BXFUtils.printSymmetry(SC.HSM)
 
 	elif command == 'gen-verification':
-		newSum = SC.HERCMIO.generateVerificationSum(SC.HSM)
-		SC.HSM.verification = newSum 
-		print("updated verification sum to: {0}".format(newSum))
+		BXFUtils.generateVerification(SC.HERCMIO, SC.HSM)
 
 	elif command == 'plot':
 		matrix = SC.HSM.getInFormat('coo')
