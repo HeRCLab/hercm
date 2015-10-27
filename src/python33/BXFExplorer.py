@@ -220,6 +220,40 @@ def main(override = None):
 		'argumentInfo':["the path to get a listing for - default is ./"],
 		'help':'Prints a directory listing for the specified path'}
 
+	commandInfo['pwd'] = {'requiredArguments':None,
+		'optionalArguments':None,
+		'argumentInfo':None,
+		'help':'Prints the current working directory'}
+
+	commandInfo['head'] = {'requiredArguments':[[0, str, 'path']],
+		'optionalArguments':[[0, int, 'lines']],
+		'argumentInfo':['the path to the file to get the head of',
+			'the number of lines to print from the file, default is 10'],
+		'help':'Prints the first lines lines of the file'}
+
+	commandInfo['cat'] = {'requiredArguments':[[0, str, 'path']],
+		'optionalArguments':None,
+		'argumentInfo':['The file to print all lines from'],
+		'help':'Prints all lines from the file'}
+
+	commandInfo['cd'] = {'requiredArguments':[[0, str, 'path']],
+		'optionalArguments':None,
+		'argumentInfo':['new working directory'],
+		'help':'Changes the current working directory to path'}
+
+	commandInfo['convert'] = {'requiredArguments':[[0, str, 'source'],
+			[1, str, 'source format'],
+			[2, str, 'destination'],
+			[3, str, 'destination format']],
+		'optionalArguments':None,
+		'argumentInfo':['The path to the source file',
+			'the file format of the source file',
+			'the path to the destination file',
+			'the format of the destination file'],
+		'help':'Reads the source file in the specified format, then writes it' +
+			'back out at the specified destination in the destination format'}
+
+
 	if command not in commandInfo:
 		print("WARNING: command is not in commandInfo, cannot check required " +
 			"arguments!")
@@ -436,53 +470,21 @@ def main(override = None):
 		print(os.getcwd())
 
 	elif command == "head":
-		if len(arguments) != 1:
-			print("ERROR: incorrect number of arguments")
-			return 
-		f = open(arguments[0])
-		for line in f.readlines()[0:10]:
-			print(line, end='')
+		lines = 10
+		path = arguments[0]
+		if len(arguments) == 2:
+			lines = arguments[1]
+
+		BXFUtils.head(path, lines)
 
 	elif command == "cat":
-		if len(arguments) != 1:
-			print("ERROR: incorrect number of arguments")
-			return 
-		f = open(arguments[0])
-		for line in f.readlines():
-			print(line, end='')
+		BXFUtils.cat(arguments[0])
 
 	elif command == "cd":
-		if len(arguments) != 1:
-			print("ERROR: incorrect number of arguments")
-			return 
-		if not os.path.exists(arguments[0]):
-			print("ERROR: cannot cd to nonexistent path")
-			return 
-		if os.path.isfile(arguments[0]):
-			print("ERROR: {0} is not a directory".format(arguments[0]))
-			return
-		os.chdir(arguments[0])
+		BXFUtils.changeDirectory(arguments[0])
 
 	elif command == "convert":
-		if len(arguments) != 4:
-			print("ERROR: incorrect number of arguments")
-			return 
-		source = arguments[0] 
-		destination = arguments[2]
-		sourceFormat = arguments[1]
-		destinationFormat = arguments[3]
-
-		if not os.path.exists(source):
-			print("ERROR: load from nonexistent path")
-			return 
-		if not os.path.isfile(source ):
-			print("ERROR: {0} is not a file".format(source))
-			return
-
-
-		main("load " + source)
-		main("gen-verification")
-		main("write " + destination + " " + destinationFormat)
+		BXFUtils.convert(arguments[0], arguments[2], arguments[1], arguments[3])
 
 
 	else:

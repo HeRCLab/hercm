@@ -9,6 +9,7 @@ import logging
 import os
 import textwrap
 import pprint
+import libBXF
 
 def printHelp(commandInfo, command=None):
 	if command == None:
@@ -337,7 +338,10 @@ def initilize(height, width, HERCMATRIX, val = 0):
 
 def generateVerification(BXFIO, HERCMATRIX):
 	# updates verification sum of matrix 
-	newSum = BXFIO.generateVerificationSum(HERCMATRIX)
+	try:
+		newSum = BXFIO.generateVerificationSum(HERCMATRIX)
+	except TypeError:
+		print("ERROR: could not generate verification sum of empty matrix")
 	HERCMATRIX.verification = newSum 
 
 def plot(HERCMATRIX):
@@ -417,5 +421,6 @@ def convert(source, destination, sourceFormat, destinationFormat):
 	HERCMIO.HSM = HERCMATRIX
 	HERCMIO.HERCMIO = BXFIO
 
+	load(source, sourceFormat, HERCMIO)
 	generateVerification(BXFIO, HERCMATRIX)
 	write(destination, destinationFormat, HERCMIO)
