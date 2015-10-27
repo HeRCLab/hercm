@@ -222,7 +222,7 @@ def main(override = None):
 			for arg in commandInfo[command]['optionalArguments']:
 				argOffset = 0
 				if commandInfo[command]['requiredArguments'] != None:
-					argOffset = len(commandInfo[command]['requiredArguments'])
+					argOffset = len(commandInfo[command]['requiredArguments'])-1
 				if argOffset + arg[0] > len(arguments): # this optional arg was
 				# not given
 					break
@@ -401,12 +401,6 @@ def main(override = None):
 		matplotlib.pyplot.spy(matrix)
 		matplotlib.pyplot.show()
 
-	elif command == 'log-info':
-		print("setting loglevel to info")
-		logging.basicConfig(level=logging.INFO)
-	elif command == 'log-debug':
-		print("setting loglevel to debug")
-		logging.basicConfig(level=logging.DEBUG)
 
 	elif command == "transpose":
 		# reflects the matrix around the diagonal
