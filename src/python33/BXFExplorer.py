@@ -18,7 +18,7 @@ def main(override=None):
     import pprint
     pp = pprint.PrettyPrinter()
 
-    if override == None:
+    if override is None:
         usrIn = input("> ")
     else:
         usrIn = override
