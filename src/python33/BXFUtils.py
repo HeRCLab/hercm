@@ -50,7 +50,7 @@ def printHelp(commandInfo, command=None):
         print("-- use --")
         # get rid of extraneous white space
         helpText = commandInfo[command]['help'].split()
-
+        helpText = ' '.join(helpText) # put back just spaces 
         # wrap text, then print line by line
         for line in textwrap.wrap(helpText):
             print('    ' + line)
