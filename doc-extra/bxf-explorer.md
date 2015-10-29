@@ -1,4 +1,4 @@
-# Introduction 
+# BXF Explorer
 BXF Explorer is a tool for manipulating sparse matrices, and for converting them between different formats. It includes the a ability to perform complex operations, such as painting a range of elements along a diagonal to a particular value.
 
 # Interface

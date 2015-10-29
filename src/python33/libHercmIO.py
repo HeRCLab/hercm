@@ -11,8 +11,10 @@ import os
 import logging
 
 
-class hercmIOConvertFormatError:
-    pass
+""" @package libHercmIO
+# Introduction 
+"""
+
 
 
 class hercmIO:
@@ -259,5 +261,5 @@ in row or col""".format(e))
 
         else:
             logging.warning("(lsc-621) format {0} is not valid".format(form))
-            raise SparseConvertFormatError("{0} is not a valid format"
+            raise TypeError("{0} is not a valid format"
                                            .format(form))
