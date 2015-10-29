@@ -73,13 +73,23 @@ commandInfo is a large data structure, which currently lives in `commandInfo.yam
 
 ```
 {'argumentInfo': ['description of 1st required arg',
-        'description  of 2nd required arg'],
+        'description of optional argument'],
  'help': 'This is the help message for the command',
  'optionalArguments': [[0, str, someArgument]],
  'requiredArguments': [[0, <class 'str'>, 'aRequiredArgument']]}
 ```
 
 ### `argumentInfo` 
+A list contain strings, which are one-line descriptions of each argument in order. Both optional and required argument descriptions live here, with the required arguments first, and the optionals second. 
+
+### `help` 
+A string of any length containing the help text for the command. 
+
+### `optionalArguments`
+None, or a list of lists. Each sub-list contains it's position (position after the command for required arguments, or position after the required arguments for optional arguments), the python class to which the argument will be typecast, and a short (1 - 2 word) name for the argument. 
+
+## `requiredArguments` 
+Exactly the same format as optional arguments. 
 
 # Help Message
 ```
