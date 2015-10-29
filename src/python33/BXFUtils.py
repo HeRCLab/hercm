@@ -63,9 +63,8 @@ def load(filename, form, HERCMIO):
     if form not in ['bxf', 'hercm', 'mat', 'mtx']:
         raise KeyError("format {0} is not supported".format(form))
 
-    print("Loading matrix...")
-    HERCMIO.readMatrix(filename, form)
-    print("Finished loading matrix.")
+    HERCMIO.readMatrix(filename, form, True)
+
 
 
 def write(filename, form, HERCMIO):

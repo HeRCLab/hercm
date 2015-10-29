@@ -1,6 +1,85 @@
-# This page is under construction
+# Introduction 
+BXF Explorer is a tool for manipulating sparse matrices, and for converting them between different formats. It includes the a ability to perform complex operations, such as painting a range of elements along a diagonal to a particular value.
 
-This page is incomplete. In the future, more detailed explanations, and usages examples and tutorials will be included. 
+# Interface
+BXF Explorer includes an simple, yet powerful command line interface. Whenever you see the prompt `> `, BXF Explorer is ready to accept your input. Input consists of three parts: the *command*, *required arguments*, and *optional arguments*. 
+
+## Commands 
+A command is the first space-delineated string from an input. For example:
+
+**figure 1**
+```
+load myMatrix.bxf bxf
+```
+
+`load` is the command in the above example. 
+
+## Required Arguments
+Required arguments, as the name implies, are required in order to execute a command. All arguments are space-delineated, and are order-sensitive. In **figure 1** above, `myMatrix.bxf` and `bxf` are examples of arguments, and both happen to be required to run the `load` command. 
+
+## Optional Arguments
+Optional arguments provide access to extended functionality of various commands. Optional arguments are also order-sensitive, and begin after the required arguments of a command. For example: 
+
+**figure 2**
+```
+paint 0 0 10 10 734
+```
+
+* `paint` is the command
+* `0 0 10 10` are the required arguments
+* `734` is an optional argument
+
+If optional arguments are not given, a default value will be assumed, and the command will execute anyway. 
+
+# Getting Help
+BXF Explorer includes a robust help system. You can view help for all commands with `help`, and you can view help for a specific command with `help command`. The following conventions are used:
+
+* all arguments are in order 
+* all required arguments are surrounded by brackets `[]` 
+* all optional arguments are surrounded by parens `()` 
+
+For a convenience, the full output of `help` is provided below in the **Help Message** section. 
+
+## Interpreting errors 
+As you use BXFExplorer, you will probably make some errors, which are enumerated below.
+
+### `ERROR, incorrect number of arguments for command` 
+The command you are trying to run requires more arguments than you are giving it. Review the command's help page with `help command` 
+
+### `Missing argument 'argumentname' at position X` 
+You are missing the argument identified by it's name. Note that positions are zero-indexed. For example, the first argument after the command would be position 0. 
+
+### `ERROR: argument X was present, but is not of required type <class 'someclass'>`
+This argument must be typecast to a specific type, such as an integer or floating point number, and the argument you provided was not valid, or could not be typecast to that type. 
+
+### `WARNING: command is not in commandInfo, cannot check required arguments!` 
+No help pages are available for this command, so BXFExplorer cannot check if you have provided correct argument. This message may be present on development versions of BXFExplorer where new commands have been implemented, but have not yet been documented. 
+
+### `ERROR: Command not recognized` 
+The command you are trying to run does not exist. Ensure you have spelled the command correctly. 
+
+# Creating new commands - the commandInfo data format, and BXFUtils.py
+If you are a developer, you may wish to implement a new command. If you decide to do so, you should consider the following conventions. 
+
+* Add you command to BXFExplorer with an if statement, in the same style as the existing commands. 
+* Command logic should go in a function in `BXFUtils.py`, which should then be called by said if statement. 
+* The exception to the above is wrappers to existing functions (eg. `makeRowMajor()`)
+* It is okay to do argument preparation/validation in `BXFExplorer`
+* Functions in `BXFUtils.py` should not throw exceptions, and should do any needed exception handling themselves. 
+* BXFEXplorer will do basic argument validation for you - it will ensure required arguments are present, and *it will automatically typecast argument to the desired type* - you *do not* need to typecast arguments yourself. 
+
+## The commandInfo data structure 
+commandInfo is a large data structure, which currently lives in `commandInfo.yaml`, which stores all information about all commands - including arguments, their required types, and help messages. commandInfo is a dict, each key is the name of a command,  and the data associated with the keys should look like this: 
+
+```
+{'argumentInfo': ['description of 1st required arg',
+        'description  of 2nd required arg'],
+ 'help': 'This is the help message for the command',
+ 'optionalArguments': [[0, str, someArgument]],
+ 'requiredArguments': [[0, <class 'str'>, 'aRequiredArgument']]}
+```
+
+### `argumentInfo` 
 
 # Help Message
 ```

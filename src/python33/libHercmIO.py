@@ -23,7 +23,7 @@ class hercmIO:
         # more relevant
         this.HERCMIO = libBXF.bxfio()
 
-    def readMatrix(this, filename, form):
+    def readMatrix(this, filename, form, showProgress = False):
         # filename is the string path to the matrix file to open
         # format is the string 'hercm' or 'mtx' specifying matrix format
 
@@ -33,6 +33,8 @@ class hercmIO:
         logging.info("reading matrix {0} in format {1}".format(filename, form))
 
         if form == ('hercm' or 'bxf'):
+            if showProgress:
+                print("format is bxf, reading matrix using HERCMIO...")
             matrix = None
             try:
                 matrix = this.HERCMIO.read(filename)
@@ -44,6 +46,9 @@ class hercmIO:
             this.HSM = matrix
             this.HSM.nzentries = len(this.HSM.elements['val'])
 
+            if showProgress:
+                print("finished reading matrix.")
+
         elif form == 'mtx':
             from scipy import io
             from scipy.sparse import csr_matrix
@@ -52,9 +57,11 @@ class hercmIO:
             # reads in an MTX file and converts it to hercm
 
             try:
-
+                if showProgress:
+                    print("reading data from file...")
+                
                 rawMatrix = scipy.sparse.coo_matrix(scipy.io.mmread(filename))
-
+                
                 if 'symmetric' in io.mminfo(filename):
                     this.HSM.symmetry = "SYM"
                 else:
@@ -62,6 +69,8 @@ class hercmIO:
 
                 hercm = {}  # needed to generate verification
 
+                if showProgress:
+                    print("generating header data..")
                 hercm['val'] = rawMatrix.data
                 hercm['col'] = rawMatrix.col.tolist()
                 hercm['row'] = rawMatrix.row.tolist()
@@ -75,6 +84,8 @@ class hercmIO:
                 # I'm not sure why this has to be hard...
                 # http://stackoverflow.com/questions/26018781/numpy-is-it-possible-to-preserve-the-dtype-of-columns-when-using-column-stack
 
+                if showProgress:
+                    print("preparing matrix data...")
                 val = numpy.asarray(hercm['val'], dtype='float64')
                 col = numpy.asarray(hercm['col'], dtype='int32')
                 row = numpy.asarray(hercm['row'], dtype='int32')
@@ -96,6 +107,9 @@ class hercmIO:
                         dtypes=[numpy.float64])
 
                 this.HSM.nzentries = len(this.HSM.elements['val'])
+
+                if showProgress:
+                    print("finished reading matrix")
 
             except IOError as e:  # make sure the file exists and is readable
                 logging.warning("(lsc-480) could not open matrix file")
@@ -159,12 +173,21 @@ class hercmIO:
                             .format(form), "error")
             logging.warning("(lsc-545) format {0} is not valid".format(form))
 
+        if showProgress:
+            print("converting matrix to row-major...")
         logging.info("converting matrix to row-major")
         this.HSM.makeRowMajor()
 
+        if showProgress:
+            print("matrix is now row major")
+
         if this.HSM.symmetry == 'SYM':
-            logging.info("matrix is symmetric, truncating lowe rtriangle")
-            this.HSM.makeSymmetrical('truncate')
+            logging.info("matrix is symmetric, truncating lower triangle")
+            if showProgress:
+                print("matrix is symmetric, truncating lower triangle...")
+            this.HSM.makeSymmetrical('truncate', showProgress)
+            if showProgress:
+                print("lower triangle truncated")
 
     def writeMatrix(this, filename, form):
         # writes this.HSM to the file

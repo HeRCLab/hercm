@@ -271,14 +271,22 @@ class hercMatrix:
         if newVal == 0:
             this.removeZeros()
 
-    def removeZeros(this):
+    def removeZeros(this, showProgress=False):
         # removes any instances of zero
 
         if this.elements is None:
             return
-        for i in reversed(range(0, this.nzentries)):
+        this.nzentries = len(this.elements)
+        startNzentries = this.nzentries -1
+        i = this.nzentries -1
+        while i > 0:
+            if showProgress:
+                if i % 1000 == 0:
+                    print("{0} of {1}"
+                        .format(startNzentries-i, startNzentries))
             if this.elements['val'][i] == 0:
                 this.removeElement(i)
+            i+= -1
         this.nzentries = len(this.elements['val'])
 
     def replaceContents(this, newContents):
@@ -335,7 +343,7 @@ class hercMatrix:
 
         return True
 
-    def makeSymmetrical(this, method='truncate'):
+    def makeSymmetrical(this, method='truncate', showProgress=False):
         # makes this matrix symmetrical
         # if method is 'truncate', this will be done by discarding the
         # bottom triangle, regardless of contents
@@ -401,7 +409,7 @@ class hercMatrix:
             raise ValueError("method \"{0}\" is not valid, ".format(method) +
                     "expected one of: truncate, add, smart")
 
-        this.removeZeros()
+        this.removeZeros(showProgress)
 
     def makeAsymmetrical(this, method='truncate'):
         # if method is truncate
