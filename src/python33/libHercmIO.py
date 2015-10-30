@@ -11,20 +11,29 @@ import os
 import logging
 
 
-""" @package libHercmIO
-# Introduction 
-"""
+## @package libHercmIO
+# libHercmIO is the aggregate IO provider for all python HeRC Matrix Tools. It's 
+# primary purpose is to wrap other io functions, such as those provided by libBXF
+# and scipy.io 
 
 
+## wrapper for various matrix read functions 
+# Reads matrices of any supported format, then returns the matrix as an 
+# instance of `libHercMatrix.HercMatrix`. 
+#
+# @param[in] filename a string containing the absolute or relative path of the 
+# file to read
+# @param[in] form a string containing the format of the file to read. Currently, 
+# valid values are `bxf`, `hercm`, `mat`, and `mtx`. 
+# @param[in] showProgress if `True`, verbose progress messages are printed. 
+# Defaults to `False`. 
+#
+# @return the matrix as an instance of `libHercMatrix.hercMatrix`
+#
+# @throws IOError if the specified file could not be opened for writing
+# 
+    
 def readMatrix(filename, form, showProgress=False):
-    # filename is the string path to the matrix file to open
-    # format is the string 'hercm' or 'mtx' specifying matrix format
-
-    # reads the matrix into HERCMATRIX for later processing
-    # converts non-hercm matrices to hercm internally
-
-    # returns as hecMatrix instance
-
     HERCMATRIX = libHercMatrix.hercMatrix()
 
     logging.info("reading matrix {0} in format {1}".format(filename, form))
@@ -187,6 +196,20 @@ def readMatrix(filename, form, showProgress=False):
     return HERCMATRIX
 
 
+## Writes matrices from libHercMatrix.hercMatrix instances
+# Writes matrices in any supported format. 
+# 
+# @param[in] filename string containing the relative or absolute path to the file 
+# to write
+# @param[in] form the format in which to write the file, one of `hercm`, `bxf`,
+# `mtx`, or `mat`
+# @param[in] HERCMATRIX an instance of libHercMatrix.hercMatrix, whose contents
+# will be written to the file
+# 
+# @return `None`
+# 
+# @throws TypeError if `form` is not a valid format 
+
 def writeMatrix(filename, form, HERCMATRIX):
     # writes HERCMATRIX to the file
     # filename is a string indicating path of file
@@ -215,7 +238,7 @@ def writeMatrix(filename, form, HERCMATRIX):
 
     if form == 'bxf':
             
-            libBXF.write(HERCMATRIX, filename)
+        libBXF.write(HERCMATRIX, filename)
 
     elif form == 'mtx':
         try:
