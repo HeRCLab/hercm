@@ -11,18 +11,27 @@ import logging
 import os
 import BXFUtils
 import yaml
+import pprint
+
+
+WORKINGMATRIX = libHercMatrix.hercMatrix()
+commandInfoStream = open("commandInfo.yaml", 'r')
+commandInfo = yaml.load(commandInfoStream)
+commandInfoStream.close()
+pp = pprint.PrettyPrinter()
 
 
 def main(override=None):
     # override will be parsted instead of the user's input, if specified
 
-    import pprint
-    pp = pprint.PrettyPrinter()
+    global WORKINGMATRIX
+    global commandInfo
 
     if override is None:
         usrIn = input("> ")
     else:
         usrIn = override
+        logging.warning("override functionality for main() is going away soon")
 
     usrIn = usrIn.rstrip()
     splitInput = usrIn.split()
@@ -31,9 +40,6 @@ def main(override=None):
         arguments = splitInput[1:]
     except IndexError:
         return
-
-
-
 
     if command not in commandInfo:
         print("WARNING: command is not in commandInfo, cannot check required " +
@@ -91,18 +97,9 @@ def main(override=None):
         exit()
 
     elif command == 'load':
-        try:
-            BXFUtils.load(arguments[0], arguments[1], SC)
-        except AttributeError:
-            print("ERROR: file does not exist")
-            return
-        except OSError:
-            print("ERROR: file does not exist")
-        except KeyError:
-            print("ERROR: requested format is not supported")
+        WORKINGMATRIX = BXFUtils.load(arguments[0], arguments[1])
 
-        print("done reading matrix")
-        if SC.HSM.symmetry == 'SYM':
+        if WORKINGMATRIX.symmetry == 'SYM':
             print("INFO: matrix is symmetric, bottom triangle should be only "
                   + "zeros")
 
@@ -110,52 +107,52 @@ def main(override=None):
         fileName = arguments[0]
         fileFormat = arguments[1]
         try:
-            BXFUtils.write(fileName, fileFormat, SC)
+            BXFUtils.write(fileName, fileFormat, WORKINGMATRIX)
         except FileExistsError:
             print("ERROR: file already exists!")
             return
 
     elif command == 'info':
-        BXFUtils.printInfo(SC.HSM)
+        BXFUtils.printInfo(WORKINGMATRIX)
 
     elif command == 'display':
         if len(arguments) == 2:
             height = arguments[0]
             width = arguments[1]
             try:
-                BXFUtils.displayMatrix(SC.HSM, height, width)
+                BXFUtils.displayMatrix(WORKINGMATRIX, height, width)
             except ValueError:
                 print("ERROR: display dimensions must be even numbers!")
         else:
-            BXFUtils.displayMatrix(SC.HSM)
+            BXFUtils.displayMatrix(WORKINGMATRIX)
 
     elif command == 'csrdisplay':
         if len(arguments) == 2:
-            BXFUtils.printCSR(SC.HSM, arguments[0], arguments[1])
+            BXFUtils.printCSR(WORKINGMATRIX, arguments[0], arguments[1])
         else:
-            BXFUtils.printCSR(SC.HSM)
+            BXFUtils.printCSR(WORKINGMATRIX)
 
     elif command == 'raw':
-        BXFUtils.printRaw(SC.HSM)
+        BXFUtils.printRaw(WORKINGMATRIX)
 
     elif command == 'value':
-        BXFUtils.printValue(arguments[0], arguments[1], SC.HSM)
+        BXFUtils.printValue(arguments[0], arguments[1], WORKINGMATRIX)
 
     elif command == 'row':
-        BXFUtils.printRow(arguments[0], SC.HSM)
+        BXFUtils.printRow(arguments[0], WORKINGMATRIX)
 
     elif command == 'col':
-        BXFUtils.printCol(arguments[0], SC.HSM)
+        BXFUtils.printCol(arguments[0], WORKINGMATRIX)
 
     elif command == 'range':
         col1 = arguments[0]
         col2 = arguments[2]
         row1 = arguments[1]
         row2 = arguments[3]
-        BXFUtils.printRange(row1, row2, col1, col2, SC.HSM)
+        BXFUtils.printRange(row1, row2, col1, col2, WORKINGMATRIX)
 
     elif command == 'touch':
-        BXFUtils.touch(arguments[0], arguments[1], arguments[2], SC.HSM)
+        BXFUtils.touch(arguments[0], arguments[1], arguments[2], WORKINGMATRIX)
 
     elif command == 'paint':
         val = 0.0
@@ -166,7 +163,7 @@ def main(override=None):
         if len(arguments) == 5:
             val = arguments[4]
 
-        BXFUtils.paint(row1, row2, col1, col2, val, SC.HSM)
+        BXFUtils.paint(row1, row2, col1, col2, val, WORKINGMATRIX)
 
     elif command == 'paint-diag':
 
@@ -178,16 +175,16 @@ def main(override=None):
         if len(arguments) == 5:
             offset = arguments[4]
 
-        BXFUtils.paintDiagonal(begin, end, spread, val, SC.HSM, offset)
+        BXFUtils.paintDiagonal(begin, end, spread, val, WORKINGMATRIX, offset)
 
     elif command == 'row-major':
         print("making matrix row major, this may take some time, standby...")
-        SC.HSM.makeRowMajor()
+        WORKINGMATRIX.makeRowMajor()
         print("done")
 
     elif command == 'rmzeros':
         print("removing zeros, standby...")
-        SC.HSM.removeZeros()
+        WORKINGMATRIX.removeZeros()
         print("done")
 
     elif command == 'setdims':
@@ -195,14 +192,14 @@ def main(override=None):
             # TODO: fix this
             print("WARNING: height is greater than width, this will probably " +
                   "break several commands (this is a known bug)")
-        BXFUtils.setDims(arguments[1], arguments[0], SC.HSM)
+        BXFUtils.setDims(arguments[1], arguments[0], WORKINGMATRIX)
 
     elif command == 'setsym':
         symmetry = arguments[0]
         method = 'truncate'
         if len(arguments) == 2:
             method = arguments[1]
-        BXFUtils.setSymmetry(symmetry, SC.HSM, method)
+        BXFUtils.setSymmetry(symmetry, WORKINGMATRIX, method)
 
     elif command == 'init':
         height = arguments[1]
@@ -210,7 +207,7 @@ def main(override=None):
         val = 0
         if len(arguments) == 3:
             val = arguments[2]
-        BXFUtils.initilize(height, width, SC.HSM, val)
+        BXFUtils.initilize(height, width, WORKINGMATRIX, val)
 
     elif command == 'shell':
         print("Entering python interactive debug shell...")
@@ -219,16 +216,16 @@ def main(override=None):
         pdb.set_trace()
 
     elif command == 'check-symmetry':
-        BXFUtils.printSymmetry(SC.HSM)
+        BXFUtils.printSymmetry(WORKINGMATRIX)
 
     elif command == 'gen-verification':
-        BXFUtils.generateVerification(SC.HERCMIO, SC.HSM)
+        BXFUtils.generateVerification(WORKINGMATRIX)
 
     elif command == 'plot':
-        BXFUtils.plot(SC.HSM)
+        BXFUtils.plot(WORKINGMATRIX)
 
     elif command == "transpose":
-        SC.HSM.transpose()
+        WORKINGMATRIX.transpose()
 
     elif command == "ls":
         directory = './'
@@ -258,7 +255,7 @@ def main(override=None):
             arguments[0], arguments[2], arguments[1], arguments[3])
 
     elif command == 'check-tril':
-        if SC.HSM.checkLowerTriangle():
+        if WORKINGMATRIX.checkLowerTriangle():
             print("There are NO nonzero elements in the lower triangle")
         else:
             print("There ARE nonzero elements in the lower triangle")
@@ -272,8 +269,4 @@ def runMain():
         main()
 
 print("welcome to BXFExplorer. Enter \"help\" for help")
-SC = libHercmIO.hercmIO()
-commandInfoStream = open("commandInfo.yaml", 'r')
-commandInfo = yaml.load(commandInfoStream)
-commandInfoStream.close() 
 runMain()

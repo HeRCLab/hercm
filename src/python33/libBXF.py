@@ -13,12 +13,11 @@ class HercmioValidationError(Exception):
     pass
 
 
-
-def read(this, filename):
+def read(filename):
     # reads in the HeRCM file specified by filename
     # returns it as an instance of libhsm.hsm
 
-    HSM = libHercMatrix.hercMatrix()
+    HERCMATRIX = libHercMatrix.hercMatrix()
     contents = {}
 
     logging.info("Reading BXF file {0}".format(filename))
@@ -47,7 +46,7 @@ def read(this, filename):
             .format(header))
         raise HercmioValidationError("header contains too few fields")
 
-    if splitHeader[0] != ('HERCM' or 'BXF  '):
+    if (splitHeader[0] != 'HERCM') and (splitHeader[0] != 'BXF'):
         logging.warning("(lsc-55)could not read file, not a HeRCM file " +
                 "or mangled header")
         raise HercmioValidationError("header does not contain HeRCM")
@@ -69,11 +68,11 @@ def read(this, filename):
     logging.info("width: {0}\nheight: {1}\nnzentries:{2}\nverification:{3}"
             .format(width, height, nzentries, verification))
 
-    HSM.width = width
-    HSM.height = height
-    HSM.nzentries = nzentries
-    HSM.symmetry = symmetry
-    HSM.verification = verification
+    HERCMATRIX.width = width
+    HERCMATRIX.height = height
+    HERCMATRIX.nzentries = nzentries
+    HERCMATRIX.symmetry = symmetry
+    HERCMATRIX.verification = verification
 
     contents['width'] = width
     contents['height'] = height
@@ -153,30 +152,31 @@ def read(this, filename):
                                          .format(field))
 
     for field in ['row', 'val', 'col']:
-        if len(contents[field]) != HSM.nzentries:
+        if len(contents[field]) != HERCMATRIX.nzentries:
             logging.warning("""(lsc-162) length of {0} {1} does not 
-match nzentries {2}""".format(field, len(contents[field]), HSM.nzentries))
+match nzentries {2}""".format(field, len(contents[field]), HERCMATRIX.nzentries))
 
-    for i in range(0, HSM.nzentries):
+    for i in range(0, HERCMATRIX.nzentries):
         try:
-            HSM.addElement([contents['row'][i],
+            HERCMATRIX.addElement([contents['row'][i],
                             contents['col'][i],
                             contents['val'][i]])
         except IndexError:
             logging.warning("""(lsc-172) could not add index {0} of contents
- to HSM instance. Nzentries is {1} and len val is {2}"""
-                    .format(i, HSM.nzentries,
+ to HERCMATRIX instance. Nzentries is {1} and len val is {2}"""
+                    .format(i, HERCMATRIX.nzentries,
                             len(contents['val'])), 'warning')
 
-            raise IndexError("Unable to add index {0} to HSM".format(i))
+            raise IndexError("Unable to add index {0} to HERCMATRIX".format(i))
 
-    if this.verify(contents):
-        return HSM
+    if verify(contents):
+        return HERCMATRIX
     else:
         logging.warning("(lsc-181) verification failed")
         return None
 
-def generateVerificationSum(this, hercm):
+
+def generateVerificationSum(hercm):
     # returns the verification sum of hercm
     # hercm should be in the format:
 
@@ -218,11 +218,12 @@ def generateVerificationSum(this, hercm):
         row = hercm.elements['row']
         col = hercm.elements['col']
 
-        return this.generateVerificationSum({'val': val,
+        return generateVerificationSum({'val': val,
                 'row': row,
                 'col': col})
 
-def verify(this, hercm):
+
+def verify(hercm):
     # verifies the hercm provided
     # hercm should be the same dict format as generateVerificationSum()
     # hercm may also be an instance of libhsm.hsm
@@ -233,7 +234,7 @@ def verify(this, hercm):
 
     if type(hercm) == dict:
         try:
-            verification = this.generateVerificationSum(hercm)
+            verification = generateVerificationSum(hercm)
         except KeyError as e:
             raise KeyError(
                 "failed to generate verification sum... ", str(e))
@@ -244,7 +245,7 @@ def verify(this, hercm):
             return None
 
         try:
-            if verification == hercm['verification']:
+            if abs(verification - hercm['verification']) < 0.00001:
                 logging.info("verification passed")
                 return True
             else:
@@ -263,7 +264,7 @@ def verify(this, hercm):
             return None
     else:
         try:
-            verification = this.generateVerificationSum(hercm)
+            verification = generateVerificationSum(hercm)
         except KeyError as e:
             raise KeyError(
                 "failed to generate verification sum... ", str(e))
@@ -275,8 +276,9 @@ def verify(this, hercm):
 
         return hercm.verification == verification
 
-def write(this, HSM, filename, headerString="BXF  "):
-    # HSM should be an instance of libhsm.hsm
+
+def write(HERCMATRIX, filename, headerString="BXF  "):
+    # HERCMATRIX should be an instance of libhsm.hsm
     # fileame is the string path to the file to write
     # writes a hercm file with contents matching hercm to filename
 
@@ -296,16 +298,16 @@ def write(this, HSM, filename, headerString="BXF  "):
         raise PermissionError("Could not open file {0}..."
                               .format(filename), str(e))
 
-    if not this.verify(HSM):
+    if not verify(HERCMATRIX):
         logging.warning("(lsc-303) verification failed")
         raise HercmioValidationError("matrix did not pass validation")
 
     header = headerString + ' '
-    header = header + str(HSM.width) + ' '
-    header = header + str(HSM.height) + ' '
-    header = header + str(HSM.nzentries) + ' '
-    header = header + str(HSM.symmetry) + ' '
-    header = header + str(HSM.verification) + '\n'
+    header = header + str(HERCMATRIX.width) + ' '
+    header = header + str(HERCMATRIX.height) + ' '
+    header = header + str(HERCMATRIX.nzentries) + ' '
+    header = header + str(HERCMATRIX.symmetry) + ' '
+    header = header + str(HERCMATRIX.verification) + '\n'
 
     logging.info("generated header: {0}".format(header))
 
@@ -315,7 +317,7 @@ def write(this, HSM, filename, headerString="BXF  "):
     fileObject.write('REMARKS LIST STRING\n')
     itemcounter = 0
     line = ''
-    for item in HSM.remarks:
+    for item in HERCMATRIX.remarks:
         logging.debug("writing item {0} in remarks".format(item))
         line = line + item + ' '
         itemcounter += 1
@@ -331,7 +333,7 @@ def write(this, HSM, filename, headerString="BXF  "):
     fileObject.write('VAL LIST FLOAT\n')
     itemcounter = 0
     line = ''
-    for item in HSM.elements['val']:
+    for item in HERCMATRIX.elements['val']:
         logging.debug("writing item {0} in val".format(str(item)))
         line = line + str(item) + ' '
         itemcounter += 1
@@ -347,7 +349,7 @@ def write(this, HSM, filename, headerString="BXF  "):
     fileObject.write('ROW LIST INT\n')
     itemcounter = 0
     line = ''
-    for item in HSM.elements['row']:
+    for item in HERCMATRIX.elements['row']:
         logging.debug("writing item {0} in row".format(str(item)))
         line = line + str(item) + ' '
         itemcounter += 1
@@ -363,7 +365,7 @@ def write(this, HSM, filename, headerString="BXF  "):
     fileObject.write('COL LIST INT\n')
     itemcounter = 0
     line = ''
-    for item in HSM.elements['col']:
+    for item in HERCMATRIX.elements['col']:
         logging.debug("writing item {0} in col".format(str(item)))
         line = line + str(item) + ' '
         itemcounter += 1

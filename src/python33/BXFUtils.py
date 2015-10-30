@@ -56,24 +56,26 @@ def printHelp(commandInfo, command=None):
             print('    ' + line)
 
 
-def load(filename, form, HERCMIO):
+def load(filename, form):
     # load filename, which is format format
-    # HERCMIO should be the LibHercmIO.hercmIO instance to load the matrix into
+    # returns a hercMatrix instance containing the matrix
 
     if form not in ['bxf', 'hercm', 'mat', 'mtx']:
         raise KeyError("format {0} is not supported".format(form))
 
-    HERCMIO.readMatrix(filename, form, True)
+    HERCMATRIX = libHercmIO.readMatrix(filename, form, True)
+    return HERCMATRIX
+   
 
 
 
-def write(filename, form, HERCMIO):
+def write(filename, form, HERCMATRIX):
     # write matrix stored in HERCMIO instance to filename in given format
 
     if form not in ['bxf', 'hercm', 'mat', 'mtx']:
         raise KeyError("format {0} is not supported".format(form))
     print("Writing matrix...")
-    HERCMIO.writeMatrix(filename, form)
+    libHercmIO.writeMatrix(filename, form, HERCMATRIX)
     print("Finished writing matrix.")
 
 
@@ -349,10 +351,10 @@ def initilize(height, width, HERCMATRIX, val=0):
     HERCMATRIX.remarks = []
 
 
-def generateVerification(BXFIO, HERCMATRIX):
+def generateVerification(HERCMATRIX):
     # updates verification sum of matrix
     try:
-        newSum = BXFIO.generateVerificationSum(HERCMATRIX)
+        newSum = libBXF.generateVerificationSum(HERCMATRIX)
     except TypeError:
         print("ERROR: could not generate verification sum of empty matrix")
     HERCMATRIX.verification = newSum
@@ -437,11 +439,7 @@ def convert(source, destination, sourceFormat, destinationFormat):
         print("ERROR: {0} is not a file".format(source))
         return
     HERCMATRIX = libHercMatrix.hercMatrix()
-    BXFIO = libBXF.bxfio()
-    HERCMIO = libHercmIO.hercmIO()
-    HERCMIO.HSM = HERCMATRIX
-    HERCMIO.HERCMIO = BXFIO
 
-    load(source, sourceFormat, HERCMIO)
-    generateVerification(BXFIO, HERCMATRIX)
-    write(destination, destinationFormat, HERCMIO)
+    HERCMATRIX = load(source, sourceFormat)
+    generateVerification(HERCMATRIX)
+    write(destination, destinationFormat, HERCMATRIX)

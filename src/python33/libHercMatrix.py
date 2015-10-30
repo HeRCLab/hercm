@@ -4,7 +4,7 @@
 
 import numpy
 import scipy
-
+import logging
 
 class hercMatrix:
     # hercm matrix class
@@ -467,7 +467,8 @@ class hercMatrix:
         # re orders this matrix such that it is row major
 
         if this.elements is None:
-            raise ValueError("cannot make nonexistent matrix row major")
+            logging.warning("cannot make nonexistent matrix row major")
+            return
 
         this.elements = numpy.sort(this.elements, order=["row", "col"])
 
