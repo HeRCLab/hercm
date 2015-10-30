@@ -11,6 +11,20 @@ import textwrap
 import pprint
 import libBXF
 
+## @package BXFUtils utilities used by BXFExplorer
+
+## Prints help messages
+# Prints either all or specific help messages for BXFExplorer commands. 
+# If `command` is `None`, all help messages are printed, otherwise `commandInfo`
+# is searched for a key matching `command`, and that help message is printed 
+# only.
+#
+# @param[in] commandInfo a commandInfo data structure, as laid out in
+# `doc-extra/bxf-explorer.md`. 
+# @param[in] command the command to print help for. If `command` is `None`, help for 
+# commands is printed. `command` is `None` by default. 
+#
+# @returns None
 
 def printHelp(commandInfo, command=None):
     if command == None:
@@ -56,6 +70,18 @@ def printHelp(commandInfo, command=None):
             print('    ' + line)
 
 
+## Loads a file and returns it.
+# Loads the specified file using libHercmIO.readMatrix(). Returns it as an
+# instance of libHercMatrix.hercMatrix. 
+#
+# @param[in] filename string containing absolute or relative path to the file
+# to load 
+# @param[in] form any valid string for the `form` argument of 
+# libHercmIO.readMatrix()
+#
+# @returns libHercMatrix.hercMatrix containing file which was loaded
+
+
 def load(filename, form):
     # load filename, which is format format
     # returns a hercMatrix instance containing the matrix
@@ -67,7 +93,19 @@ def load(filename, form):
     return HERCMATRIX
    
 
-
+## writes a matrix to a file 
+# Writes the given libHercMatrix.hercMatrix instance to the given file in the
+# given format. 
+# 
+# @param[in] filename string containing absolute or rlative path to the file
+# to load
+# @param[in] form any valid string for the `form` argument of 
+# libHercmIO.writeMatrix()
+# @param[in] HERCMATRIX an instance of libHercMatrix.hercMatrix containing the
+# matrix to be written to the file 
+# 
+# @returns `None`
+# 
 
 def write(filename, form, HERCMATRIX):
     # write matrix stored in HERCMIO instance to filename in given format
@@ -78,6 +116,13 @@ def write(filename, form, HERCMATRIX):
     libHercmIO.writeMatrix(filename, form, HERCMATRIX)
     print("Finished writing matrix.")
 
+## Prints information about the matrix.
+# Prints the height, width, number nonzero elements, symmetry and verification
+# sum of the given matrix to the terminal. 
+# 
+# @param[in] HERCMATRIX an instance of libHercMatrix.hercMatrix containing the
+# matrix to print information about
+# 
 
 def printInfo(HERCMATRIX):
     # prints information about HERCMATRIX matrix to console
@@ -100,9 +145,48 @@ verification  - - - - - - {4}
                                     verification))
 
 
+
+## Print an overview of the matrix to the console. 
+# Prints either the entire matrix, or an overview of the matrix if it is too 
+# large. 
+# 
+# @param[in] HERCMATRIX the instance of libHercMatrix.hercMatrix to display
+# @param[in] maxHeight no more than `maxHeight` rows will be printed, default
+# is 10. 
+# @param[in] maxWidth no more than `maxWidth` columns will be printed, default 
+# is 10. 
+# 
+# @returns `None`
+# 
+# # Examples
+# 
+# 5x5 matrix containing only 2s 
+# ```
+# > display
+#        2         2         2         2         2
+#        2         2         2         2         2
+#        2         2         2         2         2
+#        2         2         2         2         2
+#        2         2         2         2         2
+# ```
+# 
+# bcsstk01
+# ```
+# > display
+# 2.83e+06         0         0         0     1e+06  ...         0         0         0         0         0
+#        0  1.64e+06         0    -2e+06         0  ...         0         0         0         0         0
+#        0         0  1.72e+06 -2.08e+06 -2.78e+06  ...         0         0         0         0         0
+#        0    -2e+06 -2.08e+06     1e+09         0  ...         0         0         0         0         0
+#    1e+06         0 -2.78e+06         0  1.07e+09  ...         0         0         0         0         0
+#
+#        0         0         0         0         0  ...   3.5e+06  5.18e+05  -4.8e+06         0         0
+#        0         0         0         0         0  ...  5.18e+05  4.58e+06  1.35e+05         0         0
+#        0         0         0         0         0  ...  -4.8e+06  1.35e+05  2.47e+09         0         0
+#        0         0         0         0         0  ...         0         0         0  9.62e+08  -1.1e+08
+#        0         0         0         0         0  ...         0         0         0  -1.1e+08  5.31e+08
+#``` 
+
 def displayMatrix(HERCMATRIX, maxHeight=10, maxWidth=10):
-    # displays the matrix to the console
-    # elements past 20 wide or 20 high will not be displayed
 
     if maxHeight % 2 != 0:
         raise ValueError("maxHeight must be an even number")
@@ -128,6 +212,66 @@ def displayMatrix(HERCMATRIX, maxHeight=10, maxWidth=10):
         print("")
         row += 1
 
+
+## Print the matrix converted to CSR format
+# Prints the contents of the matrix, converted to CSR format. Prompts the user 
+# if the matrix contains more than 25 elements ***TODO**: it should prompt the 
+# user only of more than 25 elements would be displayed). Automatically 
+# the row of any given element for convenience, and prints elements of the 
+# row_ptr array at the indexes which they refer to. 
+# 
+# @params[in] HERCMATRIX an instance of libHercMatrix.hercMatrix to view
+# @params[in] firstRow the first row of the matrix to display (note, this 
+# refers to the first row of the matrix, not the index of the element). Default
+# is 10. 
+# @params[in] lastRow the last row of the matrix to display. Default is `None` 
+# (if `lastRow` is `None`, it is interpreted as the end of the matrix). 
+# 
+# @returns `None`
+# 
+# # Examples
+# printing the 1st through the 5th rows of bcspwr01
+# ```
+# > csrdisplay 1 5
+# WARNING: matrix contains more than 25 entries,
+# are you sure you wish to proceed?
+# (yes/no)> yes
+# index  value      column  row_ptr row
+#    8  1.6e+06       1       8       1
+#    9   -2e+06       3               1
+#   10  5.6e+06       5               1
+#   11 -6.7e+03       7               1
+#   12   -2e+06       9               1
+#   13 -3.1e+04      19               1
+#   14  5.6e+06      23               1
+#   15 -1.6e+06      25               1
+#   16  1.7e+06       2      16       2
+#   17 -2.1e+06       3               2
+#   18 -2.8e+06       4               2
+#   19 -1.7e+06       8               2
+#   20 -1.5e+04      20               2
+#   21 -2.8e+06      22               2
+#   22 -2.9e+04      26               2
+#   23 -2.1e+06      27               2
+#   24    1e+09       3      24       3
+#   25    2e+06       7               3
+#   26    4e+08       9               3
+#   27 -3.3e+06      21               3
+#   28  2.1e+06      26               3
+#   29    1e+08      27               3
+#   30  1.1e+09       4      30       4
+#   31   -1e+06       6               4
+#   32    2e+08      10               4
+#   33  2.8e+06      20               4
+#   34  3.3e+08      22               4
+#   35 -8.3e+05      28               4
+#   36  1.5e+09       5      36       5
+#   37   -2e+06      11               5
+#   38 -5.6e+06      19               5
+#   39  6.7e+08      23               5
+#   40 -2.1e+06      24               5
+#   41    1e+08      29               5
+# ```
 
 def printCSR(HERCMATRIX, firstRow=0, lastRow=None):
     # display the raw CSR matrix
@@ -171,6 +315,40 @@ def printCSR(HERCMATRIX, firstRow=0, lastRow=None):
                 print("IndexError! {0} out of bounds".format(index))
 
 
+## Prints the matrix as it is represented in libHercMatrix.hercMatrix
+#
+# Prints the matrix in COO format, as an exact representation of the given 
+# instance of libHercMatrix.hercMatrix's internal storage of the matrix. 
+# 
+# @param[in] HERCMATRIX the instance of libHercMatrix.hercMatrix to display
+# 
+# @returns `None`
+# 
+# # Examples
+# output for a 4x4 matrix of 7s 
+# ```
+# > raw
+# - raw matrix contents -
+# row    col    val
+#     0      0    7.0
+#     0      0    7.0
+#     0      1    7.0
+#     0      2    7.0
+#     0      3    7.0
+#     1      0    7.0
+#     1      1    7.0
+#     1      2    7.0
+#     1      3    7.0
+#     2      0    7.0
+#     2      1    7.0
+#     2      2    7.0
+#     2      3    7.0
+#     3      0    7.0
+#     3      1    7.0
+#     3      2    7.0
+#     3      3    7.0
+# ```
+
 def printRaw(HERCMATRIX):
     # display the matrix as raw COO data
     print("- raw matrix contents -")
@@ -183,15 +361,30 @@ def printRaw(HERCMATRIX):
         print("{0:6} {1:6} {2:6}".format(row, col, val))
 
 
+## Prints the value at a particular coordinate pair
+# Prints the value of the matrix at the specified col, row. 
+# 
+# @param[in] col int containing the column of the element to display
+# @param[in] row int containing the row of the element to display
+# @param[in] HERCMATRIX libHercMatrix.hercMatrix instance containing the matrix
+# in which the value is stored
+# 
+# @returns `None` 
+
 def printValue(col, row, HERCMATRIX):
-    # prints the value of HERCMATRIX at row, col
     print("value of col {1}, row {0}:".format(row, col),
           HERCMATRIX.getValue(row, col))
 
 
-def printRow(row, HERCMATRIX):
-    # prints the rowth row in HERCMATRIX
+## Prints all elements in the specified row
+#
+# **NOTE**: only nonzero elements are printed
+#
+# @param[in] row int containing the row number of which to print elements
+# @param[in] HERCMATRIX libHercMatrix.hercMatrix instance containing the matrix
+# to get the row from
 
+def printRow(row, HERCMATRIX):
     for index in range(0, HERCMATRIX.nzentries - 1):
         try:
             if HERCMATRIX.getValue(row, index) != 0:
@@ -200,6 +393,13 @@ def printRow(row, HERCMATRIX):
         except IndexError:
             pass
 
+## Prints all elements in the specified column
+#
+# **NOTE**: only nonzero elements are printed
+#
+# @param[in] rcol int containing the column number of which to print elements
+# @param[in] HERCMATRIX libHercMatrix.hercMatrix instance containing the matrix
+# to get the column from
 
 def printCol(col, HERCMATRIX):
     # prints the colth column in HERCMATRIX
