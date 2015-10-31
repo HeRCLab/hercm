@@ -74,6 +74,12 @@ def main(override=None):
         print(WORKINGMATRIX.elements)
         return
 
+    # resolve alises
+    for item in menuItems:
+        if item.aliases is not None:
+            if command in item.aliases:
+                command = item.command
+
     for item in menuItems:
         if item.command == command:
             arguments = item.processArguments(arguments)
