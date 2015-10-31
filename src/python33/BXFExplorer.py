@@ -9,7 +9,6 @@ import matplotlib
 import matplotlib.pyplot
 import logging
 import os
-import BXFUtils
 import yaml
 import pprint
 from yapsy.PluginManager import PluginManager 

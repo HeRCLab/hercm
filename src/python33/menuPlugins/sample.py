@@ -12,7 +12,7 @@ class sample(masterPlugin.masterPlugin):
         this.commandInfo['help'] = """This command does not do anything, it is 
             used to demonstrate and test the command system."""
 
-    def execute(this, arguments):
+    def execute(this, arguments, WORKINGMATRIX):
         print("This is just a sample command, it doesn't actually do anything")
 
     def validate(this, arguments, WORKINGMATRIX):
