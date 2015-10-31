@@ -71,6 +71,10 @@ def main(override=None):
         
         return
 
+    elif command =="show":
+        print(WORKINGMATRIX.elements)
+        return
+
     for item in menuItems:
         if item.command == command:
             arguments = item.processArguments(arguments)
@@ -78,7 +82,10 @@ def main(override=None):
                 print("ERROR: one or more missing or incorrect arguments")
                 return
             if item.validate(arguments, WORKINGMATRIX):
-                item.execute(arguments)
+                NEWWM = item.execute(arguments, WORKINGMATRIX)
+                if NEWWM is not None: # ugly workaround because python refuses
+                                      # to pass WORKINGMATRIX by reference
+                    WORKINGMATRIX = NEWWM
             else:
                 print("ERROR: command validation failed")
             return

@@ -114,6 +114,8 @@ def readMatrix(filename, form, showProgress=False):
 
             HERCMATRIX.nzentries = len(HERCMATRIX.elements['val'])
 
+            HERCMATRIX.verification = libBXF.generateVerificationSum(HERCMATRIX)
+
             if showProgress:
                 print("finished reading matrix")
 
@@ -168,6 +170,8 @@ def readMatrix(filename, form, showProgress=False):
 
             if HERCMATRIX.checkSymmetry():
                 HERCMATRIX.symmetry = 'SYM'
+
+            HERCMATRIX.verification = libBXF.generateVerificationSum(HERCMATRIX)
 
         except IOError as e:  # make sure the file exists and is readable
             logging.warning("(lsc-536)could not open matrix file")
@@ -236,7 +240,7 @@ def writeMatrix(filename, form, HERCMATRIX):
         
         libBXF.write(HERCMATRIX, filename, "HERCM")
 
-    if form == 'bxf':
+    elif form == 'bxf':
             
         libBXF.write(HERCMATRIX, filename)
 

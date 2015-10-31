@@ -18,7 +18,7 @@ class loader(masterPlugin.masterPlugin):
             'help': """Reads in the file for viewing and manipulation. If format
                 is not provided, it will be extrapolated from the filename"""}
 
-    def execute(this, arguments):
+    def execute(this, arguments, WORKINGMATRIX):
         filename = arguments[0]
         form = None
         if len(arguments) == 2:
@@ -26,8 +26,8 @@ class loader(masterPlugin.masterPlugin):
         else:
             form = this.extrapolateFormat(arguments[0])
     
-        HERCMATRIX = libHercmIO.readMatrix(filename, form, True)
-        return HERCMATRIX
+        WORKINGMATRIX = libHercmIO.readMatrix(filename, form, True)
+        return WORKINGMATRIX
 
     def validate(this, arguments, WORKINGMATRIX):
         if not super().validate(arguments, WORKINGMATRIX):
@@ -58,7 +58,7 @@ class loader(masterPlugin.masterPlugin):
             return 'mat'
         if filename[-3:] == 'mtx':
             return 'mtx'
-        if filename[-3:] == 'hercm':
+        if filename[-5:] == 'hercm':
             return 'hercm'
 
         return None

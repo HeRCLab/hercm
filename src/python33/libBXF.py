@@ -299,8 +299,10 @@ def write(HERCMATRIX, filename, headerString="BXF  "):
                               .format(filename), str(e))
 
     if not verify(HERCMATRIX):
-        logging.warning("(lsc-303) verification failed")
-        raise HercmioValidationError("matrix did not pass validation")
+        logging.warning("matrix validation failed. "+
+            "Got {0} expected {1}".format(generateVerificationSum(HERCMATRIX), 
+                HERCMATRIX.verification) + "You should verify the matrix was" + 
+                " written correctly.")
 
     header = headerString + ' '
     header = header + str(HERCMATRIX.width) + ' '
