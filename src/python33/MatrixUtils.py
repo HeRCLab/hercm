@@ -229,26 +229,75 @@ def printRaw(HERCMATRIX):
         print("{0:6} {1:6} {2:6}".format(row, col, val))
 
 
+## Prints a rectangular selection of values
+# Prints a rectangle of values, bounded by col1, row1 and col2, row2 from
+# HERCMATRIX
+# 
+# @param[in] row1 int specifying row of upper left bound
+# @param[in] row2 int specifying row of bottom right bound
+# @param[in] col1 int specifying col of upper left bound
+# @param[in] col2 int specifying col of bottom right bound
+# @param[in] HERCMATRIX instance of libHercMatrix.hercMatrix to print values 
+# from
+# 
+# @returns None
+# 
+# @throws IndexError if any value is out of bounds
+# @throws ValueError if `row1` > `row2` or `col1` > `col2`
+
 def printRange(row1, row2, col1, col2, HERCMATRIX):
     # prints a rectangular range of values in HERCMATRIX, with row1, col1 as
     # the top left corner, and row2, col2 in the bottom right
 
+
+    if row1 < 0:
+        raise IndexError("row1 may not be less than zero")
+    if row1 > HERCMATRIX.height:
+        raise IndexError("row1 is out of bounds")
+    if row2 < 0:
+        raise IndexError("row2 may not be less than zero")
+    if row2 > HERCMATRIX.height:
+        raise IndexError("row2 is out of bounds")
+    if col1 < 0:
+        raise IndexError("col1 may not be less than zero")
+    if col1 > HERCMATRIX.width:
+        raise IndexError("col1 is out of bounds")
+    if col2 < 0:
+        raise IndexError("col2 may not be less than zero")
+    if col2 > HERCMATRIX.width:
+        raise IndexError("col2 is out of bounds")
+
+    if row1 > row2:
+        raise ValueError("row1 larger than row2")
+    if col1 > col2:
+        raise ValueError("col1 larger than col2")
+
     TMPMATRIX = libHercMatrix.hercMatrix()
-    TMPMATRIX.height = row2 - row1 + 1
-    TMPMATRIX.width = col2 - col1 + 1
+    TMPMATRIX.height = abs(row2 - row1) 
+    TMPMATRIX.width  = abs(col2 - col1) 
 
-    #	def setValue(this, newRow, newCol, newVal):
-    # changes the value of row, col to val
-
-    width = HERCMATRIX.width
+    width = HERCMATRIX.width 
     height = HERCMATRIX.height
-    for row in range(0, height):
-        for col in range(0, width):
-            if col >= col1 and col <= col2:
-                if row >= row1 and row <= row2:
+
+    for element in HERCMATRIX.elements:
+        row = element[0]
+        col = element[1]
+        val = element[2]
+
+        if (row >= row1) and (row < row2):
+            if (col >= col1) and (col < col2):
+                try:
                     TMPMATRIX.setValue(row - row1,
-                            col - col1,
-                            HERCMATRIX.getValue(row, col))
+                        col - col1,
+                        val)
+                except IndexError as e:
+                    logging.warning("encountered error {0}".format(e))
+                    logging.warning("writing to row {0} col {1} of "
+                        .format(row - row1, col - col1))
+                    logging.warning("row {0} col {1}"
+                        .format(TMPMATRIX.height, TMPMATRIX.width))
+
+
     TMPMATRIX.makeRowMajor()
     displayMatrix(TMPMATRIX)
 

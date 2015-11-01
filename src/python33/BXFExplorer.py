@@ -84,6 +84,8 @@ def main(override=None):
         for plugin in pluginManager.getAllPlugins():
             menuItems.append(plugin.plugin_object)
 
+        return
+
 
     # resolve alises
     for item in menuItems:
@@ -91,6 +93,7 @@ def main(override=None):
             if command in item.aliases:
                 command = item.command
 
+    NEWWM = None
     for item in menuItems:
         if item.command == command:
             arguments = item.processArguments(arguments)
@@ -98,7 +101,14 @@ def main(override=None):
                 print("ERROR: one or more missing or incorrect arguments")
                 return
             if item.validate(arguments, WORKINGMATRIX):
-                NEWWM = item.execute(arguments, WORKINGMATRIX)
+                try:
+                    NEWWM = item.execute(arguments, WORKINGMATRIX)
+                except KeyboardInterrupt:
+                    print("\n"*4)
+                    print("Command halted by keyboard interrupt")
+                except Exception as e:
+                    logging.warning("Command halted because of exception: {0}"
+                        .format(e))
                 if NEWWM is not None: # ugly workaround because python refuses
                                       # to pass WORKINGMATRIX by reference
                     WORKINGMATRIX = NEWWM
