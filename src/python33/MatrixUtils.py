@@ -229,21 +229,6 @@ def printRaw(HERCMATRIX):
         print("{0:6} {1:6} {2:6}".format(row, col, val))
 
 
-## Prints the value at a particular coordinate pair
-# Prints the value of the matrix at the specified col, row. 
-# 
-# @param[in] col int containing the column of the element to display
-# @param[in] row int containing the row of the element to display
-# @param[in] HERCMATRIX libHercMatrix.hercMatrix instance containing the matrix
-# in which the value is stored
-# 
-# @returns `None` 
-
-def printValue(col, row, HERCMATRIX):
-    print("value of col {1}, row {0}:".format(row, col),
-          HERCMATRIX.getValue(row, col))
-
-
 ## Prints all elements in the specified row
 #
 # **NOTE**: only nonzero elements are printed

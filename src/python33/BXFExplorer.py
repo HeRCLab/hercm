@@ -59,6 +59,7 @@ def main(override=None):
     # special commands not implemented by plugin
     if command == 'exit':
         exit()
+
     elif command == 'help':
         if len(arguments) == 1:
             for item in menuItems:
@@ -70,9 +71,19 @@ def main(override=None):
         
         return
 
-    elif command =="show":
-        print(WORKINGMATRIX.elements)
+    elif command == 'list-plugins':
+        for item in menuItems:
+            print(item.command)
         return
+
+    elif command == 'reload-plugins':
+        menuItems = []
+
+        pluginManager.collectPlugins()
+
+        for plugin in pluginManager.getAllPlugins():
+            menuItems.append(plugin.plugin_object)
+
 
     # resolve alises
     for item in menuItems:
