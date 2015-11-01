@@ -229,43 +229,6 @@ def printRaw(HERCMATRIX):
         print("{0:6} {1:6} {2:6}".format(row, col, val))
 
 
-## Prints all elements in the specified row
-#
-# **NOTE**: only nonzero elements are printed
-#
-# @param[in] row int containing the row number of which to print elements
-# @param[in] HERCMATRIX libHercMatrix.hercMatrix instance containing the matrix
-# to get the row from
-
-def printRow(row, HERCMATRIX):
-    for index in range(0, HERCMATRIX.nzentries - 1):
-        try:
-            if HERCMATRIX.getValue(row, index) != 0:
-                print("col {0}, row {1}: {2}"
-                      .format(index, row, HERCMATRIX.getValue(row, index)))
-        except IndexError:
-            pass
-
-## Prints all elements in the specified column
-#
-# **NOTE**: only nonzero elements are printed
-#
-# @param[in] rcol int containing the column number of which to print elements
-# @param[in] HERCMATRIX libHercMatrix.hercMatrix instance containing the matrix
-# to get the column from
-
-def printCol(col, HERCMATRIX):
-    # prints the colth column in HERCMATRIX
-
-    for index in range(0, HERCMATRIX.nzentries - 1):
-        try:
-            if HERCMATRIX.getValue(index, col) != 0:
-                print("col {0}, row {1}: {2}"
-                      .format(col, index, HERCMATRIX.getValue(index, col)))
-        except IndexError:
-            pass
-
-
 def printRange(row1, row2, col1, col2, HERCMATRIX):
     # prints a rectangular range of values in HERCMATRIX, with row1, col1 as
     # the top left corner, and row2, col2 in the bottom right
