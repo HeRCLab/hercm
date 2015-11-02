@@ -353,11 +353,18 @@ def paintDiagonal(begin, end, spread, val, HERCMATRIX, offset=0):
             except IndexError:
                 pass  # out of bounds
 
+## Alters the dimensions of the matrix 
+# Sets the dimensions of the matrix to `width` columns and `height` rows. 
+# Elements which go out of bounds after the alteration are discarded. Elements
+# still in bounds are not modified. 
+# 
+# @param[in] height number of rows for the matrix to have
+# @param[in] width number of columns for the matrix to have
+# @param[out] HERCMATRIX instance of libHercMatrix.hercMatrix to operate on
 
 def setDims(height, width, HERCMATRIX):
-    # sets the dimensions of HERCMATRIX to width x height
 
-        # remove out of bounds entries
+    # remove elements which are out of bounds
     for i in reversed(range(0, HERCMATRIX.nzentries)):
         if HERCMATRIX.elements['row'][i] >= height:
             HERCMATRIX.setValue(HERCMATRIX.elements['row'][i],
