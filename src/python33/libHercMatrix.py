@@ -275,19 +275,9 @@ class hercMatrix:
         # removes any instances of zero
         # TODO: this really is not performant at all... maybe numpy can do this?
 
-        if this.elements is None:
-            return
-        this.nzentries = len(this.elements)
-        startNzentries = this.nzentries -1
-        i = this.nzentries -1
-        while i > 0:
-            if showProgress:
-                if i % 1000 == 0:
-                    print("{0} of {1}"
-                        .format(startNzentries-i, startNzentries))
-            if this.elements['val'][i] == 0:
-                this.removeElement(i)
-            i+= -1
+        matrix = this.getInFormat('coo')
+        matrix.eliminate_zeros()
+        this.replaceContents(matrix)
         this.nzentries = len(this.elements['val'])
 
     def replaceContents(this, newContents):
