@@ -246,9 +246,6 @@ def printRaw(HERCMATRIX):
 # @throws ValueError if `row1` > `row2` or `col1` > `col2`
 
 def printRange(row1, row2, col1, col2, HERCMATRIX):
-    # prints a rectangular range of values in HERCMATRIX, with row1, col1 as
-    # the top left corner, and row2, col2 in the bottom right
-
 
     if row1 < 0:
         raise IndexError("row1 may not be less than zero")
@@ -301,28 +298,23 @@ def printRange(row1, row2, col1, col2, HERCMATRIX):
     TMPMATRIX.makeRowMajor()
     displayMatrix(TMPMATRIX)
 
-
-def touch(col, row, val, HERCMATRIX):
-    # sets the value at row, col to val
-
-    try:
-        oldValue = HERCMATRIX.getValue(row, col)
-    except IndexError:
-        print("ERROR: row {0}, col {1} is out of bounds".format(row, col))
-        return
-    HERCMATRIX.setValue(row, col, val)
-    print("updated value of col {1}, row {0} to {2} from {3}"
-          .format(row, col, HERCMATRIX.getValue(row, col), oldValue))
-
-    if oldValue == 0 and val != 0:
-        print("WARNING: you have added a new non zero entry, COO vectors")
-        print("may not be in row-major form!")
-
+## Paint a value over all elements in a rectangular range of elements
+# Sets the value of all elements in a square box bounded by col1, row1 and
+# col2, row2 equal to val. 
+# 
+# @param[in] row1 the row of the top left corner
+# @param[in] col1 the column of the top left corner
+# @param[in] row2 the row of the bottom right corner
+# @param[in] col2 the column of the bottom right corner
+# @param[in] val the value to set elements to
+# @param[out] HERCMATRIX instance of libHercMatrix.hercMatrix on which to 
+# operate
+# 
+# @returns None
+#
+# TODO: this needs exception handling
 
 def paint(row1, row2, col1, col2, val, HERCMATRIX):
-    # paints a rectangular region of HERCMATRIX with val, with the top left
-    # corner as row1, col1, and the bottom right as row2, col2
-
     width = HERCMATRIX.width
     height = HERCMATRIX.height
     for row in range(0, height):

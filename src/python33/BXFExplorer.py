@@ -12,6 +12,7 @@ import os
 import yaml
 import pprint
 from yapsy.PluginManager import PluginManager 
+import traceback
 
 
 
@@ -22,6 +23,7 @@ commandInfoStream.close()
 pp = pprint.PrettyPrinter()
 pluginManager = PluginManager()
 menuItems = []
+currentTraceBack = None
 
 
 def loadPlugins():
@@ -41,6 +43,8 @@ def main(override=None):
     global WORKINGMATRIX
     global commandInfo
     global menuItems
+    global pluginManager
+    global currentTraceBack
 
     if override is None:
         usrIn = input("> ")
@@ -79,11 +83,15 @@ def main(override=None):
     elif command == 'reload-plugins':
         menuItems = []
 
-        pluginManager.collectPlugins()
+        loadPlugins()
 
-        for plugin in pluginManager.getAllPlugins():
-            menuItems.append(plugin.plugin_object)
+        return
 
+    elif command == 'traceback':
+        if currentTraceBack is None:
+            print("No errors have been encountered")
+        else:
+            print(currentTraceBack)
         return
 
 
@@ -109,6 +117,7 @@ def main(override=None):
                 except Exception as e:
                     logging.warning("Command halted because of exception: {0}"
                         .format(e))
+                    currentTraceBack = traceback.format_exc()
                 if NEWWM is not None: # ugly workaround because python refuses
                                       # to pass WORKINGMATRIX by reference
                     WORKINGMATRIX = NEWWM
