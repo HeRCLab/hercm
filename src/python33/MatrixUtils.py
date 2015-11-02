@@ -411,13 +411,7 @@ def initialize(height, width, HERCMATRIX, val=0):
     HERCMATRIX.remarks = []
 
 
-def generateVerification(HERCMATRIX):
-    # updates verification sum of matrix
-    try:
-        newSum = libBXF.generateVerificationSum(HERCMATRIX)
-    except TypeError:
-        print("ERROR: could not generate verification sum of empty matrix")
-    HERCMATRIX.verification = newSum
+
 
 
 def plot(HERCMATRIX):
