@@ -64,7 +64,7 @@ class setSymmetry(masterPlugin.masterPlugin):
 
         
         if newSymmetry not in validOptions:
-            print("{0} is not a valid symmetry".format(newSymmetry))
+            print("ERROR: {0} is not a valid symmetry".format(newSymmetry))
             return False
 
        

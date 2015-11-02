@@ -31,12 +31,19 @@ class hercMatrix:
         # format is any string valid for scipy.sparse.coo_matrix.asformat
         # http://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_matrix.asformat.html#scipy.sparse.coo_matrix.asformat
 
-        scipyMatrix = scipy.sparse.coo_matrix((this.elements['val'],
+        scipyMatrix = None
+        try:
+            scipyMatrix = scipy.sparse.coo_matrix((this.elements['val'],
                                                (this.elements['row'],
                                                 this.elements['col'])),
                                               shape=(this.height,
                                                      this.width)
                                               )
+        except TypeError: # matrix has not been initialized yet
+            this.addElement([0,0,0])
+            this.height = 1
+            this.width = 1
+            scipyMatrix = this.getInFormat(form)
 
         return scipyMatrix.asformat(form)
 

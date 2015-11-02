@@ -379,9 +379,18 @@ def setDims(height, width, HERCMATRIX):
 
 
 
+## Initialize a new, empty matrix
+#
+# Initialize a new matrix with the specified dimensions, optionally initializing 
+# all values in said matrix to a particular value (by default zero). 
+# 
+# @param[in] height number of rows in the new matrix
+# @param[in] width number of columns in the new matrix
+# @param[out] HERCMATRIX instance of libHercMatrix.hercMatrix to operate on
+# @param[in] val value to initialize all elements in the new matrix to, defaults
+# to 0
 
-
-def initilize(height, width, HERCMATRIX, val=0):
+def initialize(height, width, HERCMATRIX, val=0):
     # initializes a blank matrix height x width in size in the HERCMATRIX
     # instance
 
