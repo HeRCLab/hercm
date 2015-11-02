@@ -52,7 +52,7 @@ import libBXF
 #        0         0         0         0         0  ...  -4.8e+06  1.35e+05  2.47e+09         0         0
 #        0         0         0         0         0  ...         0         0         0  9.62e+08  -1.1e+08
 #        0         0         0         0         0  ...         0         0         0  -1.1e+08  5.31e+08
-#``` 
+# ``` 
 
 def displayMatrix(HERCMATRIX, maxHeight=10, maxWidth=10):
 
@@ -299,6 +299,7 @@ def printRange(row1, row2, col1, col2, HERCMATRIX):
     displayMatrix(TMPMATRIX)
 
 ## Paint a value over all elements in a rectangular range of elements
+#
 # Sets the value of all elements in a square box bounded by col1, row1 and
 # col2, row2 equal to val. 
 # 
@@ -323,11 +324,24 @@ def paint(row1, row2, col1, col2, val, HERCMATRIX):
                 if row >= row1 and row <= row2:
                     HERCMATRIX.setValue(row, col, val)
 
+## Paints values along a diagonal
+#
+# Paints the value `val` along a 45 degree diagonal, beginning with column 
+# `begin`, and ending with column `end`. `spread` values on either side of
+# the diagonal are painted as well. The diagonal is shifted left or right by
+# `offset` elements. 
+# 
+# @param[in] begin the first column to paint in
+# @param[in] end the last column to paint in
+# @param[in] spread number of values on either side of the diagonal to paint
+# @param[in] val the value to paint
+# @param[out] HERCMATIX instance of libHercMatrix.hercMatrix to operate on
+# @param[in] offset number of columns to shift the diagonal to the left or right
+# by
+# 
+
 
 def paintDiagonal(begin, end, spread, val, HERCMATRIX, offset=0):
-    # paints a diagonal, starting at column begin, ending at column end with
-    # the value val, spread indices to either side of the diagonal.
-    # optionally offsets by offset columns to the left or right
 
     for i in range(begin, end):
         for j in range(0, spread):
