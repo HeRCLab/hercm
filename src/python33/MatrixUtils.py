@@ -428,9 +428,7 @@ def plot(HERCMATRIX):
     matplotlib.pyplot.show()
 
 
-def printSymmetry(HERCMATRIX):
-    print("Symmetry attribute is:", HERCMATRIX.symmetry)
-    print("Matrix is actually symmetric:", HERCMATRIX.checkSymmetry())
+   
 
 
 def printDirectoryListing(directory=None):
