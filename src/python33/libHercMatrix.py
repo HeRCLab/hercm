@@ -273,6 +273,7 @@ class hercMatrix:
 
     def removeZeros(this, showProgress=False):
         # removes any instances of zero
+        # TODO: this really is not performant at all... maybe numpy can do this?
 
         if this.elements is None:
             return
