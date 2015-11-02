@@ -271,11 +271,10 @@ class hercMatrix:
         if newVal == 0:
             this.removeZeros()
 
-    def removeZeros(this, showProgress=False):
+    def removeZeros(this):
         # removes any instances of zero
-        # TODO: this really is not performant at all... maybe numpy can do this?
 
-        matrix = this.getInFormat('coo')
+        matrix = this.getInFormat('csr')
         matrix.eliminate_zeros()
         this.replaceContents(matrix)
         this.nzentries = len(this.elements['val'])
@@ -334,7 +333,7 @@ class hercMatrix:
 
         return True
 
-    def makeSymmetrical(this, method='truncate', showProgress=False):
+    def makeSymmetrical(this, method='truncate'):
         # makes this matrix symmetrical
         # if method is 'truncate', this will be done by discarding the
         # bottom triangle, regardless of contents
@@ -400,7 +399,7 @@ class hercMatrix:
             raise ValueError("method \"{0}\" is not valid, ".format(method) +
                     "expected one of: truncate, add, smart")
 
-        this.removeZeros(showProgress)
+        this.removeZeros()
 
     def makeAsymmetrical(this, method='truncate'):
         # if method is truncate
