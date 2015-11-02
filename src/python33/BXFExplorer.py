@@ -17,9 +17,6 @@ import traceback
 
 
 WORKINGMATRIX = libHercMatrix.hercMatrix()
-commandInfoStream = open("commandInfo.yaml", 'r')
-commandInfo = yaml.load(commandInfoStream)
-commandInfoStream.close()
 pp = pprint.PrettyPrinter()
 pluginManager = PluginManager()
 menuItems = []

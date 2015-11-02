@@ -378,35 +378,7 @@ def setDims(height, width, HERCMATRIX):
     HERCMATRIX.removeZeros()
 
 
-def setSymmetry(newSymmetry, HERCMATRIX, method="truncate"):
-    # wrapper for libHercMatrix.hercMatrix.makeSymmetrical/makeAsymmetrical
 
-    if method not in ['truncate', 'add', 'smart']:
-        raise KeyError("method {0} is not valid".format(method))
-
-    validOptions = ['sym', 'asym', 'asymmetric', 'symmetric',
-    'symmetrical', 'asymmetrical']
-
-    newSymmetry = newSymmetry.lower()
-
-    if newSymmetry not in validOptions:
-        print("{0} is not a valid symmetry".format(newSymmetry))
-        return
-
-    if newSymmetry in ['sym', 'symmetric', 'symmetrical']:
-        symmetry = 'SYM'
-    else:
-        symmetry = 'ASYM'
-
-    if symmetry != HERCMATRIX.symmetry:
-        if symmetry == 'SYM':
-            HERCMATRIX.makeSymmetrical(method)
-        elif symmetry == 'ASYM':
-            HERCMATRIX.makeAsymmetrical(method)
-
-    HERCMATRIX.symmetry = symmetry
-    HERCMATRIX.makeRowMajor()
-    HERCMATRIX.removeZeros()
 
 
 def initilize(height, width, HERCMATRIX, val=0):
