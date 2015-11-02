@@ -6,6 +6,7 @@ import numpy
 import scipy
 import logging
 
+
 class hercMatrix:
     # hercm matrix class
     # stores hercm matricies and permits access by various methods
@@ -36,11 +37,11 @@ class hercMatrix:
             scipyMatrix = scipy.sparse.coo_matrix((this.elements['val'],
                                                (this.elements['row'],
                                                 this.elements['col'])),
-                                              shape=(this.height,
-                                                     this.width)
-                                              )
-        except TypeError: # matrix has not been initialized yet
-            this.addElement([0,0,0])
+                shape=(this.height,
+                       this.width)
+            )
+        except TypeError:  # matrix has not been initialized yet
+            this.addElement([0, 0, 0])
             this.height = 1
             this.width = 1
             scipyMatrix = this.getInFormat(form)

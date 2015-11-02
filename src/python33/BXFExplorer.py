@@ -11,9 +11,8 @@ import logging
 import os
 import yaml
 import pprint
-from yapsy.PluginManager import PluginManager 
+from yapsy.PluginManager import PluginManager
 import traceback
-
 
 
 WORKINGMATRIX = libHercMatrix.hercMatrix()
@@ -24,7 +23,7 @@ currentTraceBack = None
 
 
 def loadPlugins():
-    global pluginManager 
+    global pluginManager
     global menuItems
 
     pluginManager.setPluginPlaces(["menuPlugins"])
@@ -73,19 +72,19 @@ def main(override=None):
             for item in menuItems:
                 item.printHelp()
 
-        print("\n"*5)
+        print("\n" * 5)
         print("-- Special Commands --")
         print("help (command) - print all help messages, or print help for a ")
         print("specific command")
-        print("-"*20)
+        print("-" * 20)
         print("list-plugins - list all loaded menu plugins (commands)")
-        print("-"*20)
+        print("-" * 20)
         print("reload-plugins - (BUG: not currently working) reload all menu ")
         print("plugins")
-        print("-"*20)
+        print("-" * 20)
         print("traceback - print the traceback for the most recent failed ")
         print("command")
-        
+
         return
 
     elif command == 'list-plugins':
@@ -107,7 +106,6 @@ def main(override=None):
             print(currentTraceBack)
         return
 
-
     # resolve alises
     for item in menuItems:
         if item.aliases is not None:
@@ -125,13 +123,13 @@ def main(override=None):
                 try:
                     NEWWM = item.execute(arguments, WORKINGMATRIX)
                 except KeyboardInterrupt:
-                    print("\n"*4)
+                    print("\n" * 4)
                     print("Command halted by keyboard interrupt")
                 except Exception as e:
                     logging.warning("Command halted because of exception: {0}"
-                        .format(e))
+                                    .format(e))
                     currentTraceBack = traceback.format_exc()
-                if NEWWM is not None: # ugly workaround because python refuses
+                if NEWWM is not None:  # ugly workaround because python refuses
                                       # to pass WORKINGMATRIX by reference
                     WORKINGMATRIX = NEWWM
             else:
@@ -140,7 +138,6 @@ def main(override=None):
 
     else:
         print("ERROR: command not found!")
-    
 
 
 def runMain():

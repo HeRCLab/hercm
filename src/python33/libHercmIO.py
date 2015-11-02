@@ -12,33 +12,33 @@ import logging
 
 
 ## @package libHercmIO
-# libHercmIO is the aggregate IO provider for all python HeRC Matrix Tools. It's 
+# libHercmIO is the aggregate IO provider for all python HeRC Matrix Tools. It's
 # primary purpose is to wrap other io functions, such as those provided by libBXF
-# and scipy.io 
+# and scipy.io
 
 
-## wrapper for various matrix read functions 
-# Reads matrices of any supported format, then returns the matrix as an 
-# instance of `libHercMatrix.HercMatrix`. 
+## wrapper for various matrix read functions
+# Reads matrices of any supported format, then returns the matrix as an
+# instance of `libHercMatrix.HercMatrix`.
 #
-# @param[in] filename a string containing the absolute or relative path of the 
+# @param[in] filename a string containing the absolute or relative path of the
 # file to read
-# @param[in] form a string containing the format of the file to read. Currently, 
-# valid values are `bxf`, `hercm`, `mat`, and `mtx`. 
-# @param[in] showProgress if `True`, verbose progress messages are printed. 
-# Defaults to `False`. 
+# @param[in] form a string containing the format of the file to read. Currently,
+# valid values are `bxf`, `hercm`, `mat`, and `mtx`.
+# @param[in] showProgress if `True`, verbose progress messages are printed.
+# Defaults to `False`.
 #
 # @return the matrix as an instance of `libHercMatrix.hercMatrix`
 #
 # @throws IOError if the specified file could not be opened for writing
-# 
-    
+#
+
 def readMatrix(filename, form, showProgress=False):
     HERCMATRIX = libHercMatrix.hercMatrix()
 
     logging.info("reading matrix {0} in format {1}".format(filename, form))
 
-    if (form == 'hercm') or (form =='bxf'):
+    if (form == 'hercm') or (form == 'bxf'):
         if showProgress:
             print("format is bxf, reading matrix using HERCMIO...")
         matrix = None
@@ -114,7 +114,8 @@ def readMatrix(filename, form, showProgress=False):
 
             HERCMATRIX.nzentries = len(HERCMATRIX.elements['val'])
 
-            HERCMATRIX.verification = libBXF.generateVerificationSum(HERCMATRIX)
+            HERCMATRIX.verification = libBXF.generateVerificationSum(
+                HERCMATRIX)
 
             if showProgress:
                 print("finished reading matrix")
@@ -171,7 +172,8 @@ def readMatrix(filename, form, showProgress=False):
             if HERCMATRIX.checkSymmetry():
                 HERCMATRIX.symmetry = 'SYM'
 
-            HERCMATRIX.verification = libBXF.generateVerificationSum(HERCMATRIX)
+            HERCMATRIX.verification = libBXF.generateVerificationSum(
+                HERCMATRIX)
 
         except IOError as e:  # make sure the file exists and is readable
             logging.warning("(lsc-536)could not open matrix file")
@@ -201,18 +203,18 @@ def readMatrix(filename, form, showProgress=False):
 
 
 ## Writes matrices from libHercMatrix.hercMatrix instances
-# Writes matrices in any supported format. 
-# 
-# @param[in] filename string containing the relative or absolute path to the file 
+# Writes matrices in any supported format.
+#
+# @param[in] filename string containing the relative or absolute path to the file
 # to write
 # @param[in] form the format in which to write the file, one of `hercm`, `bxf`,
 # `mtx`, or `mat`
 # @param[in] HERCMATRIX an instance of libHercMatrix.hercMatrix, whose contents
 # will be written to the file
-# 
+#
 # @return `None`
-# 
-# @throws TypeError if `form` is not a valid format 
+#
+# @throws TypeError if `form` is not a valid format
 
 def writeMatrix(filename, form, HERCMATRIX):
     # writes HERCMATRIX to the file
@@ -236,12 +238,12 @@ def writeMatrix(filename, form, HERCMATRIX):
     HERCMATRIX.makeRowMajor()
 
     if form == 'hercm':
-        # TODO: these will probably need a try/except block at some point 
-        
+        # TODO: these will probably need a try/except block at some point
+
         libBXF.write(HERCMATRIX, filename, "HERCM")
 
     elif form == 'bxf':
-            
+
         libBXF.write(HERCMATRIX, filename)
 
     elif form == 'mtx':
@@ -252,9 +254,8 @@ def writeMatrix(filename, form, HERCMATRIX):
 while writing file. Exception: {0}. You probably have out of bounds indices 
 in row or col""".format(e))
         except Exception as e:
-                logging.warning("""(lsc-593) encountered general error while
+            logging.warning("""(lsc-593) encountered general error while
  writing: {0}""".format(str(e)))
-
 
         # fix header of mtx file
         if HERCMATRIX.symmetry == 'SYM':
