@@ -9,26 +9,26 @@ import textwrap
 import pprint
 import libBXF
 
-## @package MatrixUtils provides matrix utilities 
+## @package MatrixUtils provides matrix utilities
 #
-# Tools that may be useful elsewhere, but are predominately intended for use 
-# with BXFExplorer commands. 
+# Tools that may be useful elsewhere, but are predominately intended for use
+# with BXFExplorer commands.
 
-## Print an overview of the matrix to the console. 
-# Prints either the entire matrix, or an overview of the matrix if it is too 
-# large. 
-# 
+## Print an overview of the matrix to the console.
+# Prints either the entire matrix, or an overview of the matrix if it is too
+# large.
+#
 # @param[in] HERCMATRIX the instance of libHercMatrix.hercMatrix to display
 # @param[in] maxHeight no more than `maxHeight` rows will be printed, default
-# is 10. 
-# @param[in] maxWidth no more than `maxWidth` columns will be printed, default 
-# is 10. 
-# 
+# is 10.
+# @param[in] maxWidth no more than `maxWidth` columns will be printed, default
+# is 10.
+#
 # @returns `None`
-# 
+#
 # # Examples
-# 
-# 5x5 matrix containing only 2s 
+#
+# 5x5 matrix containing only 2s
 # ```
 # > display
 #        2         2         2         2         2
@@ -37,7 +37,7 @@ import libBXF
 #        2         2         2         2         2
 #        2         2         2         2         2
 # ```
-# 
+#
 # bcsstk01
 # ```
 # > display
@@ -52,7 +52,8 @@ import libBXF
 #        0         0         0         0         0  ...  -4.8e+06  1.35e+05  2.47e+09         0         0
 #        0         0         0         0         0  ...         0         0         0  9.62e+08  -1.1e+08
 #        0         0         0         0         0  ...         0         0         0  -1.1e+08  5.31e+08
-# ``` 
+# ```
+
 
 def displayMatrix(HERCMATRIX, maxHeight=10, maxWidth=10):
 
@@ -82,21 +83,21 @@ def displayMatrix(HERCMATRIX, maxHeight=10, maxWidth=10):
 
 
 ## Print the matrix converted to CSR format
-# Prints the contents of the matrix, converted to CSR format. Prompts the user 
-# if the matrix contains more than 25 elements ***TODO**: it should prompt the 
-# user only of more than 25 elements would be displayed). Automatically 
-# the row of any given element for convenience, and prints elements of the 
-# row_ptr array at the indexes which they refer to. 
-# 
+# Prints the contents of the matrix, converted to CSR format. Prompts the user
+# if the matrix contains more than 25 elements ***TODO**: it should prompt the
+# user only of more than 25 elements would be displayed). Automatically
+# the row of any given element for convenience, and prints elements of the
+# row_ptr array at the indexes which they refer to.
+#
 # @params[in] HERCMATRIX an instance of libHercMatrix.hercMatrix to view
-# @params[in] firstRow the first row of the matrix to display (note, this 
+# @params[in] firstRow the first row of the matrix to display (note, this
 # refers to the first row of the matrix, not the index of the element). Default
-# is 10. 
-# @params[in] lastRow the last row of the matrix to display. Default is `None` 
-# (if `lastRow` is `None`, it is interpreted as the end of the matrix). 
-# 
+# is 10.
+# @params[in] lastRow the last row of the matrix to display. Default is `None`
+# (if `lastRow` is `None`, it is interpreted as the end of the matrix).
+#
 # @returns `None`
-# 
+#
 # # Examples
 # printing the 1st through the 5th rows of bcspwr01
 # ```
@@ -166,8 +167,8 @@ def printCSR(HERCMATRIX, firstRow=0, lastRow=None):
                 if currentRow <= lastRow:
                     print('{:5} {:8.2g} {:7} {:7} {:7}'
                           .format(index, matrix.data[index],
-                            matrix.indices[index],
-                            matrix.indptr[ptrCount], currentRow))
+                                  matrix.indices[index],
+                                  matrix.indptr[ptrCount], currentRow))
             ptrCount += 1
         else:
             try:
@@ -175,8 +176,8 @@ def printCSR(HERCMATRIX, firstRow=0, lastRow=None):
                     if currentRow <= lastRow:
                         print('{:5} {:8.2g} {:7} {:7} {:7}'
                               .format(index, matrix.data[index],
-                                matrix.indices[index],
-                                ' ', currentRow))
+                                      matrix.indices[index],
+                                      ' ', currentRow))
             except IndexError:
                 # for some reason, matrix.data seems way too short
 
@@ -185,15 +186,15 @@ def printCSR(HERCMATRIX, firstRow=0, lastRow=None):
 
 ## Prints the matrix as it is represented in libHercMatrix.hercMatrix
 #
-# Prints the matrix in COO format, as an exact representation of the given 
-# instance of libHercMatrix.hercMatrix's internal storage of the matrix. 
-# 
+# Prints the matrix in COO format, as an exact representation of the given
+# instance of libHercMatrix.hercMatrix's internal storage of the matrix.
+#
 # @param[in] HERCMATRIX the instance of libHercMatrix.hercMatrix to display
-# 
+#
 # @returns `None`
-# 
+#
 # # Examples
-# output for a 4x4 matrix of 7s 
+# output for a 4x4 matrix of 7s
 # ```
 # > raw
 # - raw matrix contents -
@@ -232,16 +233,16 @@ def printRaw(HERCMATRIX):
 ## Prints a rectangular selection of values
 # Prints a rectangle of values, bounded by col1, row1 and col2, row2 from
 # HERCMATRIX
-# 
+#
 # @param[in] row1 int specifying row of upper left bound
 # @param[in] row2 int specifying row of bottom right bound
 # @param[in] col1 int specifying col of upper left bound
 # @param[in] col2 int specifying col of bottom right bound
-# @param[in] HERCMATRIX instance of libHercMatrix.hercMatrix to print values 
+# @param[in] HERCMATRIX instance of libHercMatrix.hercMatrix to print values
 # from
-# 
+#
 # @returns None
-# 
+#
 # @throws IndexError if any value is out of bounds
 # @throws ValueError if `row1` > `row2` or `col1` > `col2`
 
@@ -270,10 +271,10 @@ def printRange(row1, row2, col1, col2, HERCMATRIX):
         raise ValueError("col1 larger than col2")
 
     TMPMATRIX = libHercMatrix.hercMatrix()
-    TMPMATRIX.height = abs(row2 - row1) 
-    TMPMATRIX.width  = abs(col2 - col1) 
+    TMPMATRIX.height = abs(row2 - row1)
+    TMPMATRIX.width = abs(col2 - col1)
 
-    width = HERCMATRIX.width 
+    width = HERCMATRIX.width
     height = HERCMATRIX.height
 
     for element in HERCMATRIX.elements:
@@ -285,15 +286,14 @@ def printRange(row1, row2, col1, col2, HERCMATRIX):
             if (col >= col1) and (col < col2):
                 try:
                     TMPMATRIX.setValue(row - row1,
-                        col - col1,
-                        val)
+                                       col - col1,
+                                       val)
                 except IndexError as e:
                     logging.warning("encountered error {0}".format(e))
                     logging.warning("writing to row {0} col {1} of "
-                        .format(row - row1, col - col1))
+                                    .format(row - row1, col - col1))
                     logging.warning("row {0} col {1}"
-                        .format(TMPMATRIX.height, TMPMATRIX.width))
-
+                                    .format(TMPMATRIX.height, TMPMATRIX.width))
 
     TMPMATRIX.makeRowMajor()
     displayMatrix(TMPMATRIX)
@@ -301,19 +301,20 @@ def printRange(row1, row2, col1, col2, HERCMATRIX):
 ## Paint a value over all elements in a rectangular range of elements
 #
 # Sets the value of all elements in a square box bounded by col1, row1 and
-# col2, row2 equal to val. 
-# 
+# col2, row2 equal to val.
+#
 # @param[in] row1 the row of the top left corner
 # @param[in] col1 the column of the top left corner
 # @param[in] row2 the row of the bottom right corner
 # @param[in] col2 the column of the bottom right corner
 # @param[in] val the value to set elements to
-# @param[out] HERCMATRIX instance of libHercMatrix.hercMatrix on which to 
+# @param[out] HERCMATRIX instance of libHercMatrix.hercMatrix on which to
 # operate
-# 
+#
 # @returns None
 #
 # TODO: this needs exception handling
+
 
 def paint(row1, row2, col1, col2, val, HERCMATRIX):
     width = HERCMATRIX.width
@@ -326,11 +327,11 @@ def paint(row1, row2, col1, col2, val, HERCMATRIX):
 
 ## Paints values along a diagonal
 #
-# Paints the value `val` along a 45 degree diagonal, beginning with column 
+# Paints the value `val` along a 45 degree diagonal, beginning with column
 # `begin`, and ending with column `end`. `spread` values on either side of
 # the diagonal are painted as well. The diagonal is shifted left or right by
-# `offset` elements. 
-# 
+# `offset` elements.
+#
 # @param[in] begin the first column to paint in
 # @param[in] end the last column to paint in
 # @param[in] spread number of values on either side of the diagonal to paint
@@ -338,7 +339,7 @@ def paint(row1, row2, col1, col2, val, HERCMATRIX):
 # @param[out] HERCMATIX instance of libHercMatrix.hercMatrix to operate on
 # @param[in] offset number of columns to shift the diagonal to the left or right
 # by
-# 
+#
 
 
 def paintDiagonal(begin, end, spread, val, HERCMATRIX, offset=0):
@@ -353,14 +354,15 @@ def paintDiagonal(begin, end, spread, val, HERCMATRIX, offset=0):
             except IndexError:
                 pass  # out of bounds
 
-## Alters the dimensions of the matrix 
-# Sets the dimensions of the matrix to `width` columns and `height` rows. 
+## Alters the dimensions of the matrix
+# Sets the dimensions of the matrix to `width` columns and `height` rows.
 # Elements which go out of bounds after the alteration are discarded. Elements
-# still in bounds are not modified. 
-# 
+# still in bounds are not modified.
+#
 # @param[in] height number of rows for the matrix to have
 # @param[in] width number of columns for the matrix to have
 # @param[out] HERCMATRIX instance of libHercMatrix.hercMatrix to operate on
+
 
 def setDims(height, width, HERCMATRIX):
 
@@ -378,12 +380,11 @@ def setDims(height, width, HERCMATRIX):
     HERCMATRIX.removeZeros()
 
 
-
 ## Initialize a new, empty matrix
 #
-# Initialize a new matrix with the specified dimensions, optionally initializing 
-# all values in said matrix to a particular value (by default zero). 
-# 
+# Initialize a new matrix with the specified dimensions, optionally initializing
+# all values in said matrix to a particular value (by default zero).
+#
 # @param[in] height number of rows in the new matrix
 # @param[in] width number of columns in the new matrix
 # @param[out] HERCMATRIX instance of libHercMatrix.hercMatrix to operate on

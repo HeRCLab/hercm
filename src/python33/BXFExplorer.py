@@ -66,9 +66,25 @@ def main(override=None):
             for item in menuItems:
                 if item.command == arguments[0]:
                     item.printHelp()
+                    return
+            print("No help message found for command {0}".format(arguments[0]))
+            return
         else:
             for item in menuItems:
                 item.printHelp()
+
+        print("\n"*5)
+        print("-- Special Commands --")
+        print("help (command) - print all help messages, or print help for a ")
+        print("specific command")
+        print("-"*20)
+        print("list-plugins - list all loaded menu plugins (commands)")
+        print("-"*20)
+        print("reload-plugins - (BUG: not currently working) reload all menu ")
+        print("plugins")
+        print("-"*20)
+        print("traceback - print the traceback for the most recent failed ")
+        print("command")
         
         return
 
