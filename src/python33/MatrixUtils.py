@@ -412,19 +412,6 @@ def initialize(height, width, HERCMATRIX, val=0):
 
 
 
-
-
-def plot(HERCMATRIX):
-    # plots the matrix with matplotlib
-    matrix = HERCMATRIX.getInFormat('coo')
-
-    matplotlib.pyplot.spy(matrix)
-    matplotlib.pyplot.show()
-
-
-   
-
-
 def printDirectoryListing(directory=None):
     # prints a directory listing of directory, of cwd if directory=None
     if directory is None:
