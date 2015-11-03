@@ -437,10 +437,9 @@ def printDirectoryListing(directory=None):
     for item in os.listdir(directory):
         print(item)
 
+## Prints the current working directory
 
 def printWorkingDirectory():
-    # prints the CWD
-
     print(os.getcwd())
 
 
