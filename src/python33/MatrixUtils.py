@@ -443,6 +443,11 @@ def printWorkingDirectory():
     print(os.getcwd())
 
 
+## Prints the top `numlines` lines of a file
+#
+# @param[in] path relative or absolute path to the target file
+# @param[in] numlines number of lines to print from the file (default is 10)
+
 def head(path, numlines=10):
     # prints the first numlines of file at path
     print("First {0} lines of file {1}".format(numlines, path))
@@ -450,6 +455,9 @@ def head(path, numlines=10):
     for line in f.readlines()[0:numlines]:
         print(line, end='')
 
+## Prints all lines from a file
+#
+# @param[in] path relative or absolute path to the target file
 
 def cat(path):
     # prints all lines in file at path
