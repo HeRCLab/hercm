@@ -467,9 +467,12 @@ def cat(path):
     for line in f.readlines():
         print(line, end='')
 
+## Changes the current working directory of the program
+# 
+# @param[in] newDir the directory to change to 
 
 def changeDirectory(newDir):
-    # changes cwd to newDir
+
     if not os.path.exists(newDir):
         print("ERROR: cannot cd to nonexistent path")
         return
