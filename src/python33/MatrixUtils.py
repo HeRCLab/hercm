@@ -482,6 +482,16 @@ def changeDirectory(newDir):
     os.chdir(newDir)
 
 
+## Convert a file to a different format 
+# 
+# Converts the file `source` to `destionationFormat`, then writes it out in
+# `destinationFormat`.
+# 
+# @param source absolute or relative path to source file
+# @param destination absolute or relative path to destination file
+# @param sourceFormat string indicating the format of the source file
+# @param destinationFormat string indicating the format of the destination file
+
 def convert(source, destination, sourceFormat, destinationFormat):
     # converts the matrix at source in sourceFormat to destinationFormat
     # then writes out at destination
@@ -492,8 +502,7 @@ def convert(source, destination, sourceFormat, destinationFormat):
     if not os.path.isfile(source):
         print("ERROR: {0} is not a file".format(source))
         return
-    HERCMATRIX = libHercMatrix.hercMatrix()
+    HERCMATRIX = libHercmIO.readMatrix(source, sourceFormat)
 
-    HERCMATRIX = load(source, sourceFormat)
-    generateVerification(HERCMATRIX)
-    write(destination, destinationFormat, HERCMATRIX)
+    HERCMATRIX.verification = libBXF.generateVerificationSum(HERCMATRIX)
+    libHercmIO.writeMatrix(destination, destinationFormat, HERCMATRIX)
