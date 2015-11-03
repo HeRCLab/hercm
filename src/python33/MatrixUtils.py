@@ -410,11 +410,16 @@ def initialize(height, width, HERCMATRIX, val=0):
     HERCMATRIX.symmetry = 'ASYM'
     HERCMATRIX.remarks = []
 
-
+## Prints a listing of files in a directory
+#
+# If `directory` is given, the contents of that directory are printed, otherwise
+# the contents of the working directory are printed. 
+# 
+# @param[in] directory to print listing of
 
 def printDirectoryListing(directory=None):
     # prints a directory listing of directory, of cwd if directory=None
-    if directory is None:
+    if directory is not None:
         if os.path.exists(directory):
             pass
         elif os.path.exists(os.path.join(os.getcwd(), directory)):
