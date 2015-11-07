@@ -9,10 +9,10 @@ import matplotlib
 import matplotlib.pyplot
 import logging
 import os
-import yaml
 import pprint
 from yapsy.PluginManager import PluginManager
 import traceback
+import sys
 
 
 WORKINGMATRIX = libHercMatrix.hercMatrix()
@@ -46,7 +46,6 @@ def main(override=None):
         usrIn = input("> ")
     else:
         usrIn = override
-        logging.warning("override functionality for main() is going away soon")
 
     usrIn = usrIn.rstrip()
     splitInput = usrIn.split()
@@ -137,13 +136,19 @@ def main(override=None):
             return
 
     else:
-        print("ERROR: command not found!")
+        print("ERROR: command '{0}' not found!".format(command))
 
 
 def runMain():
     while True:
         main()
 
-print("welcome to Herc Explorer. Enter \"help\" for help")
 loadPlugins()
-runMain()
+if len(sys.argv) == 1:
+    print("welcome to Herc Explorer. Enter \"help\" for help")
+    runMain()
+else:
+    main(' '.join(sys.argv[1:]))
+    runMain()
+
+
