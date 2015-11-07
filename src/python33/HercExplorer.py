@@ -144,6 +144,6 @@ def runMain():
     while True:
         main()
 
-print("welcome to BXFExplorer. Enter \"help\" for help")
+print("welcome to Herc Explorer. Enter \"help\" for help")
 loadPlugins()
 runMain()
