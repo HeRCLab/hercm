@@ -292,9 +292,22 @@ class hercMatrix:
 
         # newContents is anything that can be cast to scipy.sparse.coo_matrix
 
-        newContents = scipy.sparse.coo_matrix(newContents)
+        try:
+            newContents = scipy.sparse.coo_matrix(newContents)
+        except ValueError:
+            try: 
+                newContents = newContents.tocoo()
+            except Exception:
+                raise TypeError("Could not replace contents of matrix with " + 
+                   "object of type {0}".format(type(newContents)))
 
-        this.elements.resize(len(newContents.data))
+        try:
+            this.elements.resize(len(newContents.data))
+        except AttributeError:
+            # elements is None because it has not been initialized 
+            this.elements = numpy.array([[],[],[]],dtype=this.dtype)
+            this.elements.resize(len(newContents.data))
+
         this.elements['row'] = newContents.row.astype(numpy.int32)
         this.elements['col'] = newContents.col.astype(numpy.int32)
         this.elements['val'] = newContents.data.astype(numpy.float64)

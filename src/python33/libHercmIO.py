@@ -9,6 +9,7 @@ import traceback
 import pprint
 import os
 import logging
+import libValcolIO
 
 
 ## @package libHercmIO
@@ -179,6 +180,9 @@ def readMatrix(filename, form, showProgress=False):
             logging.warning("(lsc-536)could not open matrix file")
             raise IOError("could not open matrix file for writing...",
                           str(e))
+
+    elif form == 'valcol':
+        HERCMATRIX = libValcolIO.read(filename)
 
     else:
         logging.warning("(lsc-545) format {0} is not valid".format(form))

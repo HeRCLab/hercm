@@ -60,5 +60,7 @@ class loader(masterPlugin.masterPlugin):
             return 'mtx'
         if filename[-5:] == 'hercm':
             return 'hercm'
+        if filename[-6:] == 'valcol':
+            return 'valcol'
 
         return None
