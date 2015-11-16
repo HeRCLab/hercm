@@ -6,10 +6,23 @@ import numpy
 import scipy
 import logging
 
+## @package libHercMatrix
+
+## Class for storing and manipulating sparse matrices
+#
+# Store matrices in COO format via custom numpy dtype. Provides functions for
+# numpy/scipy interoperability, and basic matrix manipulation. Does NOT do any
+# file IO. 
+# 
+# Keep in mind that while reading here, an element typically refers to a a list
+# or numpy array that contains a row, col, val triplet in that order.
+# 
+# Unless otherwise noted, everything here is always zero indexed. 
 
 class hercMatrix:
-    # hercm matrix class
-    # stores hercm matricies and permits access by various methods
+    
+
+    ## Fairly basic constructor. Nothing special here. 
 
     def __init__(this):
         from scipy.sparse import csr_matrix
@@ -27,10 +40,18 @@ class hercMatrix:
         this.height = 0
         this.width = 0
 
+    ## Return this matrix as a scipy.sparse matrix
+    # 
+    # Returns the matrix stored in this class instance as an instance of 
+    # scipy.sparse. 
+    # 
+    # @param form A string indicating the format. Should be any string supported
+    # by [scipy.sparse.coo_matrix.asformat()](http://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_matrix.asformat.html#scipy.sparse.coo_matrix.asformat)
+    # as this is basically a wrapper for that function. 
+    # 
+    # @returns scipy.sparse.XXX_matrix instance 
+
     def getInFormat(this, form):
-        # returns the matrix as a scipy.sparse type
-        # format is any string valid for scipy.sparse.coo_matrix.asformat
-        # http://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_matrix.asformat.html#scipy.sparse.coo_matrix.asformat
 
         scipyMatrix = None
         try:
@@ -47,6 +68,15 @@ class hercMatrix:
             scipyMatrix = this.getInFormat(form)
 
         return scipyMatrix.asformat(form)
+
+    ## Add a new COO element 
+    #
+    # Appends a new COO element to the matrix. 
+    # 
+    # @param element anything supported by 
+    # libHercMatrix.hercMatrix.castElement()
+    # 
+    # @exception ValueError element could not be cast by castElement()
 
     def addElement(this, element):
         # element can be any element supported by this.castElement()
@@ -71,13 +101,24 @@ class hercMatrix:
             raise ValueError(
                 "Could not cast element to valid format... ", str(e))
 
+    ## Get a COO element from this matrix
+    #
+    # Returns an array in the order `[row, col, val]`. Numpy return types will
+    # have the dtype libHercMatrix.hercMatrix.dtype
+    #
+    # @param n integer indicating the index of the element
+    # @param form python class list, numpy.void, or numpy.ndarray
+    # 
+    # @exception IndexError n is out of bounds for this matrix 
+    # @exception ValueError n is not and integer, and cannot be cast as such
+    # @exception TypeError form is not a list, numpy.void, or numpy.ndarray
+    # 
+    # **NOTE**: form should not be a class instance, but the class itself. 
+    # for example, you might call this function as getElement(5, list)
+    # 
+    # 
+
     def getElement(this, n, form=list):
-        # returns the nth element of this matrix, in the given form
-        # if form is list, it is returned as a python list [row, col, val]
-        # if form is numpy.void it is returned as a numpy.void with the
-        # dtype this.dtype
-        # if form is numpy.ndarray, it is returned as a numpy.ndarray with
-        # dtype this.dtype
 
         if n < 0 or n > this.nzentries:
             raise IndexError(n, "is out of bounds for array of size",
@@ -100,14 +141,20 @@ class hercMatrix:
         else:
             raise TypeError("form must be of type list or numpy.void")
 
+    ## Cast a COO matrix element 
+    #
+    # Typecasts a COO matrix element of the format [row, col, val] such that it
+    # matches libHercMatrix.hercMatrix.dtype 
+    # 
+    # @param element list, numpy.void, or numpy.ndarray
+    # 
+    # @returns numpy.ndarray
+    # 
+    # @exception ValueError one or more indicies of element cannot be converted 
+    # to a required type, or element has the wrong number of indicies
+    # 
+
     def castElement(this, element):
-        # returns element as numpy.ndarray
-        # element should be a list or numpy.void of the format
-        # [row, col, val]
-        # elements of type numpy.ndarray whose dtype matches this.dtype
-        # will be passed through
-        # element of type numpy.ndarray whose dtype does not match will
-        # be converted  if possible
 
         if type(element) == list:
             if len(element) != 3:
@@ -148,18 +195,18 @@ class hercMatrix:
                     raise ValueError("index 2 of list cannot be cast to float")
                 return numpy.array((row, col, val), dtype=this.dtype)
 
+    ## Search the matrix for an element
+    # 
+    # Searches the matrix for an element that is a close match for the one 
+    # provided. 
+    # 
+    # @param element anything supported by castElement()
+    # @param rtol passed through to [numpy.isclose](http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.isclose.html)
+    # @param atol see above
+    # 
+    # @returns list of indicies at which the element occurs 
+
     def searchElement(this, element, rtol=1e-05, atol=1e-08):
-        # returns a list of indices at which element occurs in
-        # the matrix. element is compared to this.elements with
-        # numpy.isclose
-
-        # element should be any supported by this.castElement()
-
-        # rtol and a tol are passed through to numpy.isclose, and are
-        # used as described here: http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.isclose.html
-        # an element specified as a list, numpy.void, or numpy.ndarray
-        # will be matched using numpy.isclose
-
         try:
             element = this.castElement(element)
         except ValueError as e:
@@ -182,15 +229,19 @@ class hercMatrix:
 
         return instances
 
-    def removeElement(this, n, rtol=0, atol=0):
-        # if n can be cast to int, removes the nth element of the matrix
-        # if n can be cast by this.castElement(), remove all instances
-        # of that element, as found by this.searchElement()
+    ## Remove an element from the matrix
+    #
+    # Removes either the nth element of the matrix, or the element matching
+    # n (if n can be cast by castElement()). If n is not an int, ALL elements 
+    # matching it are removed (this is why rtol and atol are zero by default).
+    # 
+    # @param n int or any supported by castElement()
+    # @param rtol passed through to [numpy.isclose](http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.isclose.html)
+    # @param atol see above
+    # 
+    # **NOTE**: atol and rtol are only used if n is not an int 
 
-        # rtol and a tol are passed through to numpy.isclose, and are
-        # used as described here: http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.isclose.html
-        # an element specified as a list, numpy.void, or numpy.ndarray
-        # will be matched using numpy.isclose
+    def removeElement(this, n, rtol=0, atol=0):
 
         try:
             n = int(n)
@@ -206,10 +257,20 @@ class hercMatrix:
                 raise ValueError("could not cast n to any valid format... ",
                                  str(e))
 
-    def getValue(this, row, col, rtol=1e-05, atol=1e-08):
-        # returns the value stored at row, col
-        # if assumeRowMajor is true, uses an optimized search routine
 
+    ## returns the value of an element by coordinates
+    # 
+    # Returns the value stored at a particular row, column pair in the matrix. 
+    # 
+    # @param row int indicating row number of the element
+    # @param col int indicating the column number of the element
+    # 
+    # @todo why are atol and rtol here - row and col are ints? They should 
+    # probably be removed. 
+    # 
+    # @returns float with the value at the specified row, col
+    
+    def getValue(this, row, col, rtol=1e-05, atol=1e-08):
         if this.symmetry == 'SYM':
             if row > col:
                 # extrapolate for values in lower triangle
@@ -238,8 +299,18 @@ class hercMatrix:
 
         return 0
 
+    ## Change the value by coordinates
+    # 
+    # Changes the value at the specified coordinates, truncating the current
+    # value if there is one. 
+    # 
+    # @param newRow int indicating the row of the value to set
+    # @param newCol int indicating the column of the value to set
+    # @param newVal float containing the value to set
+    # 
+    # @exception IndexError newCol or newRow is out of bounds
+    
     def setValue(this, newRow, newCol, newVal):
-        # changes the value of row, col to val
 
         if this.symmetry == 'SYM':
             if newRow > newCol:
@@ -279,19 +350,27 @@ class hercMatrix:
         if newVal == 0:
             this.removeZeros()
 
+    ## Remove all zero elements from the matrix
+    #
+    # This does not affect the actual contents of the matrix, only it's 
+    # representation in COO format. Removes any COO elements where val is
+    # exactly zero. 
+
     def removeZeros(this):
-        # removes any instances of zero
 
         matrix = this.getInFormat('csr')
         matrix.eliminate_zeros()
         this.replaceContents(matrix)
         this.nzentries = len(this.elements['val'])
 
+    ## replace matrix contents with a scipy sparse matrix
+    #
+    # Overwrites this matrix with the contents of a scipy.sparse.XXX_matrix 
+    # instance 
+    # 
+    # @param newContents anything which can be cast by scipy.sparse.coo_matrix
+
     def replaceContents(this, newContents):
-        # replaces the contents of this instance with newContents
-
-        # newContents is anything that can be cast to scipy.sparse.coo_matrix
-
         try:
             newContents = scipy.sparse.coo_matrix(newContents)
         except ValueError:
