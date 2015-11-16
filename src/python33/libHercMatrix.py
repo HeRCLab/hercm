@@ -486,6 +486,9 @@ class hercMatrix:
     def transpose(this):
         # perform matrix transpose, switching the top and bottom triangles about
         # the diagonal
+        
+        logging.warning("transposing symmetric matrix, this will probably " +
+            "truncate everything not on the diagonal")
 
         for element in this.elements:
             originalRow = element[0]

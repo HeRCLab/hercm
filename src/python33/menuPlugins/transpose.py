@@ -16,3 +16,14 @@ class transpose(masterPlugin.masterPlugin):
         print("performing matrix transpose...")
         WORKINGMATRIX.transpose()
         print("done")
+
+    def validate(this, arguments, WORKINGMATRIX):
+        if not super().validate(arguments, WORKINGMATRIX):
+            return False
+
+        if WORKINGMATRIX.symmetry == "SYM":
+            print("ERROR: matrix is already symmetric, performing transpose " +
+                "would produce non-compliant output")
+            return False 
+
+        return True 
