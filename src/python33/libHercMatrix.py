@@ -366,7 +366,7 @@ class hercMatrix:
     ## replace matrix contents with a scipy sparse matrix
     #
     # Overwrites this matrix with the contents of a scipy.sparse.XXX_matrix 
-    # instance 
+    # instance, or something that can be cast to one. 
     # 
     # @param newContents anything which can be cast by scipy.sparse.coo_matrix
 
@@ -392,9 +392,19 @@ class hercMatrix:
         this.elements['val'] = newContents.data.astype(numpy.float64)
         this.nzentries = len(this.elements['val'])
 
+    ## check if there are elements in the lower triangle
+    #
+    # Checks if there are any COO elements where row is > column. 
+    # This is useful for ensuring that symmetric matrices are stored and read 
+    # symmetrically.
+    # 
+    # @returns True if there are no nonzero elements in the lower triangle
+    # @returns False if there are nonzero elements in the lower triangle
+    # 
+    # **NOTE**: this has nothing to do with contents of the matrix. If you are
+    # trying to find the symmetry of the matrix, please use checkSymmetry(). 
+
     def checkLowerTriangle(this):
-        # returns true if this matrix contains no elements in the lower triangle
-        # returns false otherwise
 
         this.removeZeros()
         this.makeRowMajor()
@@ -410,10 +420,27 @@ class hercMatrix:
 
         return True
 
+
+    ## checks if the matrix is symmetric
+    #
+    # Checks if the matrix is symmetric. The matrix is considered symmetric
+    # if one of the following conditions is met: 
+    # 
+    # 1. the checkLowerTriangle() returns `True` AND the symmetry attribute for
+    # the matrix is equal to `"SYM"`
+    # 2. there are no elements in the lower triangle such that their counterpart
+    # in the upper triangle is not equal. In other words, the matrix is equal
+    # to itself transposed
+    # 
+    # @returns True if either of the above conditions are met
+    # @returns False otherwise
+    # 
+    # **NOTE**: this function checks if the matrix data is symmetric or not, 
+    # regardless of how it is stored in COO format. If you want to verify the
+    # matrix is correctly stored symmetrically, you should use 
+    # checkLowerTriangle()
+
     def checkSymmetry(this):
-        # checks if the lower triangle is empty and symmetry attribute is SYM,
-        # OR if there are no elements in the lower triangle which do not match
-        # the corresponding elements int he upper triangle.
 
         this.removeZeros()
         this.makeRowMajor()
@@ -433,26 +460,26 @@ class hercMatrix:
 
         return True
 
+    ## makes this matrix symmetrical
+    # 
+    # Convert this matrix to symmetric. This both updates the matrix's
+    # symmetry attribute, AND makes the data in the matrix symmetric. 
+    # Several methods are available for accomplishing this task, which follow...
+    # 
+    # | value of `method` | effect |
+    # |-----------------|--------|
+    # | `truncate`      | All elements int he bottom triangle discarded | 
+    # | `add`           | The bottom half of the triangle is transposed, and the result is added to the upper triangle |
+    # | `smart`         | Elements of the lower triangle whose counterpart in the upper triangle is zero are moved to the upper triangle |
+    # 
+    # **NOTE**: the `smart` method is very performance naive, and is not very
+    # fast. In most cases, it will not be useful and should probably be avoided
+    # 
+    # **NOTE**: the diagonal is never modified by any method
+    # 
+    # @throws ValueError `method` is not valid 
+
     def makeSymmetrical(this, method='truncate'):
-        # makes this matrix symmetrical
-        # if method is 'truncate', this will be done by discarding the
-        # bottom triangle, regardless of contents
-
-        # if method is 'add', this will be done by adding all elements
-        # from the bottom triangle to the corresponding element in the
-        # top triangle, ignoring the diagonal
-
-        # if method is 'smart', this will be done by adding all elements
-        # from the bottom triangle to the top triangle ONLY if the corresponding
-        # element in the top triangle is zero, and otherwise discarding elements
-        # from the bottom triangle. This is the slowest method
-
-        # truncate should work for any 'true' symmetric matrix, where numpy
-        # has silently duplicate elements from the bottom triangle to the top
-        # thus, it is the default
-
-        # the other methods are useful for turning asymmetrical matrices
-        # symmetric
 
         if method == 'truncate':
             upperTriangle = scipy.sparse.triu(this.getInFormat('coo'))
@@ -501,19 +528,26 @@ class hercMatrix:
 
         this.removeZeros()
 
+    ## convert the matrix to asymmetrical 
+    # 
+    # The inverse of makeSymmetrical(). Modifies matrix data such that it is 
+    # asymmetrical. Like makeSymmetrical(), several methods are supported, which
+    # follow...
+    # 
+    # | value of `method` | result |
+    # |-------------------|--------|
+    # | `truncate`        | The lower triangle is replaced with the upper triangle transposed |
+    # | `add`             | The upper triangle is transposed and added to the lower triangle |
+    # | `smart`           | Movies any elements in the upper triangle whose counterpart in the lower triangle is zero to the lower triangle |
+    # 
+    # **NOTE**: as with makeSymmetrical(), `smart` is very slow, and probably
+    # not very useful. 
+    # 
+    # **NOTE**: the diagonal is never modified by any method
+    # 
+    # @throws ValueError `method` is not valid 
+
     def makeAsymmetrical(this, method='truncate'):
-        # if method is truncate
-        # reflects everything above the diagonal into the lower triangle,
-        # ignoring the diagonal
-        # any values in the lower triangle will be lost
-
-        # if method is add
-        # adds everything in the upper triangle to the lower triangle, ignoring
-        # the diagonal
-
-        # if method is smart
-        # copies each element of the upper triangle into the lower, only if
-        # the element in the lower triangle is zero
 
         if method == 'truncate':
             upperTriangle = scipy.sparse.triu(this.getInFormat('coo'))
@@ -553,8 +587,12 @@ class hercMatrix:
 
         this.removeZeros()
 
+    ## Make the matrix row major
+    # 
+    # Modifies the COO matrix data such that it is sorted as row major. This
+    # does not affect matrix contents in any way. 
+
     def makeRowMajor(this):
-        # re orders this matrix such that it is row major
 
         if this.elements is None:
             logging.warning("cannot make nonexistent matrix row major")
@@ -562,12 +600,22 @@ class hercMatrix:
 
         this.elements = numpy.sort(this.elements, order=["row", "col"])
 
+    ## transpose the matrix 
+    #
+    # Perform a matrix transpose about the diagonal. 
+    # 
+    # @exception TypeError matrix is symmetric, and cannot be transposed
+    # 
+    # **NOTE**: you should never transpose a symmetric matrix. This 
+    # functionality used to be permitted, but has been disabled because it broke
+    # things. If you *really* want to transpose a symmetric matrix, use 
+    # getInFormat() to get it as a scipy.sparse matrix, then use numpy's 
+    # transpose function (you will probably still break everything, be careful).
+
     def transpose(this):
-        # perform matrix transpose, switching the top and bottom triangles about
-        # the diagonal
         
-        logging.warning("transposing symmetric matrix, this will probably " +
-            "truncate everything not on the diagonal")
+        if this.symmetry == "SYM":
+            raise TypeError("Cannot transpose a symmetric matrix")
 
         for element in this.elements:
             originalRow = element[0]
