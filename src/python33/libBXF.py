@@ -177,104 +177,13 @@ match nzentries {2}""".format(field, len(contents[field]), HERCMATRIX.nzentries)
 
 
 def generateVerificationSum(hercm):
-    # returns the verification sum of hercm
-    # hercm should be in the format:
-
-    # {'col': [4, 4, 3, 2, 1, 4, 2, 1],
-    # 'height': 5,
-    # 'nzentries': 8,
-    # 'remarks': [],
-    # 'row': [4, 3, 3, 4, 1, 1, 2, 4],
-    # 'symmetry': 'ASYM',
-    # 'val': [8.0, 7.0, 5.0, 3.0, 4.0, 2.0, 1.0, 6.0],
-    # 'verification': 7.0,
-    # 'width': 5}
-
-    # hercm may also be an instance of libhsm.hsm
-
-    if type(hercm) == dict:
-        fields = ['val', 'col', 'row']
-        sum = 0
-        for field in fields:
-            try:
-                for value in hercm[field]:
-                    sum += value
-            except KeyError as e:
-                logging.warning(
-                    "(lsc-208) could not verify, missing field")
-                raise KeyError("missing field... ", str(e))
-            except TypeError as e:
-                logging.warning(
-                    "(lsc-213) could not verify, mangled field")
-                raise TypeError("one or more fields is of invalid type",
-                                str(e))
-
-        logging.info("generated verification sum {0}"
-                .format(sum % float(len(hercm['val']))))
-
-        return sum % float(len(hercm['val']))
-    else:
-        val = hercm.elements['val']
-        row = hercm.elements['row']
-        col = hercm.elements['col']
-
-        return generateVerificationSum({'val': val,
-                'row': row,
-                'col': col})
+    return 1
 
 
 def verify(hercm):
-    # verifies the hercm provided
-    # hercm should be the same dict format as generateVerificationSum()
-    # hercm may also be an instance of libhsm.hsm
-
-    # returns True of the hercm is valid
-    # returns False if it is not
-    # returns None if an error is encountered
-
-    if type(hercm) == dict:
-        try:
-            verification = generateVerificationSum(hercm)
-        except KeyError as e:
-            raise KeyError(
-                "failed to generate verification sum... ", str(e))
-            return None
-        except TypeError as e:
-            raise TypeError("failed to generate verification sum... ",
-                    str(e))
-            return None
-
-        try:
-            if abs(verification - hercm['verification']) < 0.00001:
-                logging.info("verification passed")
-                return True
-            else:
-                logging.warning("""(lsc-257) verification failed, expected
- {0}, got {1}""".format(hercm['verification'], verification))
-                return False
-        except ValueError as e:
-            logging.warning("(lsc-262) verification failed, mangled field")
-
-            raise ValueError("Could not verify, mangled field...", str(e))
-            return None
-        except KeyError:
-            logging.warning("(lsc-267) could not verify, missing field")
-
-            raise KeyError("could not verify, missing field...", str(e))
-            return None
-    else:
-        try:
-            verification = generateVerificationSum(hercm)
-        except KeyError as e:
-            raise KeyError(
-                "failed to generate verification sum... ", str(e))
-            return None
-        except TypeError as e:
-            raise TypeError(
-                "failed to generate verification sum... ", str(e))
-            return None
-
-        return hercm.verification == verification
+    logging.warning("libBXF.verify is being updated, and dosen't actually do " + 
+        "anything right now")
+    return True 
 
 
 def write(HERCMATRIX, filename, headerString="BXF  "):

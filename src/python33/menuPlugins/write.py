@@ -46,7 +46,11 @@ class writer(masterPlugin.masterPlugin):
                 return False
 
         if os.path.exists(arguments[0]):
-            print("ERROR: target file already exists")
-            return False
+            print("WARNING: target file already exists, delete it? (y/n)")
+            if (input().upper() in ["YES","Y"]):
+                os.remove(arguments[0])
+                return True
+            else:
+                return False
 
         return True

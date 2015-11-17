@@ -40,21 +40,7 @@ def readMatrix(filename, form, showProgress=False):
     logging.info("reading matrix {0} in format {1}".format(filename, form))
 
     if (form == 'hercm') or (form == 'bxf'):
-        if showProgress:
-            print("format is bxf, reading matrix using HERCMIO...")
-        matrix = None
-        try:
-            matrix = libBXF.read(filename)
-        except Exception as e:
-            print("ERROR: could not read matrix")
-            print("stack trace...")
-            print(traceback.format_exc())
-
-        HERCMATRIX = matrix
-        HERCMATRIX.nzentries = len(HERCMATRIX.elements['val'])
-
-        if showProgress:
-            print("finished reading matrix.")
+        HERCMATRIX = libBXF.read(filename)
 
     elif form == 'mtx':
         from scipy import io
