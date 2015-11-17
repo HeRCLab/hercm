@@ -64,3 +64,39 @@ def read(path):
         MATRIX.symmetry = "SYM"
 
     return MATRIX 
+
+## write a valcol file
+#
+# @param path string containing the absolute or relative path to write to
+# @param MATRIX instance of libHercMatrix.hercMatrix() to be written
+# 
+def write(path, MATRIX):
+    FILE = open(path, "w")
+    CSRMATRIX = MATRIX.getInFormat("csr")
+    val = CSRMATRIX.data
+    col = CSRMATRIX.indices 
+    row_ptr = CSRMATRIX.indptr 
+
+    if MATRIX.height != MATRIX.width:
+        raise TypeError("valcol does not support non-square matricies")
+
+    FILE.write(str(MATRIX.height) + " " + str(MATRIX.nzentries) + "\n")
+    for i in range(0, MATRIX.nzentries):
+        FILE.write(str(val[i]) + " " + str(col[i] + 1) + "\n")
+
+    for i in range(0, len(row_ptr) - 1):
+        FILE.write(str(row_ptr[i]) + "\n")
+
+    FILE.write(str(MATRIX.nzentries) + "\n")
+
+    FILE.close()
+
+
+
+
+
+
+
+
+
+

@@ -280,6 +280,9 @@ in row or col""".format(e))
 
         scipy.io.savemat(filename, {'matrix': HERCMATRIX.getInFormat('coo')})
 
+    elif form == 'valcol':
+        libValcolIO.write(filename, HERCMATRIX)
+
     else:
         logging.warning("(lsc-621) format {0} is not valid".format(form))
         raise TypeError("{0} is not a valid format"

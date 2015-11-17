@@ -12,6 +12,8 @@ The first line of a valid valcol file shall contain the number of rows (also the
 # column index and val 
 The following lines will contain two values each, separated by a single whitespace and terminated with a newline. The first value on each line shall be the relevant entry in the val array, and the second shall be the corresponding entry in the column index. 
 
+**NOTE**: column index should be one-indexed
+
 # row pointer
 After the previous section, one value will be stored per line - the contents of the row pointer array in sequence. Note that no delineator exists between the two sections, so parsers should simply search for the first line containing only one value. 
 

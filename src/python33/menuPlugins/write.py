@@ -31,7 +31,7 @@ class writer(masterPlugin.masterPlugin):
             form = load.loader.extrapolateFormat(None, arguments[0])
 
 
-        if form not in ['bxf', 'hercm', 'mat', 'mtx']:
+        if form not in ['bxf', 'hercm', 'mat', 'mtx', 'valcol']:
             print("ERROR: file format {0} not supported".format(form))
     
         libHercmIO.writeMatrix(filename, form, WORKINGMATRIX)
