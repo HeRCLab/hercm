@@ -1,0 +1,4 @@
+*.o
+doc
+__pycache__
+*.zip
