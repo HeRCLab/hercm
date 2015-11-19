@@ -8,31 +8,43 @@ import pprint
 import os
 import logging
 
+## @package libBXF
+#
+# Provides IO for BXF format files
 
-class HercmioValidationError(Exception):
-    pass
 
+## read a BXF file
+#
+# @param filename absolute or relative path to the file to read
+#
+# @exception OSError file does not exist, permission error, or other IO error
+# @exception ValueError file header is mangled, or one or more COO vectors
+# is a different length than the others
+# @exception TypeError one or more fields could not be typecast to required
+# types
+# 
+# @return libHercMatrix.hercMatricx instance containing the matrix read from the
+# file
 
 def read(filename):
     # reads in the HeRCM file specified by filename
     # returns it as an instance of libhsm.hsm
 
+    # matrix object we will return later
     HERCMATRIX = libHercMatrix.hercMatrix()
-    contents = {}
+
+    # row, col, and val lists we will read the matrix data into later
+    row = []
+    col = []
+    val = []
 
     logging.info("Reading BXF file {0}".format(filename))
 
-    try:
-        fileObject = open(filename, 'r')
-    except FileNotFoundError:
-        logging.warning("(lsc-33) could not open file: file not found")
-        raise FileNotFoundError("could not open file: {0} no such file"
-                                .format(filename))
-    except PermissionError:
-        logging.warning("(lsc-37) could not open file: permissions error")
-        raise PermissionError("could not open file: {0}, permission denied"
-                              .format(filename))
+    fileObject = open(filename, 'r')
+    # this may raise OSError, which the caller should catch
 
+    # Get a list of lines from the file. Might be a good point for future
+    # optimization - lines could be processed one at a time
     lines = fileObject.readlines()
     fileObject.close()
 
@@ -41,151 +53,159 @@ def read(filename):
     lines.pop(0)
     splitHeader = header.split()
 
-    if len(splitHeader) != 6:
-        logging.warning("(lsc-50) invalid header: too few fields \n{0}"
-            .format(header))
-        raise HercmioValidationError("header contains too few fields")
+    logging.info("read BXF header: " + header)
 
-    if (splitHeader[0] != 'HERCM') and (splitHeader[0] != 'BXF'):
-        logging.warning("(lsc-55)could not read file, not a HeRCM file " +
-                "or mangled header")
-        raise HercmioValidationError("header does not contain HeRCM")
-    try:
+    # stuff we are going to read in from the header
+    version = splitHeader[0]
+    width = None
+    height = None
+    nzentries = None
+    symmetry = None
+
+    # version specific header parsing logic
+
+    # deprecated HERCM (BXF 1.0) and BXF 2.0
+    if version == "HERCM" or version == "BXF":
+        if len(splitHeader) > 6:
+            logging.warning("possibly mangled header - too many " +
+                "fields for BXF 1.0 header. Attempting to read anyway...")
+        elif len(splitHeader) < 6:
+            logging.warning("possibly mangled header - too few fields for " +
+                "BXF 1.0 header. Attempting to read anyway...")
+        elif len(splitHeader) < 5:
+            raise ValueError("Header has too few fields for any known BXF " +
+                "version - unable to read header")
+
+        # read fields from the header, see doc-extra/bxf-spec.md for more
+        # details
         width = int(splitHeader[1])
         height = int(splitHeader[2])
         nzentries = int(splitHeader[3])
-        verification = float(splitHeader[5])
-    except ValueError:
-        logging.warning("(lsc-64) could not read file: mangled header")
-        raise HercmioValidationError(
-            "Could not extract values from header")
+        symmetry = splitHeader[4].upper()
 
-    symmetry = splitHeader[4]
-    if symmetry not in ['SYM', 'ASYM']:
-        raise HercmioValidationError("header contains invalid symmetry")
+    elif version == "BXF21":
+        if len(splitHeader) != 5:
+            raise ValueError("Header has incorrect number of fields for BXF " +
+                " 2.1")
 
-    logging.info("read header...")
-    logging.info("width: {0}\nheight: {1}\nnzentries:{2}\nverification:{3}"
-            .format(width, height, nzentries, verification))
+        width=int(splitHeader[1])
+        height=int(splitHeader[2])
+        nzentries=int(spltiHeader[3])
+        symmetry=splitHeader[4].upper()
+
+    else:
+        raise ValueError("Header did not contain  valid BXF version " +
+            "identifier")
+
+    # verify symmetry
+    if symmetry not in ["SYM", "ASYM"]:
+        logging.warning("Symmetry {0} is not valid, assuming asymmetric"
+            .format(symmetry))
+        symmetry = "ASYM"
+
+
+    logging.info("finished reading header")
 
     HERCMATRIX.width = width
     HERCMATRIX.height = height
     HERCMATRIX.nzentries = nzentries
     HERCMATRIX.symmetry = symmetry
-    HERCMATRIX.verification = verification
-
-    contents['width'] = width
-    contents['height'] = height
-    contents['nzentries'] = nzentries
-    contents['symmetry'] = symmetry
-    contents['verification'] = verification
-    contents['val'] = []
-    contents['col'] = []
-    contents['row'] = []
 
     inField = False
     currentHeader = ''
     fieldname = ''
-    ctype = ''
     vtype = ''
     currentContents = []
     for line in lines:
+        # we are starting a new field
         if not inField:
             currentHeader = line.rstrip()
             splitHeader = currentHeader.split()
-            fieldname = splitHeader[0]
-            ctype = splitHeader[1]
-            vtype = splitHeader[2]
+
+            if version == "BXF21":
+                fieldname = splitHeader[0]
+                vtype = splitHeader[1]
+            else:
+                # if you review previous BXF specifications, field headers 
+                # had three fields, the middle of which was either `LIST` or 
+                # `SINGLE`. These can both be safely treated as lists, as BXF2.1
+                # does
+                # 
+                fieldname = splitHeader[0]
+                vtype = splitHeader[2]
+
             inField = True
+
+        # this is the end of a field
         elif 'ENDFIELD' in line:
             inField = False
-            contents[fieldname.lower()] = currentContents
+
+            # save the values we read from this field to lists for later use
+            if fieldname.lower() == "val":
+                val = currentContents
+            elif fieldname.lower() == "row": 
+                row = currentContents
+            elif fieldname.lower() == "col":
+                col = currentContents
+            elif fieldname.lower() == "remarks":
+                pass
+            else:
+                logging.warning("Ignoring field with unrecognized name: " 
+                    + fieldname)
+
+            # discard the contents of this field
             currentContents = []
             inField = False
+
+        # we are currently reading data from a field 
         else:
-            if ctype == 'SINGLE':
+            for value in line.split():
+                # typecast this element according to the vtype
+                # these may throw TypeError , which the caller should handle
                 if vtype == 'INT':
-                    try:
-                        currentContents = int(line)
-                    except ValueError:
-                        logging.warning("(lsc-117) could not read file, " +
-                                "bad vtype")
-                        return None
+                    currentContents.append(int(value))
+
                 elif vtype == 'FLOAT':
-                    try:
-                        currentContents = float(line)
-                    except ValueError:
-                        logging.warning("(lsc-124) could not read file, " +
-                                " bad vtype")
-                        return None
+                     currentContents.append(float(value))
+
                 else:
-                    currentContents = line.rstrip()
-            elif ctype == 'LIST':
-                for value in line.split():
+                    currentContents.append(value)
 
-                    if vtype == 'INT':
-                        try:
-                            currentContents.append(int(value))
-                        except ValueError:
-                            logging.warning("(lsc-138) could not read " +
-                                    "file, bad vtype")
-                            return None
-                    elif vtype == 'FLOAT':
-                        try:
-                            currentContents.append(float(value))
-                        except ValueError:
-                            logging.warning("(lsc-145) could not read " +
-                                    str(value) + " bad vtype")
-                            return None
-                    else:
-                        currentContents.append(value)
-            else:
-                logging.warning("(lsc-151) could not read file, bad ctype")
-                return None
 
-    for field in ['val', 'col', 'row', 'nzentries', 'width', 'height',
-                  'symmetry', 'verification']:
-        if field not in contents:
-            logging.warning("""(lsc-157) read file, but needed field 
-{0} missing""".format(field))
-            raise HercmioValidationError("field {0} is missing from file"
-                                         .format(field))
+    # do some basic validation
+    if (len(row) != len(col)) or \
+            (len(row) != len(val)) or \
+            (len(val) != len(col)):
+        raise ValueError("one or more vectors have non-matching lengths" +
+            ", not a valid COO matrix")
 
-    for field in ['row', 'val', 'col']:
-        if len(contents[field]) != HERCMATRIX.nzentries:
-            logging.warning("""(lsc-162) length of {0} {1} does not 
-match nzentries {2}""".format(field, len(contents[field]), HERCMATRIX.nzentries))
+    elif (len(val) != nzentries):
+        # maybe this should throw an exception? 
+        logging.warning("nzentries does not match number of nonzero entries " +
+            "read from file - matrix may be mangled")
 
-    for i in range(0, HERCMATRIX.nzentries):
-        try:
-            HERCMATRIX.addElement([contents['row'][i],
-                            contents['col'][i],
-                            contents['val'][i]])
-        except IndexError:
-            logging.warning("""(lsc-172) could not add index {0} of contents
- to HERCMATRIX instance. Nzentries is {1} and len val is {2}"""
-                    .format(i, HERCMATRIX.nzentries,
-                            len(contents['val'])), 'warning')
-
-            raise IndexError("Unable to add index {0} to HERCMATRIX".format(i))
-
-    if verify(contents):
-        return HERCMATRIX
     else:
-        logging.warning("(lsc-181) verification failed")
-        return None
+        logging.info("matrix seems sane, it is probably not corrupt")
 
+    # copy matrix data into the matrix object
+    for i in range(0, HERCMATRIX.nzentries):
+        # this could probably be optimized by generating a scipy.sparse 
+        # matrix then using hercMatrix.replaceContents()
+        HERCMATRIX.addElement([row[i], col[i], val[i]])
 
+    return HERCMATRIX
+
+# TODO: remove this function
 def generateVerificationSum(hercm):
     return 1
 
-
+# TODO: remove this function
 def verify(hercm):
-    logging.warning("libBXF.verify is being updated, and dosen't actually do " + 
+    logging.warning("libBXF.verify is being updated, and dosen't actually do " +
         "anything right now")
-    return True 
+    return True
 
-
+# TODO: rewrite this to be BXF 2.1 complaint
 def write(HERCMATRIX, filename, headerString="BXF  "):
     # HERCMATRIX should be an instance of libhsm.hsm
     # fileame is the string path to the file to write
@@ -208,9 +228,9 @@ def write(HERCMATRIX, filename, headerString="BXF  "):
                               .format(filename), str(e))
 
     if not verify(HERCMATRIX):
-        logging.warning("matrix validation failed. "+
-            "Got {0} expected {1}".format(generateVerificationSum(HERCMATRIX), 
-                HERCMATRIX.verification) + "You should verify the matrix was" + 
+        logging.warning("matrix validation failed. " +
+            "Got {0} expected {1}".format(generateVerificationSum(HERCMATRIX),
+                HERCMATRIX.verification) + "You should verify the matrix was" +
                 " written correctly.")
 
     header = headerString + ' '

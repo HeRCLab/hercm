@@ -40,6 +40,7 @@ def readMatrix(filename, form, showProgress=False):
     logging.info("reading matrix {0} in format {1}".format(filename, form))
 
     if (form == 'hercm') or (form == 'bxf'):
+        # TODO: exception handling 
         HERCMATRIX = libBXF.read(filename)
 
     elif form == 'mtx':

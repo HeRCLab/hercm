@@ -12,28 +12,28 @@ The second sections contains several fields, enumerated below.
 ##Fields 
 A field contains a header, on it's own line, and is terminated by `ENDFIELD` on it's own line. A field may contain one or more entries, delineated by whitespaces. Newlines are ignored when parsing field contents. By convention, fields should contain at most ten entries per line. 
 
-Field headers take the format `NAME CTYPE VTYPE`, where `NAME` can be any string, `CTYPE` can be either `SINGLE` or `LIST`, indicating whether the field contains a list or a single value, and `VTYPE` indicates the variable type of the field, and can be either `FLOAT`, `INT`, or `STRING`. 
+Field headers take the format `NAME VTYPE`, where `NAME` can be any string, and `VTYPE` indicates the variable type of the field, and can be either `FLOAT`, `INT`, or `STRING`. Unlike previous BXF versions, BXF 2.1 fields are *always* lists, even if they contain only one element. 
 
 **NOTE**: BXF does not differentiate between float and double, and either may be written to a `FLOAT` field. It is up to the parser to determine how to read in `FLOAT` fields. 
 
 All of the following are valid examples of fields. 
 ```
-EXAMPLEFIELD LIST STRING
+EXAMPLEFIELD STRING
 foo bar baz
 ENDFIELD
 ```
 ```
-EXAMPLEFIELD SINGLE STRING
+EXAMPLEFIELD STRING
 foobar
 ENDFIELD
 ```
 ```
-EXAMPLEFIELD SINGLE INT
+EXAMPLEFIELD INT
 5
 ENDFIELD
 ```
 ```
-EXAMPLEFIELD LIST FLOAT 
+EXAMPLEFIELDFLOAT 
 7.5 3 9.0 3.56
 ENDFIELD
 ```
