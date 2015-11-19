@@ -138,7 +138,6 @@ def read(filename):
 
         # this is the end of a field
         elif 'ENDFIELD' in line:
-            inField = False
 
             # save the values we read from this field to lists for later use
             if fieldname.lower() == "val":
