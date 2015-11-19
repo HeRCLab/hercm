@@ -48,7 +48,6 @@ The first line of a BXF file is the header. Header contents are enumerated below
 | 2        | height of the matrix | any nonnegative integer | 
 | 3        | number of nonzero elements | any nonnegative integer |
 | 4        | matrix symmetry | `SYM` or `ASYM` | 
-| 5        | verification sum | **TODO** | 
 
 **NOTE**: positions are whitespace delineated 
 
@@ -111,7 +110,7 @@ COL LIST INT
 ENDFIELD
 ```
 
-**TODO**: full file example once header is finalized 
+**TODO**: full file example
 
 # References 
 * [Sparse Data Structures](http://amath.colorado.edu/sites/default/files/2015/01/195762631/SparseDataStructs.pdf)
