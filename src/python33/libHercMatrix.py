@@ -406,9 +406,9 @@ class hercMatrix:
 
     ## check if there are elements in the lower triangle
     #
-    # Checks if there are any COO elements where row is > column. 
-    # This is useful for ensuring that symmetric matrices are stored and read 
-    # symmetrically.
+    # Checks if there are any elements stored in the lower triangle of the 
+    # matrix. Kept for compatibility, as symmetric matrices are now stored
+    # by their lower triangle. 
     # 
     # @returns True if there are no nonzero elements in the lower triangle
     # @returns False if there are nonzero elements in the lower triangle
@@ -427,6 +427,33 @@ class hercMatrix:
             col = element[1]
             val = element[2]
             if row > col:
+                if val != 0:
+                    return False
+
+        return True
+
+    ## check if there are elements in the upper triangle
+    #
+    # Checks if there are any elements stored in the upper triangle of the 
+    # matrix. Useful for verifying symmetric matrices are stored correctly. 
+    # 
+    # @returns True if there are no nonzero elements in the upper triangle
+    # @returns False if there are nonzero elements in the upper triangle
+    # 
+    # **NOTE**: this has nothing to do with contents of the matrix. If you are
+    # trying to find the symmetry of the matrix, please use checkSymmetry(). 
+
+    def checkUpperTriangle(this):
+
+        this.removeZeros()
+        this.makeRowMajor()
+
+        for i in range(0, this.nzentries):
+            element = this.getElement(i)
+            row = element[0]
+            col = element[1]
+            val = element[2]
+            if row < col:
                 if val != 0:
                     return False
 
