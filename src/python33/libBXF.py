@@ -83,7 +83,8 @@ def read(filename):
         nzentries = int(splitHeader[3])
         symmetry = splitHeader[4].upper()
 
-    elif version == "BXF21":
+    elif (version == "BXF21") or (version == "BXF22"): # bxf 2.1 and 2.2 use 
+                                                       # the same header format
         if len(splitHeader) != 5:
             raise ValueError("Header has incorrect number of fields for BXF " +
                 " 2.1")
@@ -188,7 +189,17 @@ def read(filename):
     for i in range(0, HERCMATRIX.nzentries):
         # this could probably be optimized by generating a scipy.sparse
         # matrix then using hercMatrix.replaceContents()
-        HERCMATRIX.addElement([row[i], col[i], val[i]])
+        if (version == "HERCM") or (version == "BXF") or (version == "BXF22"):
+            if HERCMATRIX.symmetry == "SYM":
+                # perform an inline transpose 
+                HERCMATRIX.addElement([col[i], row[i], val[i]]) 
+            else:
+                HERCMATRIX.addElement([row[i], col[i], val[i]])
+        else:
+            HERCMATRIX.addElement([row[i], col[i], val[i]])
+
+    HERCMATRIX.removeZeros()
+    HERCMATRIX.makeRowMajor()
 
     return HERCMATRIX
 
@@ -206,7 +217,7 @@ def verify(hercm):
         "anything right now")
     return True
 
-# TODO: rewrite this to be BXF 2.1 complaint
+# TODO: rewrite this to be BXF 2.2 complaint
 
 
 def write(HERCMATRIX, filename, headerString="BXF  "):

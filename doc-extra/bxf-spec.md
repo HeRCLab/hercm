@@ -1,4 +1,4 @@
-# The BXF file format specification, revision 2.1
+# The BXF file format specification, revision 2.2
 # Introduction
 The BXF (Better Matrix Format, formerly named "HeRCM") file format was created to store compressed arrays, for later reading into other software. The format is specifically designed to be simple, fast to read, and easy to understand and parse. File size and initial conversion overhead were not major design concerns however. 
 
@@ -59,7 +59,15 @@ The first line of a BXF file is the header. Header contents are enumerated below
 |--------------|------------|--------|
 | BXF 1.0      | `HERCM`    | merged with BXF 2.0 |
 | BXF 2.0      | `BXF  `    | deprecated          |
-| BXF 2.1      | `BXF21`    | in development      |
+| BXF 2.1      | `BXF21`    | depreciated *       |
+| BXF 2.2      | `BXF22`    | in development      |
+
+`*` - indicates a format which has never appeared in any stable release of 
+of HeRCM (usually indicated a format which was discarded before development
+was completed)
+
+**NOTE**: until BXF 2.2 symmetric matrices were stored in the upper triangle, 
+rather than the lower triangle. 
 
 
 ## Required Fields 
