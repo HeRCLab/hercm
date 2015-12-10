@@ -264,16 +264,20 @@ class hercMatrix:
     # 
     # @param row int indicating row number of the element
     # @param col int indicating the column number of the element
-    # 
-    # @todo why are atol and rtol here - row and col are ints? They should 
-    # probably be removed. 
+    # @param extrapolate if extrapolate is `True`, and the matrix is symmetric, 
+    # and row is less than col (the requested value is in the upper triangle), 
+    # the return value will be extrapolated (eg. the return value will be the
+    # actual value of the row, col in the matrix, not the value which is stored)
+    # . This is accomplished by switching row and col before retrieving the 
+    # value. This is the default behavior. If extrapolate is `False` the value 
+    # actually stored will be returned (usually zero). 
     # 
     # @returns float with the value at the specified row, col
     
-    def getValue(this, row, col, rtol=1e-05, atol=1e-08):
+    def getValue(this, row, col, extrapolate = False):
         if this.symmetry == 'SYM':
-            if row > col:
-                # extrapolate for values in lower triangle
+            if row < col:
+                # extrapolate for values in upper triangle
                 tempRow = row
                 tempCol = col
                 row = tempCol
