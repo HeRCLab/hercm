@@ -81,9 +81,9 @@ The `col` vector for a COO matrix, sometimes referred to as `col_ind`, or `col_p
 **TODO**
 
 # Symmetric matrices 
-By convention, a symmetric BXF formatted matrix file must store **only** the **upper** triangle. However, any fully compliant io implementation **must** provide methods for reading the upper triangle, lower triangle (extrapolated from the contents of the upper), and the entire matrix in asymmetrical format. This is because some 3rd party libraries expect asymmetric matrices, or matrices where the lower triangle is stored, rather than the upper. 
+By convention, a symmetric BXF formatted matrix file must store **only** the **lower** triangle. In previous versions, the upper triangle was stored, however the lower triangle has superior characteristics for certain types of sparse matrix operations. Additionally, compliant io implementation are encouraged, but not required to provide methods to read the upper triangle. 
 
-**NOTE**: it is also acceptable for io implementations to simple provide methods for getting the lower triangle or the asymmetric matrix after reading, if this is more convenient. 
+**NOTE**: If an io implementation provides methods for reading the upper triangle, it should also provide a method for sorting the matrix to row-major, as many third party libraries assume sparse matrices are stored in row major format - simply performing a transpose operation by switching row and col is not enough. 
 
 # Example 
 Consider the following matrix: 
