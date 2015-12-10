@@ -297,11 +297,9 @@ class hercMatrix:
 
         for i in range(0, this.nzentries):
             if numpy.isclose(this.elements[i]['row'],
-                             row,
-                             rtol, atol):
+                             row):
                 if numpy.isclose(this.elements[i]['col'],
-                                 col,
-                                 rtol, atol):
+                                 col):
                     return this.elements[i]['val']
 
         return 0

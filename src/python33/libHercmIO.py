@@ -183,12 +183,12 @@ def readMatrix(filename, form, showProgress=False):
         print("matrix is now row major")
 
     if HERCMATRIX.symmetry == 'SYM':
-        logging.info("matrix is symmetric, truncating lower triangle")
+        logging.info("matrix is symmetric, truncating upper triangle")
         if showProgress:
-            print("matrix is symmetric, truncating lower triangle...")
+            print("matrix is symmetric, truncating upper triangle...")
         HERCMATRIX.makeSymmetrical('truncate')
         if showProgress:
-            print("lower triangle truncated")
+            print("upper triangle truncated")
 
     return HERCMATRIX
 
