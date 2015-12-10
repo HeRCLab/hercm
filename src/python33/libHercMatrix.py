@@ -574,9 +574,9 @@ class hercMatrix:
     # 
     # | value of `method` | result |
     # |-------------------|--------|
-    # | `truncate`        | The lower triangle is replaced with the upper triangle transposed |
-    # | `add`             | The upper triangle is transposed and added to the lower triangle |
-    # | `smart`           | Movies any elements in the upper triangle whose counterpart in the lower triangle is zero to the lower triangle |
+    # | `truncate`        | The upper triangle is replaced with the lower triangle transposed |
+    # | `add`             | The lower triangle is transposed and added to the upper triangle |
+    # | `smart`           | Moves any elements in the lower triangle whose counterpart in the upper triangle is zero to the lower triangle |
     # 
     # **NOTE**: as with makeSymmetrical(), `smart` is very slow, and probably
     # not very useful. 
@@ -588,18 +588,19 @@ class hercMatrix:
     def makeAsymmetrical(this, method='truncate'):
 
         if method == 'truncate':
-            upperTriangle = scipy.sparse.triu(this.getInFormat('coo'))
-            this.replaceContents(upperTriangle)
-            upperTriangle = scipy.sparse.triu(this.getInFormat('coo'), k=1)
+            lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'))
+            this.replaceContents(lowerTriangle)
+            lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'), k=1)
 
-            newMatrix = this.getInFormat('coo') + upperTriangle.transpose()
+            newMatrix = this.getInFormat('coo') + lowerTriangle.transpose()
 
             this.replaceContents(newMatrix)
-        elif method == 'add':
-            upperTriangle = scipy.sparse.triu(this.getInFormat('coo'), k=1)
-            upperTriangle = upperTriangle.transpose()
 
-            newMatrix = this.getInFormat('coo') + upperTriangle
+        elif method == 'add':
+            lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'), k=1)
+            lowerTriangle = lowerTriangle.transpose()
+
+            newMatrix = this.getInFormat('coo') + lowerTriangle
 
             this.replaceContents(newMatrix)
 
@@ -618,12 +619,14 @@ class hercMatrix:
             # lower triangle is not modified, just use the one that is live
             newMatrix = this.getInFormat('coo') + upperTriangle
             this.replaceContents(newMatrix)
+            this.transpose() # smart still works on the upper triangle 
 
         else:
             raise ValueError("method \"{0}\" is not valid, ".format(method) +
                     "expected one of: truncate, add, smart")
 
         this.removeZeros()
+        this.makeRowMajor()
 
     ## Make the matrix row major
     # 
