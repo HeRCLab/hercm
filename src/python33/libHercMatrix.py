@@ -465,7 +465,7 @@ class hercMatrix:
     # Checks if the matrix is symmetric. The matrix is considered symmetric
     # if one of the following conditions is met: 
     # 
-    # 1. the checkLowerTriangle() returns `True` AND the symmetry attribute for
+    # 1. the checkUpperTriangle() returns `True` AND the symmetry attribute for
     # the matrix is equal to `"SYM"`
     # 2. there are no elements in the lower triangle such that their counterpart
     # in the upper triangle is not equal. In other words, the matrix is equal
@@ -484,7 +484,7 @@ class hercMatrix:
         this.removeZeros()
         this.makeRowMajor()
 
-        if this.checkLowerTriangle():
+        if this.checkUpperTriangle():
             if this.symmetry == 'SYM':
                 return True
 
@@ -507,9 +507,9 @@ class hercMatrix:
     # 
     # | value of `method` | effect |
     # |-----------------|--------|
-    # | `truncate`      | All elements int he bottom triangle discarded | 
-    # | `add`           | The bottom half of the triangle is transposed, and the result is added to the upper triangle |
-    # | `smart`         | Elements of the lower triangle whose counterpart in the upper triangle is zero are moved to the upper triangle |
+    # | `truncate`      | All elements int he upper triangle discarded | 
+    # | `add`           | The upper half of the triangle is transposed, and the result is added to the lower triangle |
+    # | `smart`         | Elements of the upper triangle whose counterpart in the lower triangle is zero are moved to the lower triangle |
     # 
     # **NOTE**: the `smart` method is very performance naive, and is not very
     # fast. In most cases, it will not be useful and should probably be avoided
@@ -521,15 +521,15 @@ class hercMatrix:
     def makeSymmetrical(this, method='truncate'):
 
         if method == 'truncate':
-            upperTriangle = scipy.sparse.triu(this.getInFormat('coo'))
-            this.replaceContents(upperTriangle)
+            lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'))
+            this.replaceContents(lowerTriangle)
 
         elif method == 'add':
-            lowerTriangle = scipy.sparse.tril(this.getInFormat('coo'), k=-1)
+            upperTriangle = scipy.sparse.triu(this.getInFormat('coo'), k=-1)
 
             this.makeSymmetrical(method='truncate')
 
-            newMatrix = lowerTriangle.transpose() + \
+            newMatrix = upperTriangle.transpose() + \
                 this.getInFormat('coo')
 
             newMatrix = scipy.sparse.coo_matrix(newMatrix)
@@ -537,7 +537,7 @@ class hercMatrix:
             this.replaceContents(newMatrix)
 
         elif method == 'smart':
-            # this is horrifyingly show O(n) = n^2 (n=nzentries)
+            # this is horrifyingly slow O(n) = n^2 (n=nzentries)
 
             this.removeZeros()
             upperTriangle = scipy.sparse.triu(this.getInFormat('coo'))
@@ -556,15 +556,14 @@ class hercMatrix:
             newMatrix = upperTriangle + lowerTriangle
 
             this.replaceContents(newMatrix)
-
+            this.transpose() # this method still operates on the upper triangle
             this.makeSymmetrical('add')
-
             this.removeZeros()
 
         else:
             raise ValueError("method \"{0}\" is not valid, ".format(method) +
                     "expected one of: truncate, add, smart")
-
+        this.symmetry = "SYM"
         this.removeZeros()
 
     ## convert the matrix to asymmetrical 
