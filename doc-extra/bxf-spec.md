@@ -107,18 +107,33 @@ Consider the following matrix:
 The number of non zero entries in this matrix is 8, and the matrix is 4x4. The COO vectors for the matrix are as such:
 
 ```
-VAL LIST FLOAT
-8 7 5 3 4 2 1 6
+VAL FLOAT
+4.0 2.0 1.0 5.0 7.0 6.0 3.0 8.0
 ENDFIELD
-ROW LIST INT
-3 2 2 3 0 0 1 3
+ROW INT
+0 0 1 2 2 3 3 3
 ENDFIELD
-COL LIST INT
-3 3 2 1 0 3 1 0 
+COL INT
+0 3 1 2 3 0 1 3
 ENDFIELD
 ```
 
-**TODO**: full file example
+The full BXF file for this matrix follows. 
+
+```
+BXF22 4 4 8 ASYM
+REMARKS STRING
+ENDFIELD
+VAL FLOAT
+4.0 2.0 1.0 5.0 7.0 6.0 3.0 8.0
+ENDFIELD
+ROW INT
+0 0 1 2 2 3 3 3
+ENDFIELD
+COL INT
+0 3 1 2 3 0 1 3
+ENDFIELD
+```
 
 # References 
 * [Sparse Data Structures](http://amath.colorado.edu/sites/default/files/2015/01/195762631/SparseDataStructs.pdf)
