@@ -75,16 +75,19 @@ class hercMatrix:
     # 
     # @param element anything supported by 
     # libHercMatrix.hercMatrix.castElement()
+    # @param extrapolate if `True`, elements which would fall in the upper 
+    # triangle of a sparse matrix will be transposed into the lower triangle. 
+    # This is the default behavior. 
     # 
     # @exception ValueError element could not be cast by castElement()
 
-    def addElement(this, element):
+    def addElement(this, element, extrapolate = True):
         # element can be any element supported by this.castElement()
 
         try:
             element = this.castElement(element)
-            if this.symmetry == 'SYM':
-                if element['row'] > element['col']:
+            if (this.symmetry == 'SYM') and extrapolate:
+                if element['row'] < element['col']:
                     # put element in the top triangle, this matrix is
                     # symmetric!
                     temp = numpy.array(this.dtype)
@@ -274,8 +277,8 @@ class hercMatrix:
     # 
     # @returns float with the value at the specified row, col
     
-    def getValue(this, row, col, extrapolate = False):
-        if this.symmetry == 'SYM':
+    def getValue(this, row, col, extrapolate = True):
+        if (this.symmetry == 'SYM') and extrapolate:
             if row < col:
                 # extrapolate for values in upper triangle
                 tempRow = row
