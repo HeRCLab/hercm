@@ -22,7 +22,7 @@ import logging
 # is a different length than the others
 # @exception TypeError one or more fields could not be typecast to required
 # types
-# 
+#
 # @return libHercMatrix.hercMatricx instance containing the matrix read from the
 # file
 
@@ -88,10 +88,10 @@ def read(filename):
             raise ValueError("Header has incorrect number of fields for BXF " +
                 " 2.1")
 
-        width=int(splitHeader[1])
-        height=int(splitHeader[2])
-        nzentries=int(spltiHeader[3])
-        symmetry=splitHeader[4].upper()
+        width = int(splitHeader[1])
+        height = int(splitHeader[2])
+        nzentries = int(spltiHeader[3])
+        symmetry = splitHeader[4].upper()
 
     else:
         raise ValueError("Header did not contain  valid BXF version " +
@@ -102,7 +102,6 @@ def read(filename):
         logging.warning("Symmetry {0} is not valid, assuming asymmetric"
             .format(symmetry))
         symmetry = "ASYM"
-
 
     logging.info("finished reading header")
 
@@ -126,11 +125,11 @@ def read(filename):
                 fieldname = splitHeader[0]
                 vtype = splitHeader[1]
             else:
-                # if you review previous BXF specifications, field headers 
-                # had three fields, the middle of which was either `LIST` or 
+                # if you review previous BXF specifications, field headers
+                # had three fields, the middle of which was either `LIST` or
                 # `SINGLE`. These can both be safely treated as lists, as BXF2.1
                 # does
-                # 
+                #
                 fieldname = splitHeader[0]
                 vtype = splitHeader[2]
 
@@ -142,21 +141,21 @@ def read(filename):
             # save the values we read from this field to lists for later use
             if fieldname.lower() == "val":
                 val = currentContents
-            elif fieldname.lower() == "row": 
+            elif fieldname.lower() == "row":
                 row = currentContents
             elif fieldname.lower() == "col":
                 col = currentContents
             elif fieldname.lower() == "remarks":
                 pass
             else:
-                logging.warning("Ignoring field with unrecognized name: " 
+                logging.warning("Ignoring field with unrecognized name: "
                     + fieldname)
 
             # discard the contents of this field
             currentContents = []
             inField = False
 
-        # we are currently reading data from a field 
+        # we are currently reading data from a field
         else:
             for value in line.split():
                 # typecast this element according to the vtype
@@ -165,11 +164,10 @@ def read(filename):
                     currentContents.append(int(value))
 
                 elif vtype == 'FLOAT':
-                     currentContents.append(float(value))
+                    currentContents.append(float(value))
 
                 else:
                     currentContents.append(value)
-
 
     # do some basic validation
     if (len(row) != len(col)) or \
@@ -179,7 +177,7 @@ def read(filename):
             ", not a valid COO matrix")
 
     elif (len(val) != nzentries):
-        # maybe this should throw an exception? 
+        # maybe this should throw an exception?
         logging.warning("nzentries does not match number of nonzero entries " +
             "read from file - matrix may be mangled")
 
@@ -188,23 +186,29 @@ def read(filename):
 
     # copy matrix data into the matrix object
     for i in range(0, HERCMATRIX.nzentries):
-        # this could probably be optimized by generating a scipy.sparse 
+        # this could probably be optimized by generating a scipy.sparse
         # matrix then using hercMatrix.replaceContents()
         HERCMATRIX.addElement([row[i], col[i], val[i]])
 
     return HERCMATRIX
 
 # TODO: remove this function
+
+
 def generateVerificationSum(hercm):
     return 1
 
 # TODO: remove this function
+
+
 def verify(hercm):
     logging.warning("libBXF.verify is being updated, and dosen't actually do " +
         "anything right now")
     return True
 
 # TODO: rewrite this to be BXF 2.1 complaint
+
+
 def write(HERCMATRIX, filename, headerString="BXF  "):
     # HERCMATRIX should be an instance of libhsm.hsm
     # fileame is the string path to the file to write
