@@ -314,13 +314,18 @@ class hercMatrix:
     # @param newRow int indicating the row of the value to set
     # @param newCol int indicating the column of the value to set
     # @param newVal float containing the value to set
+    # @param extrapolate if extrapolate is `True`, and the matrix is symmetric, 
+    # and row is less than col (the requested element is in the upper triangle), 
+    # the row and column will be switched so the element changed will be in the 
+    # lower triangle. This is the default behavior. If extrapolate is `False` the value 
+    # actually stored will be returned (usually zero). 
     # 
     # @exception IndexError newCol or newRow is out of bounds
     
-    def setValue(this, newRow, newCol, newVal):
+    def setValue(this, newRow, newCol, newVal, extrapolate = True):
 
-        if this.symmetry == 'SYM':
-            if newRow > newCol:
+        if (this.symmetry == 'SYM') and extrapolate:
+            if newRow < newCol:
                 this.setValue(newCol, newRow, newVal)
                 return
 
