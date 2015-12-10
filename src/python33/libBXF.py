@@ -15,6 +15,8 @@ import logging
 
 ## read a BXF file
 #
+# Supports all versions of the BXF file format, including HERCM, BXF, and BXF21
+#
 # @param filename absolute or relative path to the file to read
 #
 # @exception OSError file does not exist, permission error, or other IO error
@@ -91,7 +93,7 @@ def read(filename):
 
         width = int(splitHeader[1])
         height = int(splitHeader[2])
-        nzentries = int(spltiHeader[3])
+        nzentries = int(splitHeader[3])
         symmetry = splitHeader[4].upper()
 
     else:
@@ -122,7 +124,7 @@ def read(filename):
             currentHeader = line.rstrip()
             splitHeader = currentHeader.split()
 
-            if version == "BXF21":
+            if (version == "BXF21") or (version == "BXF22"):
                 fieldname = splitHeader[0]
                 vtype = splitHeader[1]
             else:
@@ -189,7 +191,7 @@ def read(filename):
     for i in range(0, HERCMATRIX.nzentries):
         # this could probably be optimized by generating a scipy.sparse
         # matrix then using hercMatrix.replaceContents()
-        if (version == "HERCM") or (version == "BXF") or (version == "BXF22"):
+        if (version == "HERCM") or (version == "BXF") or (version == "BXF21"):
             if HERCMATRIX.symmetry == "SYM":
                 # perform an inline transpose 
                 HERCMATRIX.addElement([col[i], row[i], val[i]]) 
@@ -217,10 +219,25 @@ def verify(hercm):
         "anything right now")
     return True
 
-# TODO: rewrite this to be BXF 2.2 complaint
 
+## write a bxf matrix to a file
+#
+# Writes a BXF file with the given matrix. Note that unlike previous versions, 
+# this version of the BXF write function is **not** compatible with any BXF file
+# format before BXF 2.2 (including HERCM format). It should however be
+# compatible with BXF 2.1 for asymmetric matrices only. 
+# 
+# @param HERCMATRIX instance of libHercMatrix.hercMatrix() containing the matrix
+# to write. 
+# @param filename the relative or absolute path to the file to write
+# @param headerString permits changing the version identifier. Default is 
+# `BXF22`. Care should be taken when modifying this parameter, as compatibility
+# with pre-2.2 BXF versions has not been preserved. 
+# 
+# @throws FileNotFoundError if the file could not be found (should never happen)
+# @throws PermissionError if a permissions error is encountered
 
-def write(HERCMATRIX, filename, headerString="BXF  "):
+def write(HERCMATRIX, filename, headerString="BXF22"):
     # HERCMATRIX should be an instance of libhsm.hsm
     # fileame is the string path to the file to write
     # writes a hercm file with contents matching hercm to filename
@@ -241,25 +258,20 @@ def write(HERCMATRIX, filename, headerString="BXF  "):
         raise PermissionError("Could not open file {0}..."
                               .format(filename), str(e))
 
-    if not verify(HERCMATRIX):
-        logging.warning("matrix validation failed. " +
-            "Got {0} expected {1}".format(generateVerificationSum(HERCMATRIX),
-                HERCMATRIX.verification) + "You should verify the matrix was" +
-                " written correctly.")
 
     header = headerString + ' '
     header = header + str(HERCMATRIX.width) + ' '
     header = header + str(HERCMATRIX.height) + ' '
     header = header + str(HERCMATRIX.nzentries) + ' '
-    header = header + str(HERCMATRIX.symmetry) + ' '
-    header = header + str(HERCMATRIX.verification) + '\n'
+    header = header + str(HERCMATRIX.symmetry) + '\n'
+
 
     logging.info("generated header: {0}".format(header))
 
     fileObject.write(header)
 
     logging.info("writing remarks")
-    fileObject.write('REMARKS LIST STRING\n')
+    fileObject.write('REMARKS STRING\n')
     itemcounter = 0
     line = ''
     for item in HERCMATRIX.remarks:
@@ -275,7 +287,7 @@ def write(HERCMATRIX, filename, headerString="BXF  "):
     fileObject.write('ENDFIELD\n')
 
     logging.info("writing val")
-    fileObject.write('VAL LIST FLOAT\n')
+    fileObject.write('VAL FLOAT\n')
     itemcounter = 0
     line = ''
     for item in HERCMATRIX.elements['val']:
@@ -291,7 +303,7 @@ def write(HERCMATRIX, filename, headerString="BXF  "):
     fileObject.write('ENDFIELD\n')
 
     logging.info("writing row")
-    fileObject.write('ROW LIST INT\n')
+    fileObject.write('ROW INT\n')
     itemcounter = 0
     line = ''
     for item in HERCMATRIX.elements['row']:
@@ -307,7 +319,7 @@ def write(HERCMATRIX, filename, headerString="BXF  "):
     fileObject.write('ENDFIELD\n')
 
     logging.info("writing col")
-    fileObject.write('COL LIST INT\n')
+    fileObject.write('COL INT\n')
     itemcounter = 0
     line = ''
     for item in HERCMATRIX.elements['col']:

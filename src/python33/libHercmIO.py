@@ -10,7 +10,7 @@ import pprint
 import os
 import logging
 import libValcolIO
-
+import MatrixUtils
 
 ## @package libHercmIO
 # libHercmIO is the aggregate IO provider for all python HeRC Matrix Tools. It's
@@ -176,6 +176,7 @@ def readMatrix(filename, form, showProgress=False):
 
     if showProgress:
         print("converting matrix to row-major...")
+        
     logging.info("converting matrix to row-major")
     HERCMATRIX.makeRowMajor()
 
