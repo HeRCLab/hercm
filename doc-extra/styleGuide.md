@@ -1,3 +1,3 @@
 # HeRCM Code Style Guide
 
-All Python source files should utilize [PEP8](https://www.python.org/dev/peps/pep-0008/). C++ style standards are under consideration. For all source files, no line should exceed 80 characters in length, unless absolutely required for readability or functionality (**NOTE**: PEP8 may throw E501s if you write lines exactly 80 characters long - you may ignore these, as long as your line is no more than 80 characters)
+All Python source files should utilize [PEP8](https://www.python.org/dev/peps/pep-0008/). C++ style standards are under consideration. Lines within source files should be kept as short as possible without impacting readability or functionality.
