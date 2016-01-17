@@ -4,7 +4,7 @@ int main(int argc, char **argv )
 {
     printf("Allocating memory for header data... ");
     char * filename = malloc(256 * sizeof(char));
-    strcpy(filename, "sample.bxf");
+    strcpy(filename, "bcsstk01.bxf");
     char * version = malloc(5 * sizeof(char));
     char * symmetry = malloc(4 * sizeof(char));
     int height;
@@ -56,6 +56,8 @@ int main(int argc, char **argv )
     {
         printf("%d %d %f\n", row[i], col[i], val[i]);
     }
+
+    printf("--- end COO data ---\n");
 
 	return 0;
 }

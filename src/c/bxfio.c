@@ -164,13 +164,11 @@ bxfio_status bxfio_read_data(char * filename,
             strcmp(buf, "") == 0 ||
             strcmp(buf, "ROW INT\n") ==0)
         {
-            printf("DEBUG: skipping line: %s", buf);
             continue;
         }
 
         for (val_idx; sscanf(buf, "%f%n", &current_val, &chars_read) == 1; val_idx++)
         {
-            printf("DEBUG: read number %f\n", current_val);
             val[val_idx] = current_val;
             bxfio_drop_chars(buf, chars_read);
         }
@@ -194,13 +192,11 @@ bxfio_status bxfio_read_data(char * filename,
             strcmp(buf, "") == 0 ||
             strcmp(buf, "COL INT\n") ==0)
         {
-            printf("DEBUG: skipping line: %s", buf);
             continue;
         }
 
         for (row_idx; sscanf(buf, "%d%n", &current_val, &chars_read) == 1; row_idx++)
         {
-            printf("DEBUG: read number %d\n", current_val);
             row[row_idx] = current_val;
             bxfio_drop_chars(buf, chars_read);
         }
@@ -224,13 +220,11 @@ bxfio_status bxfio_read_data(char * filename,
         if (strcmp(buf, "ENDFIELD\n") == 0 ||
             strcmp(buf, "") == 0)
         {
-            printf("DEBUG: skipping line: %s", buf);
             continue;
         }
 
         for (col_idx; sscanf(buf, "%d%n", &current_val, &chars_read) == 1; col_idx++)
         {
-            printf("DEBUG: read number %d\n", current_val);
             col[col_idx] = current_val;
             bxfio_drop_chars(buf, chars_read);
         }
