@@ -3,10 +3,10 @@
 int main(int argc, char **argv )
 {
     printf("Allocating memory for header data... ");
-    char * filename = (char*) malloc(512);
+    char * filename = malloc(256 * sizeof(char));
     strcpy(filename, "sample.bxf");
-    char * version = (char*) malloc(5);
-    char * symmetry = (char*) malloc(4);
+    char * version = malloc(5 * sizeof(char));
+    char * symmetry = malloc(4 * sizeof(char));
     int height;
     int width;
     int nnz;
@@ -33,9 +33,9 @@ int main(int argc, char **argv )
     printf("-- end header data ---\n");
 
     printf("Allocating memory for file data... ");
-    int * row = (int*) malloc(nnz);
-    int * col = (int*) malloc(nnz);
-    float * val = (float*) malloc(nnz);
+    int * row = malloc(nnz * sizeof(int));
+    int * col = malloc(nnz * sizeof(int));
+    float * val = malloc(nnz * sizeof(float));
     printf("done.\n");
 
     printf("reading data from file... ");

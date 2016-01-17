@@ -167,14 +167,10 @@ bxfio_status bxfio_read_data(char * filename,
             continue;
         }
 
-        /*for (val_idx; sscanf(&buf[chars_read], "%f%n", &current_val, &chars_read) == 1; val_idx++) 
-        {
-            printf("DEBUG: read number: %f\n", current_val);
-            val[val_idx] = current_val;
-        }*/
         for (val_idx; sscanf(buf, "%f%n", &current_val, &chars_read) == 1; val_idx++)
         {
             printf("DEBUG: read number %f\n", current_val);
+            val[val_idx] = current_val;
             bxfio_drop_chars(buf, chars_read);
         }
     }
