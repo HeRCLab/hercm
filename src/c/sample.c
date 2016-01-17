@@ -31,5 +31,24 @@ int main(int argc, char **argv )
     printf("NNZ: %d\n", nnz);
     printf("SYMMETRY: %s\n", symmetry);
     printf("-- end header data ---\n");
+
+    printf("Allocating memory for file data... ");
+    int * row = (int*) malloc(nnz);
+    int * col = (int*) malloc(nnz);
+    float * val = (float*) malloc(nnz);
+    printf("done.\n");
+
+    printf("reading data from file... ");
+    status = bxfio_read_data(filename, nnz, col, row, val);
+    if (status == BXFIO_READ_SUCCESS)
+    {
+        printf("OK\n");
+
+    }
+    else
+    {
+        printf("FAILED\n");
+    }
+
 	return 0;
 }

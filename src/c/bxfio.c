@@ -43,7 +43,6 @@ bxfio_status bxfio_read_header(char * filename,
 
    // there should probably be some kind of error checking here
    FILE *fp;
-   char buf[256];
    fp = fopen(filename, "r");
 
    fscanf(fp, "%s", version);
@@ -85,5 +84,93 @@ bxfio_status bxfio_read_header(char * filename,
 int bxfio_check_file_exists (char *filename)
 {
     return access( filename, F_OK ) != -1;
-   
+}
+
+/**
+ * @brief      Read the data from a BXF file. 
+ *
+ * @param[in]      filename  relative or absolute path of bxf file
+ * @param[in]  nnz       number of nonzero entries (read from the header)
+ * @param[out]      col       int array initialized to nnz indices long
+ * @param[out]      row       int array initialized to nnz entries long
+ * @param[out]      val       float array initialized to nns entries long
+ *
+ * @return     one of:
+ * `BXFIO_READ_SUCCESS` - if the operation completed successfully
+ * `BXFIO_READ_IOERROR` - if there was an error reading the file
+ * `BXFIO_READ_FIELDERROR` - the file was read correctly, but one or more fields
+ * were invalid
+ */
+bxfio_status bxfio_read_data(char * filename, 
+    int nnz, 
+    int * col, 
+    int * row, 
+    float * val)
+{
+    if (!bxfio_check_file_exists(filename))
+    {
+        // the file does not exist
+        return BXFIO_READ_IOERROR;
+    }
+
+    FILE *fp;
+    char buf[255];
+    fp = fopen(filename, "r");
+    int overflow_counter = 0; 
+    
+    // consume the header
+    fgets(buf, 255, fp);
+
+    // seek to the beginning of the VAL field
+    while(strcmp(buf, "VAL FLOAT\n") != 0 && overflow_counter <= BXFIO_READ_OVERFLOWTHRESHOLD)
+    {
+        fgets(buf, 255, fp);
+        overflow_counter++; // avoid non-terminating loop
+    }
+
+    if (overflow_counter >= BXFIO_READ_OVERFLOWTHRESHOLD)
+    {
+        return BXFIO_READ_FIELDERROR;
+    }
+
+    overflow_counter = 0;
+
+    while(strcmp(buf, "ENDFIELD\n") !=0 )
+    {
+        fgets(buf, 255, fp);
+        float current_val;
+        int val_idx = 0, chars_read =0;
+        overflow_counter++; // avoid non-terminating loop
+        if (strcmp(buf, "ENDFIELD\n") == 0 ||
+            strcmp(buf, "") == 0 ||
+            strcmp(buf, "ROW INT\n") ==0)
+        {
+            printf("DEBUG: skipping line: %s", buf);
+            continue;
+        }
+
+        /*while (sscanf(buf, "%f%n", &current_val, chars_read) == 1) 
+        {
+            if (val_idx > nnz-1)
+            {
+                return BXFIO_READ_FIELDERROR; // field too long
+            }
+            printf("DEBUG: read number: %f\n", current_val);
+            val[val_idx] = current_val;
+            val_idx ++;
+
+        }*/
+
+        for (val_idx; sscanf(&buf[chars_read], "%f%n", &current_val, &chars_read) == 1; val_idx++) 
+        {
+            printf("DEBUG: read number: %f\n", current_val);
+            val[val_idx] = current_val;
+        }
+    }
+
+
+    fclose(fp);
+
+    return BXFIO_READ_SUCCESS;
+
 }

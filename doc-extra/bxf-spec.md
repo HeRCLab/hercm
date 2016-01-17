@@ -4,15 +4,21 @@ The BXF (Better Matrix Format, formerly named "HeRCM") file format was created t
 
 All BXF files should be stored in row-major format. If the matrix is symmetric, the upper triangle is always stored. 
 
+
 # Layout
 A BXF file has two sections. The first section contains one line, and is the header, containing key information about the matrix. 
 
 The second sections contains several fields, enumerated below. 
 
-##Fields 
-A field contains a header, on it's own line, and is terminated by `ENDFIELD` on it's own line. A field may contain one or more entries, delineated by whitespaces. Newlines are ignored when parsing field contents. By convention, fields should contain at most ten entries per line. 
+## Formatting
+BXF files must be encoded in a charset readable by C's fgets() and Pythons open(), at a minimum. Typically, this means ASCII, Unicode, or UTF-8. However, all line endings **must** use the `\n` character. Files need not be terminated with `EOF`, as any parser should be able to check for the terminating `ENDFIELD`. Note however, that the terminating `ENDFIELD` (the `ENFDIELD` of the last field in the file) **must** be terminated with a `\n`, even though the next line will be blank.
 
-Field headers take the format `NAME VTYPE`, where `NAME` can be any string, and `VTYPE` indicates the variable type of the field, and can be either `FLOAT`, `INT`, or `STRING`. Unlike previous BXF versions, BXF 2.1 fields are *always* lists, even if they contain only one element. 
+Additionally, floating point numbers **must** use decimals, not commas. 
+
+##Fields 
+A field contains a header, on it's own line, and is terminated by `ENDFIELD` on it's own line. A field may contain one or more entries, delineated by whitespaces. Each line in a field **must** be one to ten elements long, and **must** be terminated with a `\n` character. 
+
+Field headers take the format `NAME VTYPE`, where `NAME` can be any string, and `VTYPE` indicates the variable type of the field, and can be either `FLOAT`, `INT`, or `STRING`. Unlike previous BXF versions, BXF 2.1+ fields are *always* lists, even if they contain only one element.
 
 **NOTE**: BXF does not differentiate between float and double, and either may be written to a `FLOAT` field. It is up to the parser to determine how to read in `FLOAT` fields. 
 
@@ -33,7 +39,7 @@ EXAMPLEFIELD INT
 ENDFIELD
 ```
 ```
-EXAMPLEFIELDFLOAT 
+EXAMPLEFIELD FLOAT 
 7.5 3 9.0 3.56
 ENDFIELD
 ```
@@ -73,16 +79,21 @@ rather than the lower triangle.
 ## Required Fields 
 A valid BXF file used for storing sparse matrices must have several specific fields, which follow. Note that BXF always stores matrices in COO format for easy conversion to CSR, CSC, and for easy per-index access. 
 
-### `REMARKS LIST STRING` 
+**NOTE**: Fields must appear in the order they are presented below. Parser implementations are encouraged, but not required to support out of order fields, therefore all write implementations must output the below fields in order. 
+
+### `REMARKS STRING` 
 Effectively a comments field. This field is ignored by any compliant parser, and may contain any content the creator of the file desires. 
 
-### `VAL LIST FLOAT`
+**NOTE**: the remarks field must not exceed a length of 10,000 lines, and no line
+in the remarks field should exceed 255 characters in length, as this may break some parsers (namely, the C reference implementation).
+
+### `VAL FLOAT`
 The `val` vector for a COO matrix. 
 
-### `ROW LIST INT`
+### `ROW INT`
 The `row` vector for a COO matrix, sometimes referred to as `row_ind`, or `row_ptr`. 
 
-### `COL LIST INT`
+### `COL INT`
 The `col` vector for a COO matrix, sometimes referred to as `col_ind`, or `col_ptr`. 
 
 ## Verification sum
