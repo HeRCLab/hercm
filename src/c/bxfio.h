@@ -34,5 +34,6 @@ bxfio_status bxfio_read_data(char * filename,
     float * val);
 
 int bxfio_check_file_exists (char *filename);
+void bxfio_drop_chars(char *str, int n);
 
 #endif

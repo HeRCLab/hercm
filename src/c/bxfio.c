@@ -87,6 +87,24 @@ int bxfio_check_file_exists (char *filename)
 }
 
 /**
+ * @brief      Drops the first n characters from a string in place. 
+ *
+ * @param      str   string to drop chars from
+ * @param[in]  n     the number of chars to drop 
+ */
+void bxfio_drop_chars(char *str, int n)
+{
+   char* res = str + n;
+   while ( *res )
+   {
+      *str = *res;
+      ++str;
+      ++res;
+   }
+   *str = '\0';
+}
+
+/**
  * @brief      Read the data from a BXF file. 
  *
  * @param[in]      filename  relative or absolute path of bxf file
@@ -139,7 +157,7 @@ bxfio_status bxfio_read_data(char * filename,
     {
         fgets(buf, 255, fp);
         float current_val;
-        int val_idx = 0, chars_read =0;
+        int val_idx = 0, chars_read = 0;
         overflow_counter++; // avoid non-terminating loop
         if (strcmp(buf, "ENDFIELD\n") == 0 ||
             strcmp(buf, "") == 0 ||
@@ -149,22 +167,15 @@ bxfio_status bxfio_read_data(char * filename,
             continue;
         }
 
-        /*while (sscanf(buf, "%f%n", &current_val, chars_read) == 1) 
+        /*for (val_idx; sscanf(&buf[chars_read], "%f%n", &current_val, &chars_read) == 1; val_idx++) 
         {
-            if (val_idx > nnz-1)
-            {
-                return BXFIO_READ_FIELDERROR; // field too long
-            }
             printf("DEBUG: read number: %f\n", current_val);
             val[val_idx] = current_val;
-            val_idx ++;
-
         }*/
-
-        for (val_idx; sscanf(&buf[chars_read], "%f%n", &current_val, &chars_read) == 1; val_idx++) 
+        for (val_idx; sscanf(buf, "%f%n", &current_val, &chars_read) == 1; val_idx++)
         {
-            printf("DEBUG: read number: %f\n", current_val);
-            val[val_idx] = current_val;
+            printf("DEBUG: read number %f\n", current_val);
+            bxfio_drop_chars(buf, chars_read);
         }
     }
 
