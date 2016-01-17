@@ -152,12 +152,13 @@ bxfio_status bxfio_read_data(char * filename,
     }
 
     overflow_counter = 0;
+    int val_idx = 0;
 
     while(strcmp(buf, "ENDFIELD\n") !=0 )
     {
         fgets(buf, 255, fp);
         float current_val;
-        int val_idx = 0, chars_read = 0;
+        int chars_read = 0;
         overflow_counter++; // avoid non-terminating loop
         if (strcmp(buf, "ENDFIELD\n") == 0 ||
             strcmp(buf, "") == 0 ||
@@ -173,7 +174,69 @@ bxfio_status bxfio_read_data(char * filename,
             val[val_idx] = current_val;
             bxfio_drop_chars(buf, chars_read);
         }
+
     }
+
+    fgets(buf, 255, fp); // consume row header
+    if (strcmp(buf, "ROW INT\n") != 0)
+    {
+        return BXFIO_READ_FIELDERROR;
+    }
+
+    int row_idx = 0;
+    while(strcmp(buf, "ENDFIELD\n") !=0 )
+    {
+        fgets(buf, 255, fp);
+        int current_val;
+        int chars_read = 0;
+        overflow_counter++; // avoid non-terminating loop
+        if (strcmp(buf, "ENDFIELD\n") == 0 ||
+            strcmp(buf, "") == 0 ||
+            strcmp(buf, "COL INT\n") ==0)
+        {
+            printf("DEBUG: skipping line: %s", buf);
+            continue;
+        }
+
+        for (row_idx; sscanf(buf, "%d%n", &current_val, &chars_read) == 1; row_idx++)
+        {
+            printf("DEBUG: read number %d\n", current_val);
+            row[row_idx] = current_val;
+            bxfio_drop_chars(buf, chars_read);
+        }
+
+    }
+
+    fgets(buf, 255, fp); // consume col header
+    if (strcmp(buf, "COL INT\n") != 0)
+    {
+        return BXFIO_READ_FIELDERROR;
+    }
+
+    overflow_counter = 0;
+    int col_idx = 0;
+    while(strcmp(buf, "ENDFIELD\n") !=0 )
+    {
+        fgets(buf, 255, fp);
+        int current_val;
+        int chars_read = 0;
+        overflow_counter++; // avoid non-terminating loop
+        if (strcmp(buf, "ENDFIELD\n") == 0 ||
+            strcmp(buf, "") == 0)
+        {
+            printf("DEBUG: skipping line: %s", buf);
+            continue;
+        }
+
+        for (col_idx; sscanf(buf, "%d%n", &current_val, &chars_read) == 1; col_idx++)
+        {
+            printf("DEBUG: read number %d\n", current_val);
+            col[col_idx] = current_val;
+            bxfio_drop_chars(buf, chars_read);
+        }
+
+    }
+
 
 
     fclose(fp);

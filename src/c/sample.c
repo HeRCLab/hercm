@@ -50,5 +50,12 @@ int main(int argc, char **argv )
         printf("FAILED\n");
     }
 
+    printf("--- COO data read ---\n");
+    printf("row  col  val\n");
+    for (int i = 0; i < nnz; i++)
+    {
+        printf("%d %d %f\n", row[i], col[i], val[i]);
+    }
+
 	return 0;
 }
