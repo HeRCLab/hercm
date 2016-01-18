@@ -345,7 +345,7 @@ def paint(row1, row2, col1, col2, val, HERCMATRIX):
 
 def paintDiagonal(begin, end, spread, val, HERCMATRIX, offset=0):
 
-    for i in range(begin, end):
+    for i in range(begin, end+1):
         for j in range(0, spread):
             try:
                 col = offset + i + j  # right side
