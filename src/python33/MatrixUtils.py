@@ -62,14 +62,15 @@ def displayMatrix(HERCMATRIX, maxHeight=10, maxWidth=10):
     if maxWidth % 2 != 0:
         raise ValueError("maxWidth must be an even number")
 
+
     row = 0
     while row < HERCMATRIX.height:
-        if row == (maxWidth / 2):
+        if (row == (maxHeight / 2)) and (HERCMATRIX.height > maxHeight):
             row = HERCMATRIX.height - (maxHeight / 2)
             print("\n", end="")
         col = 0
         while col < HERCMATRIX.width:
-            if col == (maxWidth / 2):
+            if (col == (maxWidth / 2)) and (HERCMATRIX.width > maxWidth):
                 col = HERCMATRIX.width - (maxWidth / 2)
                 print(" ... ", end="")
             try:
