@@ -15,16 +15,62 @@ Documentation may be built manually with `doxygen Doxyfile` in the TLD of the pr
 
 **NOTE**: documentation for C components of the project are not listed in the "class browser" - you must use the "Files" tab, then select the file you wish to view documentation for. 
 
-# Current Features
+# Features
 
-## Python 3.X
+## Current
+
+### Python 3.X
 * read/write access to the file formats:
  * mtx
  * bxf
  * valcol
  * mat
-* conversion of matrix to/from scipy.sparse and numpy dense matrix formats
+* matrix operations 
+ * conversion of matrix to/from scipy.sparse and numpy dense matrix formats
+ * append (COO) element
+ * retrieve (COO) element by index
+ * retrieve indicies which match a COO element
+ * remove COO element by index
+ * retrieve matrix values by (row, col) coordinate pair
+ * modify matrix values by (row, col) coordinate pair
+ * remove elements from the matrix whose value is zero 
+ * replace matrix contents with a `scipy.sparse` matrix
+ * check if any elements are stored in the upper/lower triangle of the matrix
+ * check if the matrix is symmetric
+ * convert the matrix to symmetric/asymmetric
+ * sort matrix elements to row-major
+ * transpose the matrix
+* HercExplorer interface
+ * wrappers for all of the above
+ * paint values by (row, col) pair, in a rectangle pattern, or a diagonal pattern
+ * retrieve values by (row, col) pair, in a rectangular region, by row, or by col
+ * display graphical (via matplotlib) and pseudo-graphical overviews of the matrix
+ * modify matrix dimensions 
 
+### C 
+* read matrices stored in BXF format 
+
+### BXF
+* store symmetric and asymmetric matrices in COO format 
+* store comments about matrix in `REMARKS` field 
+
+
+## Planned
+
+### Python 3.X
+* read/write support for harwell-boeing format 
+* read/write support for serialized python objects
+* matrix computation operations (eg. computing matrix eigenvector)
+
+### C
+* read matricies stored in valcol format
+* read+write support for BXF and valcol
+* matrix transpose operation
+* COO-to-CSR and CSR-to-COO operations
+* sort matrix elements to row major
+
+### BXF
+* error checking
 
 
 # Major Libraries & their Purposes
