@@ -272,8 +272,8 @@ def printRange(row1, row2, col1, col2, HERCMATRIX):
         raise ValueError("col1 larger than col2")
 
     TMPMATRIX = libHercMatrix.hercMatrix()
-    TMPMATRIX.height = abs(row2 - row1)
-    TMPMATRIX.width = abs(col2 - col1)
+    TMPMATRIX.height = abs(row2 - row1 + 1)
+    TMPMATRIX.width = abs(col2 - col1 + 1)
 
     width = HERCMATRIX.width
     height = HERCMATRIX.height
@@ -283,8 +283,8 @@ def printRange(row1, row2, col1, col2, HERCMATRIX):
         col = element[1]
         val = element[2]
 
-        if (row >= row1) and (row < row2):
-            if (col >= col1) and (col < col2):
+        if (row >= row1) and (row <= row2):
+            if (col >= col1) and (col <= col2):
                 try:
                     TMPMATRIX.setValue(row - row1,
                                        col - col1,
