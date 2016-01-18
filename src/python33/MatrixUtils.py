@@ -397,8 +397,11 @@ def initialize(height, width, HERCMATRIX, val=0):
 
     # optionally sets all elements in the matrix equal to val
 
-    setDims(0, 0, HERCMATRIX)
-    setDims(height, width, HERCMATRIX)
+    HERCMATRIX.nzentries = 0
+    HERCMATRIX.elements = None
+    HERCMATRIX.height = height
+    HERCMATRIX.width = width 
+    HERCMATRIX.symmetry = "ASYM"
 
     for i in range(0, height):  # this is faster than using paint
         for j in range(0, width):
