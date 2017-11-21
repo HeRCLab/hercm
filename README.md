@@ -1,7 +1,10 @@
 # HeRC Matrix Tools (HeRCM)
 
+# Update 2017-11-21
+
+This project is no longer active. I will accept bug reports and may fix them, but no new features will be added in the forseeable future. 
+
 # Introduction
-**ATTENTION**: This project is still under active development. While most of the code has been tested for basic functionality, performance and edge cases have not been evaluated yet. 
 
 HeRC Matrix Tools is a collection of open source sparse and symmetric matrix tools, originally created for the University of South Carolina HeRC research group. 
 
